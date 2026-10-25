@@ -26,7 +26,7 @@ por plano, cobranças e domínios.
 ## Arquitetura
 
 ```
-Internet ─► Caddy (HTTPS automático: domínio, curinga e domínios próprios das empresas)
+Internet ─► Caddy da plataforma ou Nginx do servidor + certbot (HTTPS de cada endereço)
               │
    ┌──────────── docker compose "saascrm" ──────────────────┐
    │ web     Nginx sem root: frontend React + proxy /api     │
@@ -42,7 +42,7 @@ Internet ─► Caddy (HTTPS automático: domínio, curinga e domínios próprio
 | Frontend | React 19, Vite 8, Tailwind CSS 4, shadcn/ui (componentes + block `sidebar-07`), TanStack Query, React Router 8 |
 | Segurança | Argon2id, TOTP (otplib), JWT HS256 em cookie HttpOnly, refresh token rotativo, CSRF double-submit, Helmet, rate limit |
 | Cobrança | Asaas (assinatura mensal, webhook com token) |
-| Infra | Docker Compose, Caddy (on-demand TLS), backups com `age` |
+| Infra | Docker Compose, Caddy (on-demand TLS) ou Nginx do servidor + certbot, backups com `age` |
 
 Repositório em *npm workspaces*:
 

@@ -8,8 +8,24 @@ emite sozinho o certificado HTTPS de cada endereço no primeiro acesso:
 - `<empresa>.crm.sgmulticonecta.com.br`: o CRM de cada empresa;
 - domínio próprio da empresa (ex.: `crm.empresa.com.br`): cadastrado no painel da plataforma.
 
-O Caddy só emite certificado para endereços que a API confirma (`/api/public/dominio-permitido`): subdomínios de empresas
-cadastradas e domínios próprios já verificados.
+### Dois jeitos de instalar (o instalador escolhe sozinho)
+
+| VPS | HTTPS | O que muda no servidor |
+|---|---|---|
+| **Só da plataforma** (portas 80/443 livres) | Caddy da plataforma, certificado no primeiro acesso | Nada fora dos containers |
+| **Com outro sistema** e o **Nginx do servidor** nas portas 80/443 | Nginx do servidor + certbot | Um arquivo só da plataforma no Nginx (`saascrm`), o certbot e um cron |
+
+- **Caddy:** só emite certificado para endereços que a API confirma (`/api/public/dominio-permitido`): subdomínios de
+  empresas cadastradas e domínios próprios.
+- **Nginx do servidor:** o `deploy/certificados.sh` roda a cada 5 minutos (`/etc/cron.d/saascrm-certificados`), pega na
+  API os endereços da plataforma, emite os certificados que faltam e refaz o arquivo da plataforma no Nginx. Antes de
+  recarregar, confere com `nginx -t`; com erro, volta o arquivo anterior. Os outros sites do servidor não são tocados.
+  Empresa nova ou domínio próprio conferido ganha HTTPS em até 5 minutos. Ver a situação:
+  `sudo bash deploy/certificados.sh --status` (registro em `/var/log/saascrm-certificados.log`).
+- **Portas 80/443 com um container de outro sistema:** o instalador para sem alterar nada e mostra qual é o container;
+  nesse caso a plataforma precisa entrar pelo servidor web dele (análise caso a caso).
+
+A plataforma usa uma porta interna (`127.0.0.1:8180`, ou a próxima livre), sem acesso de fora.
 
 **Memória:** a VPS não compila nada. A cada versão publicada, o GitHub Actions constrói as imagens e publica em
 `ghcr.io/diegonauemocelin/saascrm-*`; o deploy só as baixa. Recomendado: 4 GB de RAM (8 GB com WhatsApp para muitas empresas).
@@ -28,7 +44,8 @@ continua onde está, sem mudança.
 
 ## 2. Pré-requisitos na VPS
 
-- Ubuntu 24.04 (ou Debian 12) limpo, com as portas 80 e 443 liberadas no firewall do provedor.
+- Ubuntu 24.04 ou Debian 12, com as portas 80 e 443 liberadas no firewall do provedor (numa VPS com outro sistema, já
+  estão). Memória livre: 1,5 GB para a plataforma (mais com WhatsApp).
 - Docker e Compose v2:
 
   ```bash
@@ -67,8 +84,10 @@ sudo git clone git@github.com:diegonauemocelin/saascrm.git /opt/saascrm
 cd /opt/saascrm && sudo BACKUP_AGE_RECIPIENT="age1...sua-chave-publica" bash deploy/instalar.sh crm.sgmulticonecta.com.br seu-email@sgmulticonecta.com.br "Seu Nome"
 ```
 
-O script confere o DNS e as portas, cria o `.env` com segredos aleatórios, sobe os containers e cria a empresa dona da
-plataforma com o primeiro administrador (a senha provisória aparece uma única vez no terminal).
+O script confere o DNS e quem usa as portas 80/443 (e escolhe o jeito do HTTPS), cria o `.env` com segredos aleatórios,
+sobe os containers e cria a empresa dona da plataforma com o primeiro administrador (a senha provisória aparece uma
+única vez no terminal). Na VPS com o Nginx do servidor, ele também instala o certbot (se faltar), emite os certificados
+e agenda o `deploy/certificados.sh`.
 
 > **Guarde o `APP_ENCRYPTION_KEY`** do `/opt/saascrm/.env` junto da chave de backup. Sem ele, o 2FA e as senhas guardadas
 > (SMTP, integrações) não podem ser lidos numa restauração em outro servidor.
@@ -159,14 +178,14 @@ Copie a chave privada para a VPS só nesse momento e apague em seguida: `sudo sh
 |---|---|
 | Ver status | `sudo docker compose ps` |
 | Ver logs da API | `sudo docker compose logs -f --tail=100 api` |
-| Ver logs dos certificados | `sudo docker compose logs -f --tail=100 caddy` |
+| Ver os certificados | Caddy: `sudo docker compose logs -f --tail=100 caddy` · Nginx: `sudo bash deploy/certificados.sh --status` |
 | Reiniciar | `sudo docker compose restart` |
 | Histórico de deploys | `cat .deploy/historico.log` |
 
 ## Firewall
 
-Abertas para fora: só 80 e 443 (Caddy) e a porta do SSH. O banco, a API e o WhatsApp não têm porta publicada; o frontend
-publica `127.0.0.1:8180` só para a conferência de saúde do deploy.
+Abertas para fora: só 80 e 443 (Caddy ou o Nginx do servidor) e a porta do SSH. O banco, a API e o WhatsApp não têm porta
+publicada; o frontend publica só em `127.0.0.1` (porta `CRM_HTTP_PORT` do `.env`).
 
 ## WhatsApp (Evolution API)
 
@@ -190,6 +209,12 @@ sudo bash deploy/whatsapp.sh desativar
 
 ```bash
 cd /opt/saascrm && sudo docker compose down
+```
+
+Com o Nginx do servidor, retire também o arquivo e o cron da plataforma:
+
+```bash
+sudo rm -f /etc/cron.d/saascrm-certificados /etc/nginx/sites-enabled/saascrm /etc/nginx/sites-available/saascrm /etc/nginx/conf.d/saascrm.conf && sudo nginx -t && sudo systemctl reload nginx
 ```
 
 Os dados ficam nos volumes `saascrm_pgdata`, `saascrm_uploads` e `saascrm_caddy-data` até serem removidos com

@@ -117,9 +117,12 @@ services:
 
   # Servidor da frente: HTTPS automático (Let's Encrypt). O certificado de cada endereço novo é emitido no primeiro
   # acesso, só se a API confirmar que é da plataforma (painel, subdomínio de empresa cadastrada ou domínio próprio).
+  # Só na VPS dedicada (COMPOSE_PROFILES com "caddy"). Numa VPS com outro servidor web nas portas 80/443, o HTTPS fica
+  # no Nginx do servidor (deploy/certificados.sh) e o Caddy não sobe.
   caddy:
     <<: *hardening
     image: caddy:2.10-alpine
+    profiles: [caddy]
     cap_add: [NET_BIND_SERVICE]
     read_only: true
     tmpfs:
@@ -128,7 +131,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      ACME_EMAIL: ${ACME_EMAIL:?defina ACME_EMAIL no .env (avisos do Let's Encrypt)}
+      ACME_EMAIL: ${ACME_EMAIL:-}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

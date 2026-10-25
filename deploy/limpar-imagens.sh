@@ -27,6 +27,7 @@ while read -r imagem; do
   if docker rmi "$imagem" >/dev/null 2>&1; then apagadas=$((apagadas + 1)); fi
 done < <(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "^${PREFIXO}-(api|web|backup):")
 
-docker image prune -f >/dev/null 2>&1 || true
+# Só as sobras da plataforma: imagens sem uso de outros sistemas do servidor não são tocadas.
+docker image prune -f --filter "label=com.docker.compose.project=saascrm" >/dev/null 2>&1 || true
 depois="$(df -Pm "$RAIZ" | awk 'NR==2 {print $4}')"
 ok "Imagens antigas do CRM apagadas: $apagadas. Espaço livre: ${antes} MB -> ${depois} MB."

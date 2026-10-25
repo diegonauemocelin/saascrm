@@ -34,7 +34,7 @@
         {
           "type": "infra",
           "area": "Servidor",
-          "text": "Instalação numa VPS dedicada com Caddy na frente (certificado sob demanda, só para endereços confirmados pela plataforma)."
+          "text": "Instalação numa VPS só da plataforma (Caddy, certificado no primeiro acesso) ou numa VPS que já tem outro sistema com o Nginx do servidor (um arquivo próprio no Nginx e certificados pelo certbot a cada 5 minutos, sem mexer nos outros sites)."
         }
       ]
     }

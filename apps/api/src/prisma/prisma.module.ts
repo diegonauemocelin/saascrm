@@ -74,6 +74,21 @@ export class TenantService {
     return false
   }
 
+  /**
+   * Endereços que precisam de certificado quando o HTTPS fica no Nginx do servidor (deploy/certificados.sh): o domínio
+   * da plataforma, o painel, o subdomínio de cada empresa não cancelada e os domínios próprios já conferidos (um domínio
+   * ainda não apontado falharia na emissão e gastaria o limite de tentativas do Let's Encrypt).
+   */
+  async certificateHosts(): Promise<string[]> {
+    if (!env.platformDomain) return []
+    const [tenants, domains] = await Promise.all([
+      this.prisma.tenant.findMany({ where: { isPlatform: false, status: { not: 'CANCELADA' } }, select: { slug: true } }),
+      this.prisma.tenantDomain.findMany({ where: { verifiedAt: { not: null }, tenant: { status: { not: 'CANCELADA' } } }, select: { host: true } }),
+    ])
+    const hosts = [env.platformDomain, env.platformAdminHost, ...tenants.map((t) => `${t.slug}.${env.platformDomain}`), ...domains.map((d) => d.host)]
+    return [...new Set(hosts.filter((h): h is string => !!h && /^[a-z0-9.-]+$/.test(h)))].sort()
+  }
+
   /** Empresa do endereço, ou erro 404 quando o endereço não é de nenhuma empresa. */
   async requireFromHost(host: string | undefined): Promise<string> {
     const id = await this.idFromHost(host)

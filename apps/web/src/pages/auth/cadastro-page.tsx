@@ -78,6 +78,7 @@ export function CadastroPage() {
               {r.url.replace(/^https:\/\//, '')}
             </a>
           </p>
+          <p className="text-xs text-muted-foreground">Se o endereço não abrir na hora, aguarde até 5 minutos: o certificado de segurança (HTTPS) dele está sendo preparado.</p>
           <div className="flex flex-wrap justify-center gap-2">
             {r.payUrl && (
               <Button asChild>

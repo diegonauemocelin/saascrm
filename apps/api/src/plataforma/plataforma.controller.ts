@@ -267,3 +267,19 @@ export class DominioPermitidoController {
     res.status((await this.tenants.certificateAllowed(domain.slice(0, 253))) ? 200 : 404).end()
   }
 }
+
+/**
+ * Lista dos endereços com certificado, um por linha, para o deploy/certificados.sh (HTTPS no Nginx do servidor). O
+ * script chama a API por dentro do container; pelo site, o endereço é bloqueado no nginx do frontend.
+ */
+@Controller('public/certificados')
+export class CertificadosController {
+  constructor(private readonly tenants: TenantService) {}
+
+  @Public()
+  @SkipThrottle()
+  @Get()
+  async list(@Res() res: Response) {
+    res.type('text/plain').send((await this.tenants.certificateHosts()).join('\n') + '\n')
+  }
+}
