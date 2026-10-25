@@ -841,7 +841,7 @@ function EditorialDialog({ initial, owners, statuses, networks, onClose }: { ini
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ed-theme">Tema</Label>
-            <Input id="ed-theme" maxLength={80} value={x.theme ?? ''} onChange={(e) => set({ theme: e.target.value })} placeholder="Ex.: Material rodante, JCB, dica de manutenção" />
+            <Input id="ed-theme" maxLength={80} value={x.theme ?? ''} onChange={(e) => set({ theme: e.target.value })} placeholder="Ex.: Lançamento, promoção, dica de uso" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ed-url">Link da publicação (quando publicada)</Label>

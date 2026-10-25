@@ -11,6 +11,7 @@ import { env } from '../config/env'
 import { Prisma } from '../generated/prisma/client'
 import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
+import { SettingsService } from '../settings/settings.service'
 import { createDefaultRoles } from './perfis-padrao'
 import { accessOf, cleanSlug, cleanSystems, nextStatus, PLATFORM_MODULE, STATUS_LABEL, SYSTEMS, TENANT_STATUSES, type TenantStatus } from './sistemas'
 
@@ -51,6 +52,13 @@ export interface CompanyInput {
  * Painel da plataforma (só na empresa dona, sgmulticonecta): empresas clientes, planos, domínios próprios, cobranças e a
  * rotina diária que muda a situação das assinaturas (ativa → atrasada → suspensa).
  */
+export interface SiteContact {
+  whatsapp: string
+  email: string
+  instagram: string
+}
+const EMPTY_SITE: SiteContact = { whatsapp: '', email: '', instagram: '' }
+
 @Injectable()
 export class PlataformaService implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(PlataformaService.name)
@@ -61,7 +69,24 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
     private readonly tenants: TenantService,
     private readonly audit: AuditService,
     private readonly auth: AuthService,
+    private readonly settings: SettingsService,
   ) {}
+
+  // ---------- Site de apresentação ----------
+
+  /** Contato mostrado no site (planos sob consulta): WhatsApp comercial, e-mail e Instagram. */
+  async siteContact(): Promise<SiteContact> {
+    const id = (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id
+    return id ? this.settings.get(id, 'site', EMPTY_SITE) : EMPTY_SITE
+  }
+
+  async saveSiteContact(user: AuthUser, d: SiteContact, ctx: RequestCtx) {
+    await this.assertCan(user, 'edit')
+    const value: SiteContact = { whatsapp: d.whatsapp.replace(/\D/g, '').slice(0, 15), email: d.email.trim().toLowerCase(), instagram: d.instagram.trim().replace(/^@/, '').slice(0, 60) }
+    await this.settings.set(user.tenantId, 'site', value)
+    await this.audit.byUser(user, ctx, 'plataforma.site_contato', 'settings', 'site', { ...value })
+    return value
+  }
 
   onApplicationBootstrap() {
     this.timer = setInterval(() => void this.reviewStatuses(), 3_600_000)

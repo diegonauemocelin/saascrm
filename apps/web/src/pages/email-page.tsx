@@ -725,7 +725,7 @@ function AiCard() {
               </Row>
             </div>
             <Row label="Sobre a empresa" htmlFor="ia-about" hint="Ajuda a IA a escrever no tom certo: o que vende, para quem, diferenciais. Sem dados de clientes.">
-              <Textarea id="ia-about" rows={2} maxLength={500} placeholder="Importadora de peças para máquinas pesadas (JCB, Case, Caterpillar), atende oficinas e frotistas de todo o Brasil." value={about ?? q.data.about} onChange={(e) => setAbout(e.target.value)} />
+              <Textarea id="ia-about" rows={2} maxLength={500} placeholder="Distribuidora de produtos para empresas, com entrega para todo o Brasil e atendimento pelo WhatsApp." value={about ?? q.data.about} onChange={(e) => setAbout(e.target.value)} />
             </Row>
             <p className="rounded-md bg-muted p-2.5 text-xs text-muted-foreground">
               Privacidade: só o texto que você está escrevendo no e-mail vai para o Google, nunca dados de leads. No plano gratuito o Google pode usar esses textos para melhorar os modelos, então não escreva informações sigilosas no editor. O plano gratuito tem limite de pedidos por minuto e por dia.

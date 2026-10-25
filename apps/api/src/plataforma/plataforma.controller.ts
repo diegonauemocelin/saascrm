@@ -6,6 +6,7 @@ import { Type } from 'class-transformer'
 import { IsArray, IsBoolean, IsEmail, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator'
 import { AllowBlocked, CurrentUser, Public, ReqContext, type RequestCtx } from '../common/decorators'
 import { can } from '../common/permissions'
+import { env } from '../config/env'
 import { TenantService } from '../prisma/prisma.module'
 import { CobrancaService } from './cobranca.service'
 import type { AuthUser } from '../common/types'
@@ -81,6 +82,12 @@ class PaymentsDto {
   @IsOptional() @Type(() => Number) @IsInt() pagina?: number
 }
 
+class SiteDto {
+  @IsString() @MaxLength(30) whatsapp!: string
+  @ValidateIf((o: SiteDto) => o.email !== '') @IsEmail() @MaxLength(200) email!: string
+  @IsString() @MaxLength(60) instagram!: string
+}
+
 /** Painel da plataforma (empresa dona): empresas clientes, planos, domínios e cobranças. */
 @ApiTags('Plataforma')
 @Controller('plataforma')
@@ -89,6 +96,17 @@ export class PlataformaController {
     private readonly svc: PlataformaService,
     private readonly billing: CobrancaService,
   ) {}
+
+  @Get('site')
+  async site(@CurrentUser() user: AuthUser) {
+    await this.svc.assertCan(user, 'view')
+    return this.svc.siteContact()
+  }
+
+  @Put('site')
+  saveSite(@CurrentUser() user: AuthUser, @Body() dto: SiteDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveSiteContact(user, dto, ctx)
+  }
 
   @Get('resumo')
   summary(@CurrentUser() user: AuthUser) {
@@ -179,6 +197,30 @@ export class PlataformaController {
   @Get('cobrancas')
   payments(@CurrentUser() user: AuthUser, @Query() q: PaymentsDto) {
     return this.svc.payments(user, q.empresa)
+  }
+}
+
+/**
+ * Site de apresentação (SITE_DOMAIN): os planos sem preço (sob consulta), o contato comercial e o endereço do cadastro.
+ */
+@Controller('public/site')
+export class SiteController {
+  constructor(
+    private readonly svc: PlataformaService,
+    private readonly billing: CobrancaService,
+  ) {}
+
+  @Public()
+  @Get()
+  async info() {
+    const [contact, plans] = await Promise.all([this.svc.siteContact(), this.billing.publicPlans()])
+    const base = env.platformAdminHost ?? env.platformDomain
+    return {
+      contact,
+      signupUrl: base ? `https://${base}/cadastro` : null,
+      loginUrl: base ? `https://${base}/login` : null,
+      plans: plans.map(({ priceCents: _price, ...p }) => p),
+    }
   }
 }
 

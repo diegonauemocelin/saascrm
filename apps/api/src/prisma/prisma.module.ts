@@ -68,6 +68,7 @@ export class TenantService {
     if (!env.platformDomain) return false
     const h = host.toLowerCase().replace(/\.$/, '')
     if (h === env.platformDomain || h === `www.${env.platformDomain}` || h === env.platformAdminHost) return true
+    if (env.siteDomain && (h === env.siteDomain || h === `www.${env.siteDomain}`)) return true
     const k = hostKind(h, env.platformDomain, env.platformAdminHost)
     if (k.kind === 'slug') return !!(await this.prisma.tenant.findUnique({ where: { slug: k.slug }, select: { id: true } }))
     if (k.kind === 'custom') return !!(await this.prisma.tenantDomain.findUnique({ where: { host: k.host }, select: { id: true } }))
@@ -85,7 +86,8 @@ export class TenantService {
       this.prisma.tenant.findMany({ where: { isPlatform: false, status: { not: 'CANCELADA' } }, select: { slug: true } }),
       this.prisma.tenantDomain.findMany({ where: { verifiedAt: { not: null }, tenant: { status: { not: 'CANCELADA' } } }, select: { host: true } }),
     ])
-    const hosts = [env.platformDomain, env.platformAdminHost, ...tenants.map((t) => `${t.slug}.${env.platformDomain}`), ...domains.map((d) => d.host)]
+    const site = env.siteDomain ? [env.siteDomain, `www.${env.siteDomain}`] : []
+    const hosts = [env.platformDomain, env.platformAdminHost, ...site, ...tenants.map((t) => `${t.slug}.${env.platformDomain}`), ...domains.map((d) => d.host)]
     return [...new Set(hosts.filter((h): h is string => !!h && /^[a-z0-9.-]+$/.test(h)))].sort()
   }
 

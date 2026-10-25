@@ -563,7 +563,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   async aiImage(user: AuthUser, d: { idea?: string; format?: string }) {
     this.assertCan(user, 'create')
     const idea = (d.idea ?? '').trim().slice(0, 600)
-    if (idea.length < 5) throw new BadRequestException('Descreva a imagem (ex.: escavadeira trabalhando em obra, ao entardecer).')
+    if (idea.length < 5) throw new BadRequestException('Descreva a imagem (ex.: equipe entregando um pedido ao cliente, foto realista).')
     const format = (FORMATS as readonly string[]).includes(d.format ?? '') ? (d.format as PostFormat) : 'FEED'
     return this.ai.image(user.tenantId, imagePrompt(idea, format), format === 'FEED' ? '1:1' : '9:16')
   }

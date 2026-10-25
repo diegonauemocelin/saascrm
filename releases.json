@@ -2,6 +2,38 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.3",
+      "date": "2026-10-25",
+      "title": "Site de apresentação sgmulticonecta.com.br com demonstrações por segmento",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Site",
+          "text": "Site de apresentação em sgmulticonecta.com.br: recursos, vídeos do sistema funcionando em três segmentos de exemplo (autopeças, loja de roupas e fábrica de roupas para padel), como começar, perguntas frequentes e contato."
+        },
+        {
+          "type": "novo",
+          "area": "Site",
+          "text": "Planos no site sob consulta (sem preço), vindos do painel: o botão \"Consultar valores\" abre o WhatsApp comercial com a mensagem pronta."
+        },
+        {
+          "type": "novo",
+          "area": "Plataforma",
+          "text": "Aba Site no painel da plataforma: WhatsApp, e-mail e Instagram do contato comercial mostrados no site."
+        },
+        {
+          "type": "melhoria",
+          "area": "Textos",
+          "text": "Exemplos dos campos (postagens, landing pages, e-mail marketing) sem referências a peças de máquinas pesadas."
+        },
+        {
+          "type": "infra",
+          "area": "Servidor",
+          "text": "SITE_DOMAIN no .env: o site ganha certificado como os demais endereços da plataforma."
+        }
+      ]
+    },
+    {
       "version": "1.0.2",
       "date": "2026-10-25",
       "title": "Marca SG Multiconecta e a entrada da plataforma: entrar na empresa, recuperar o acesso ou criar conta",

@@ -205,7 +205,7 @@ export function ArtDialog({ open, onClose, frame: initialFrame = 'quadrado', onS
                 </div>
               </TabsContent>
               <TabsContent value="ia" className="space-y-2 pt-2">
-                <Textarea rows={3} value={idea} onChange={(e) => setIdea(e.target.value)} placeholder="Descreva a imagem. Ex.: escavadeira amarela trabalhando numa obra ao entardecer, foto realista" />
+                <Textarea rows={3} value={idea} onChange={(e) => setIdea(e.target.value)} placeholder="Descreva a imagem. Ex.: equipe sorrindo entregando um pedido para o cliente, foto realista" />
                 <div className="flex items-center gap-2">
                   <Button type="button" onClick={() => ai.mutate()} disabled={ai.isPending || idea.trim().length < 5}>
                     {ai.isPending ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />} Gerar imagem
@@ -255,7 +255,7 @@ export function ArtDialog({ open, onClose, frame: initialFrame = 'quadrado', onS
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="art-h">Título na imagem (opcional)</Label>
-              <Textarea id="art-h" rows={2} maxLength={90} value={opts.headline} onChange={(e) => set('headline', e.target.value)} placeholder="Ex.: Material rodante para Komatsu PC200" />
+              <Textarea id="art-h" rows={2} maxLength={90} value={opts.headline} onChange={(e) => set('headline', e.target.value)} placeholder="Ex.: Lançamento da linha nova" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="art-s">Subtítulo (opcional)</Label>

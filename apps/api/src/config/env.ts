@@ -40,6 +40,8 @@ function loadEnv() {
     platformDomain: (process.env.PLATFORM_DOMAIN || '').trim().toLowerCase() || null,
     /** Endereço do painel da plataforma (empresa dona), ex.: crm.sgmulticonecta.com.br (pode ser o próprio domínio). */
     platformAdminHost: (process.env.PLATFORM_ADMIN_HOST || '').trim().toLowerCase() || null,
+    /** Site de apresentação da plataforma (ex.: sgmulticonecta.com.br, com www): ganha certificado como os demais. */
+    siteDomain: (process.env.SITE_DOMAIN || '').trim().toLowerCase().replace(/^www\./, '') || null,
     /** Asaas (cobrança das mensalidades): chave da API, ambiente e o token que o Asaas manda nos avisos (webhook). */
     asaasApiKey: process.env.ASAAS_API_KEY || null,
     asaasSandbox: (process.env.ASAAS_ENV || 'sandbox') !== 'producao',

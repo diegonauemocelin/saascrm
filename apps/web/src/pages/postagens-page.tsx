@@ -443,7 +443,7 @@ function PostSheet({ id, date, config, onClose, onChanged }: { id: string | null
                 <Textarea id="p-cap" rows={8} value={f.caption} onChange={(e) => setF({ ...f, caption: e.target.value })} disabled={locked} />
                 {!locked && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <Input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Tema para a IA (ex.: material rodante Komatsu PC200, pronta entrega)" className="min-w-60 flex-1" />
+                    <Input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Tema para a IA (ex.: lançamento da linha nova, pronta entrega)" className="min-w-60 flex-1" />
                     <Button type="button" size="sm" variant="outline" onClick={() => ai.mutate(false)} disabled={ai.isPending || !config?.hasAi || (!topic.trim() && !f.title.trim())}>
                       {ai.isPending ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />} Escrever com IA
                     </Button>
@@ -585,7 +585,7 @@ function PlanDialog({ open, onClose, accounts }: { open: boolean; onClose: () =>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="pl-t">Temas e campanhas do período</Label>
-              <Textarea id="pl-t" rows={3} maxLength={800} value={d.themes} onChange={(e) => setD({ ...d, themes: e.target.value })} placeholder="Ex.: material rodante para escavadeiras, filtros Komatsu e Caterpillar, dicas de manutenção, Black Friday de 27/11" />
+              <Textarea id="pl-t" rows={3} maxLength={800} value={d.themes} onChange={(e) => setD({ ...d, themes: e.target.value })} placeholder="Ex.: lançamentos, bastidores da equipe, dicas de uso dos produtos, depoimentos, Black Friday de 27/11" />
             </div>
             <div className="space-y-1.5">
               <Label>Contas</Label>

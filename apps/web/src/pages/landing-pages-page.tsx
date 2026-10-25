@@ -58,7 +58,7 @@ export function LandingPagesPage() {
       ) : !list.data ? (
         <TableSkeleton rows={4} />
       ) : !list.data.length ? (
-        <EmptyState icon={LayoutTemplateIcon} title="Nenhuma landing page ainda" description="Comece por um modelo pronto (orçamento, material rodante, filtros, por marca...) ou peça para a IA montar a partir do objetivo." />
+        <EmptyState icon={LayoutTemplateIcon} title="Nenhuma landing page ainda" description="Comece por um modelo pronto (orçamento, produto, por marca, evento...) ou peça para a IA montar a partir do objetivo." />
       ) : (
         <Card className="py-0">
           <Table>
@@ -138,7 +138,7 @@ function NewLandingDialog({ options, onClose }: { options: LandingOptions; onClo
         </DialogHeader>
         <div className="space-y-1.5">
           <Label htmlFor="lp-name">Nome da página (opcional)</Label>
-          <Input id="lp-name" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Filtros Komatsu PC200 - Google Ads" />
+          <Input id="lp-name" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Lançamento linha nova - Google Ads" />
         </div>
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
@@ -213,7 +213,7 @@ function AiCreator({ options, busy, onCreate }: { options: LandingOptions; busy:
         <Label htmlFor="ia-goal" required>
           Objetivo da página
         </Label>
-        <Textarea id="ia-goal" rows={2} maxLength={600} value={brief.goal} onChange={(e) => setBrief({ ...brief, goal: e.target.value })} placeholder="Ex.: captar pedidos de orçamento de filtros para Komatsu PC200 vindos do Google Ads" />
+        <Textarea id="ia-goal" rows={2} maxLength={600} value={brief.goal} onChange={(e) => setBrief({ ...brief, goal: e.target.value })} placeholder="Ex.: captar pedidos de orçamento da linha nova vindos do Google Ads" />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">

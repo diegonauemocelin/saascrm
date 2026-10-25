@@ -914,7 +914,7 @@ function CompetitorsDialog({ list: initial, max, onClose }: { list: { username: 
               </div>
               <div className="flex-1 space-y-1">
                 {i === 0 && <Label className="text-xs">Nome da empresa</Label>}
-                <Input value={c.label} maxLength={80} onChange={(e) => setList((l) => l.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder="Ex.: Peças Tratores Ltda" />
+                <Input value={c.label} maxLength={80} onChange={(e) => setList((l) => l.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder="Ex.: Concorrente Ltda" />
               </div>
               <Button type="button" size="icon" variant="ghost" aria-label={`Remover concorrente ${c.username || c.label}`.trim()} onClick={() => setList((l) => l.filter((_, j) => j !== i))}>
                 <Trash2Icon />

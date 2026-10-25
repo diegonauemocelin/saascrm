@@ -130,6 +130,15 @@ Funcionamento:
 3. Clique em **Verificar**. Verificado, o primeiro acesso emite o certificado e os links dos e-mails passam a usar esse
    endereço.
 
+## Site de apresentação (sgmulticonecta.com.br)
+
+1. No DNS, registros **A** `@` e `www` → IP da VPS (somente DNS).
+2. No `/opt/saascrm/.env`, acrescente `SITE_DOMAIN=sgmulticonecta.com.br` e rode `sudo bash deploy/deploy.sh`.
+3. Em até 5 minutos o certificado sai (Nginx do servidor) ou no primeiro acesso (Caddy).
+4. No painel da plataforma, **Plataforma → Site**: WhatsApp, e-mail e Instagram do contato comercial.
+
+Detalhes e como refazer os vídeos: [docs/SITE.md](SITE.md).
+
 ## 8. Atualizar para uma nova versão
 
 ```bash

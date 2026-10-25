@@ -6,7 +6,7 @@
 import { BLOCKS, type FieldDef } from './blocos'
 
 export interface LpBrief {
-  /** O que a página deve conseguir (ex.: "captar orçamentos de filtros Komatsu PC200 vindos do Google Ads"). */
+  /** O que a página deve conseguir (ex.: "captar orçamentos da linha nova vindos do Google Ads"). */
   goal: string
   audience?: string
   offer?: string

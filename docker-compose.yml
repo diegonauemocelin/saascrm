@@ -66,6 +66,7 @@ services:
       APP_URL: https://${PLATFORM_ADMIN_HOST:?defina PLATFORM_ADMIN_HOST no .env}
       PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:?defina PLATFORM_DOMAIN no .env}
       PLATFORM_ADMIN_HOST: ${PLATFORM_ADMIN_HOST}
+      SITE_DOMAIN: ${SITE_DOMAIN:-}
       TENANT_SLUG: ${TENANT_SLUG:-sgmulticonecta}
       # Asaas (mensalidades): chave da API, ambiente (sandbox ou producao) e o token dos avisos (webhook).
       ASAAS_API_KEY: ${ASAAS_API_KEY:-}

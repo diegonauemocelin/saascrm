@@ -489,7 +489,7 @@ export class LandingService {
 
   private brief(d: Partial<LpBrief>): LpBrief {
     const goal = String(d.goal ?? '').trim().slice(0, 600)
-    if (goal.length < 10) throw new BadRequestException('Descreva o objetivo da página (ex.: captar orçamentos de filtros Komatsu PC200 vindos do Google Ads).')
+    if (goal.length < 10) throw new BadRequestException('Descreva o objetivo da página (ex.: captar orçamentos da linha nova vindos do Google Ads).')
     return { goal, audience: String(d.audience ?? '').slice(0, 300), offer: String(d.offer ?? '').slice(0, 400), channel: String(d.channel ?? '').slice(0, 80), language: d.language === 'es' ? 'es' : 'pt' }
   }
 

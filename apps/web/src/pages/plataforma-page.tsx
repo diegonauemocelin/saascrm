@@ -128,12 +128,14 @@ export function PlataformaPage() {
           <TabsTrigger value="empresas">Empresas</TabsTrigger>
           <TabsTrigger value="planos">Planos</TabsTrigger>
           <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
+          <TabsTrigger value="site">Site</TabsTrigger>
         </TabsList>
         <TabsContent value="empresas">
           <Companies plans={plans.data ?? []} systems={systems.data ?? []} />
         </TabsContent>
         <TabsContent value="planos">{plans.error ? <ErrorState error={plans.error} /> : <Plans plans={plans.data} systems={systems.data ?? []} />}</TabsContent>
         <TabsContent value="cobrancas">{tab === 'cobrancas' && <Payments />}</TabsContent>
+        <TabsContent value="site">{tab === 'site' && <SiteContact />}</TabsContent>
       </Tabs>
     </RequirePermission>
   )
@@ -758,6 +760,57 @@ function Payments() {
           ))}
         </TableBody>
       </Table>
+    </Card>
+  )
+}
+
+interface SiteContactData {
+  whatsapp: string
+  email: string
+  instagram: string
+}
+
+/** Contato do site de apresentação: os planos aparecem lá sem preço, com "consultar valores" por estes canais. */
+function SiteContact() {
+  const qc = useQueryClient()
+  const q = useQuery({ queryKey: ['plataforma-site'], queryFn: () => api.get<SiteContactData>('/plataforma/site') })
+  const [f, setF] = useState<SiteContactData | null>(null)
+  useEffect(() => {
+    if (q.data) setF(q.data)
+  }, [q.data])
+  const save = useMutation({
+    mutationFn: (d: SiteContactData) => api.put<SiteContactData>('/plataforma/site', { ...d }),
+    onSuccess: (d) => {
+      qc.setQueryData(['plataforma-site'], d)
+      toast.success('Contato do site salvo.')
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  })
+  if (q.error) return <ErrorState error={q.error} />
+  if (!f) return <TableSkeleton />
+  return (
+    <Card className="max-w-xl gap-4 p-5">
+      <div>
+        <p className="font-medium">Contato do site de apresentação</p>
+        <p className="text-sm text-muted-foreground">No site, os planos aparecem sob consulta. O botão "Consultar valores" abre o WhatsApp com a mensagem pronta; o e-mail e o Instagram ficam no rodapé.</p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="st-wa">WhatsApp comercial (com DDD)</Label>
+        <Input id="st-wa" inputMode="tel" placeholder="(49) 99999-9999" value={f.whatsapp} onChange={(e) => setF({ ...f, whatsapp: e.target.value })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="st-em">E-mail comercial</Label>
+        <Input id="st-em" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="st-ig">Instagram (opcional)</Label>
+        <Input id="st-ig" placeholder="@sgmulticonecta" value={f.instagram} onChange={(e) => setF({ ...f, instagram: e.target.value })} />
+      </div>
+      <Can module="plataforma" action="edit">
+        <Button className="self-start" onClick={() => save.mutate(f)} disabled={save.isPending}>
+          {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar
+        </Button>
+      </Can>
     </Card>
   )
 }
