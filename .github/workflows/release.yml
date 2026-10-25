@@ -1,0 +1,89 @@
+name: Publicar versão
+
+# Ao enviar uma tag vX.Y.Z:
+#  1. confere a versão;
+#  2. constrói as imagens Docker e publica no GitHub Container Registry (a VPS só baixa, sem compilar);
+#  3. publica a Release com as notas do releases.json (é o que o rodapé consulta para "nova versão disponível").
+# Tag de versão antiga (ex.: marcada depois) não vira a "latest": a imagem :latest e a Release "Latest" ficam com a mais nova.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  imagens:
+    name: Imagens Docker
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - nome: api
+            contexto: .
+            dockerfile: apps/api/Dockerfile
+          - nome: web
+            contexto: .
+            dockerfile: apps/web/Dockerfile
+          - nome: backup
+            contexto: deploy/backup
+            dockerfile: deploy/backup/Dockerfile
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Conferir versão
+        run: node scripts/check-release.mjs "${GITHUB_REF_NAME}"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Metadados
+        id: meta
+        run: |
+          echo "versao=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "data=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "imagem=ghcr.io/${GITHUB_REPOSITORY,,}-${{ matrix.nome }}" >> "$GITHUB_OUTPUT"
+          maior="$(git ls-remote --tags --refs origin 'v*.*.*' | sed 's#.*refs/tags/##' | sort -V | tail -n1)"
+          echo "latest=$([ "$maior" = "${GITHUB_REF_NAME}" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.contexto }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.imagem }}:${{ steps.meta.outputs.versao }}
+            ${{ steps.meta.outputs.latest == 'true' && format('{0}:latest', steps.meta.outputs.imagem) || '' }}
+          build-args: |
+            GIT_COMMIT=${{ steps.meta.outputs.commit }}
+            BUILD_DATE=${{ steps.meta.outputs.data }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.versao }}
+          cache-from: type=gha,scope=${{ matrix.nome }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.nome }}
+
+  release:
+    name: Release no GitHub
+    runs-on: ubuntu-latest
+    needs: imagens
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Gerar notas da versão
+        run: node scripts/notas-versao.mjs "${GITHUB_REF_NAME}" > notas.md
+      - name: Criar Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          maior="$(git ls-remote --tags --refs origin 'v*.*.*' | sed 's#.*refs/tags/##' | sort -V | tail -n1)"
+          latest=$([ "$maior" = "${GITHUB_REF_NAME}" ] && echo true || echo false)
+          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file notas.md --verify-tag --latest="$latest"

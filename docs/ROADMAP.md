@@ -1,0 +1,22 @@
+# Roteiro
+
+O que já está em produção fica em [`releases.json`](../releases.json) (tela **Atualizações**). Aqui fica o que falta, na ordem combinada.
+
+| Etapa | Conteúdo | Situação |
+|---|---|---|
+| — | Landing pages: hospedadas pela própria Usaparts em `teste.usaparts.com.br` (pasta na hospedagem, decidido em 07/10/2026), usando os códigos da Captura (formulário com script, pop-up e WhatsApp). O CRM não hospeda as LPs | Em uso |
+| Fase 5 | Email marketing (SMTP Locaweb), editor visual de arrastar e soltar, imagens, catálogo de produtos da Magazord (tela própria na v0.10.0), botão de WhatsApp, relatório. Pendente: IA opcional (sem IA, Gemini gratuito ou paga) | Entregue (v0.6.0–v0.6.2) |
+| Fase 6 | Automações: construtor de fluxos (gatilhos, esperas, condições Sim/Não, e-mail, tags, vendedor, etapa, Pré-Vendas, aviso para a equipe), inatividade, saída por compra e vendas por fluxo. Pendente: WhatsApp automático (Fase 9) | Entregue (v0.7.0) |
+| Fase 7 | Dashboards e relatórios: visão geral, criador de relatórios com painel, exportação CSV e Google Analytics 4 | Entregue (v0.8.0) |
+| Fase 8 | Segurança final: aparelhos conectados, avisos por e-mail, revisão OWASP, limite por usuário, fail2ban, teste de carga e de restauração do backup | Entregue (v0.9.0); fail2ban depende de rodar o script na VPS |
+| Final | **Editor visual de pop-ups e formulários**: blocos (imagem, título, texto, formulário, cupom, espaço, divisor, “Não, obrigado”), cores, fontes, tamanho, posição, cantos, sombra, versão celular, prévia ao vivo e modelos prontos. Pendente: gerar landing page inteira em HTML | Entregue (v0.10.0) |
+| Google Ads | Retorno dos atendimentos (contato, retorno do vendedor, venda com valor, perda por motivo) para as campanhas pela Data Manager API, com reconhecimento por clique ou telefone/e-mail | Entregue (v0.11.0); falta conectar a conta do Google Ads |
+| Fase 9 | Chat WhatsApp (Evolution API, chip dedicado) — por último, a pedido; reavaliar RAM da VPS (4 GB) | A fazer |
+
+## Editor visual de pop-ups e formulários (detalhe do pedido)
+
+- Um lugar no painel (Captura) para **criar o layout** do pop-up e do formulário, sem código.
+- Pré-visualização igual ao site, no computador e no celular.
+- Ao salvar, **gera o código para colar na página** (o mesmo código com script que já existe desde a 0.5.1), e o pop-up continua aparecendo sozinho pelo rastreamento.
+- Modelos prontos para começar (orçamento, cupom de desconto, newsletter, saída da página).
+- O mesmo editor pode gerar uma landing page inteira em HTML para subir na pasta do `teste.usaparts.com.br`.

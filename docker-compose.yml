@@ -1,0 +1,233 @@
+# CRM - stack isolada. Nome de projeto, rede, volumes e banco próprios: não toca em nada que já exista na VPS.
+# A única porta publicada é a do frontend, e só em 127.0.0.1 (o Nginx do servidor faz o HTTPS e repassa para ela).
+
+name: usaparts-crm
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  db:
+    <<: *hardening
+    image: postgres:18-alpine
+    # O Postgres precisa trocar de usuário na inicialização.
+    cap_add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]
+    # Ajustado para a VPS de 2 GB que também roda outros sistemas.
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "work_mem=4MB", "-c", "maintenance_work_mem=32MB", "-c", "max_connections=30", "-c", "effective_cache_size=256MB"]
+    environment:
+      POSTGRES_DB: crm
+      POSTGRES_USER: crm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks: [internal]
+    shm_size: 128mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm -d crm"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits: { memory: 384m }
+
+  # Em produção as imagens vêm prontas do GitHub (CRM_IMAGE_PREFIX=ghcr.io/...): a VPS não compila nada.
+  # Sem o prefixo (desenvolvimento e CI), o compose constrói localmente.
+  api:
+    <<: *hardening
+    image: ${CRM_IMAGE_PREFIX:-usaparts-crm}-api:${CRM_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-dev}
+        BUILD_DATE: ${BUILD_DATE:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      NODE_ENV: production
+      # Importações grandes (dezenas de milhares de linhas) precisam de folga; uso normal fica em ~150 MB.
+      NODE_OPTIONS: --max-old-space-size=384
+      HOME: /tmp
+      CHECKPOINT_DISABLE: "1"
+      APP_URL: https://${CRM_DOMAIN:?defina CRM_DOMAIN no .env}
+      DATABASE_URL: postgresql://crm:${POSTGRES_PASSWORD}@db:5432/crm
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no .env}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?defina APP_ENCRYPTION_KEY no .env}
+      COOKIE_SECURE: "true"
+      GITHUB_REPO: ${GITHUB_REPO:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-}
+      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-Usaparts}
+      # WhatsApp (Evolution API). Vazio = módulo desligado. Gerados por deploy/whatsapp.sh ativar.
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
+      EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:-}
+      WHATSAPP_MAX_NUMBERS: ${WHATSAPP_MAX_NUMBERS:-10}
+      WHATSAPP_MAX_CONNECTED: ${WHATSAPP_MAX_CONNECTED:-3}
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    # "internal" alcança o banco; "egress" permite sair para SMTP, GitHub e, nas próximas fases, Magazord e Meta.
+    networks: [internal, egress]
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  web:
+    <<: *hardening
+    image: ${CRM_IMAGE_PREFIX:-usaparts-crm}-web:${CRM_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      - "127.0.0.1:${CRM_HTTP_PORT:-8180}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [egress]
+    deploy:
+      resources:
+        limits: { memory: 64m }
+
+  # Backup diário criptografado (pg_dump -> gzip -> age com chave pública). A chave privada fica FORA do servidor.
+  backup:
+    <<: *hardening
+    image: ${CRM_IMAGE_PREFIX:-usaparts-crm}-backup:${CRM_VERSION:-latest}
+    build:
+      context: deploy/backup
+    environment:
+      PGHOST: db
+      PGUSER: crm
+      PGDATABASE: crm
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?defina BACKUP_AGE_RECIPIENT no .env (chave pública age)}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - uploads:/data/uploads:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+    deploy:
+      resources:
+        limits: { memory: 128m }
+
+  # ---------- WhatsApp (Evolution API) ----------
+  # Só sobe com COMPOSE_PROFILES=whatsapp no .env (deploy/whatsapp.sh ativar). Nenhuma porta publicada:
+  # só a API do CRM fala com a Evolution, pela rede interna. Conversas ficam no CRM, não na Evolution.
+  evolution-redis:
+    <<: *hardening
+    profiles: [whatsapp]
+    image: redis:7.4-alpine
+    cap_add: [CHOWN, SETUID, SETGID]
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "48mb", "--maxmemory-policy", "allkeys-lru"]
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    deploy:
+      resources:
+        limits: { memory: 80m }
+
+  evolution:
+    <<: *hardening
+    profiles: [whatsapp]
+    image: evoapicloud/evolution-api:${EVOLUTION_VERSION:-v2.3.7}
+    cap_add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]
+    environment:
+      SERVER_TYPE: http
+      SERVER_PORT: "8080"
+      SERVER_URL: http://evolution:8080
+      LANGUAGE: pt-BR
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-}
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "false"
+      DEL_INSTANCE: "false"
+      # Pedidos entre servidores não mandam a origem que o CORS confere; sem porta publicada, nenhum navegador chega aqui.
+      # A proteção é a chave (AUTHENTICATION_API_KEY), exigida em todo pedido.
+      CORS_ORIGIN: "*"
+      CORS_METHODS: GET,POST,PUT,DELETE
+      CORS_CREDENTIALS: "false"
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://crm:${POSTGRES_PASSWORD}@db:5432/evolution?schema=evolution_api&connection_limit=5
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      # Conversas e contatos ficam no CRM (com as regras de LGPD), não aqui.
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
+      DATABASE_SAVE_MESSAGE_UPDATE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "false"
+      DATABASE_SAVE_DATA_CHATS: "false"
+      DATABASE_SAVE_DATA_LABELS: "false"
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://evolution-redis:6379/1
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_REDIS_SAVE_INSTANCES: "false"
+      CACHE_LOCAL_ENABLED: "false"
+      CONFIG_SESSION_PHONE_CLIENT: CRM Usaparts
+      CONFIG_SESSION_PHONE_NAME: Chrome
+      QRCODE_LIMIT: "30"
+      WEBHOOK_GLOBAL_ENABLED: "false"
+      WEBSOCKET_ENABLED: "false"
+      RABBITMQ_ENABLED: "false"
+      SQS_ENABLED: "false"
+      PROVIDER_ENABLED: "false"
+      TELEMETRY_ENABLED: "false"
+      LOG_LEVEL: ERROR,WARN
+      LOG_COLOR: "false"
+      LOG_BAILEYS: error
+      NODE_OPTIONS: --max-old-space-size=320
+      TZ: America/Sao_Paulo
+    volumes:
+      - evolution:/evolution/instances
+    depends_on:
+      db:
+        condition: service_healthy
+      evolution-redis:
+        condition: service_healthy
+    # "internal" alcança o banco, o Redis e a API do CRM; "egress" é a saída para os servidores do WhatsApp.
+    networks: [internal, egress]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: ${EVOLUTION_MEMORY:-512m}
+
+networks:
+  # Sem saída para a internet: só a API e o backup falam com o banco.
+  internal:
+    internal: true
+  egress: {}
+
+volumes:
+  pgdata:
+  uploads:
+  # Sessões do WhatsApp (os aparelhos conectados). Apagar = ler o QR Code de novo em todos os números.
+  evolution:

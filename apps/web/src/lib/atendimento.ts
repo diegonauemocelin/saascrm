@@ -1,0 +1,184 @@
+import type { GoogleAdsInfo } from './leads'
+import { useQuery } from '@tanstack/react-query'
+import { api } from './api'
+import { DDD_UF } from './ddd'
+import { dateShort, todaySP } from './format'
+
+export type Kind = 'PRE_VENDAS' | 'POS_VENDAS'
+export type SaleStatus = 'SIM' | 'NAO' | 'NEGOCIACAO'
+export type ReturnStatus = 'SIM' | 'NAO' | 'PENDENTE'
+
+export const KIND_INFO: Record<Kind, { title: string; path: string; module: string; other: Kind }> = {
+  PRE_VENDAS: { title: 'Pré-Vendas', path: '/pre-vendas', module: 'pre_vendas', other: 'POS_VENDAS' },
+  POS_VENDAS: { title: 'Pós-Vendas', path: '/pos-vendas', module: 'pos_vendas', other: 'PRE_VENDAS' },
+}
+
+export const SALE_LABEL: Record<SaleStatus, string> = { SIM: 'Vendeu', NAO: 'Perdida', NEGOCIACAO: 'Em negociação' }
+export const RETURN_LABEL: Record<ReturnStatus, string> = { SIM: 'Sim', NAO: 'Não', PENDENTE: 'Pendente' }
+
+export type FollowStatus = 'PENDENTE' | 'CONTATADO' | 'ANALISANDO' | 'RESOLVIDO' | 'VOLTOU_AO_VENDEDOR'
+export const FOLLOW_LABEL: Record<FollowStatus, string> = {
+  PENDENTE: 'Aguardando contato',
+  CONTATADO: 'Cliente contatado',
+  ANALISANDO: 'Analisando',
+  RESOLVIDO: 'Resolvido',
+  VOLTOU_AO_VENDEDOR: 'Voltou ao vendedor',
+}
+export const FOLLOW_STATUSES = Object.keys(FOLLOW_LABEL) as FollowStatus[]
+
+/** "vence em 5 h", "atrasado há 2 h", "contato em 3 h" (prazo do primeiro contato do pós-venda). */
+export function followDeadline(r: { followStatus: FollowStatus | null; dueAt: string | null; firstActionAt: string | null }, now: number) {
+  if (!r.followStatus || !r.dueAt) return null
+  const due = new Date(r.dueAt).getTime()
+  const h = (ms: number) => (ms < 3_600_000 ? `${Math.max(1, Math.round(ms / 60_000))} min` : `${Math.round(ms / 3_600_000)} h`)
+  if (r.firstActionAt) {
+    const late = new Date(r.firstActionAt).getTime() > due
+    return { tone: late ? ('late' as const) : ('ok' as const), text: late ? 'Contato fora do prazo' : 'Contato no prazo' }
+  }
+  return due < now ? { tone: 'late' as const, text: `Atrasado há ${h(now - due)}` } : { tone: 'pending' as const, text: `Vence em ${h(due - now)}` }
+}
+
+export interface Option {
+  id: string
+  name: string
+  active: boolean
+}
+export interface SellerOption extends Option {
+  unitId: string | null
+  userId: string | null
+}
+export interface UnitOption extends Option {
+  city: string | null
+  state: string | null
+  isHeadquarters: boolean
+}
+export interface Options {
+  units: UnitOption[]
+  sellers: SellerOption[]
+  origins: Option[]
+  customerTypes: Option[]
+  brands: Option[]
+  partTypes: Option[]
+  lostReasons: Option[]
+}
+
+export interface ServiceRecord {
+  id: string
+  /** Só na ficha completa: campanha do Google Ads de onde o contato veio. */
+  googleAds?: GoogleAdsInfo | null
+  /** Nas listas: campanha do Google Ads do atendimento (gravada; segue nos próximos atendimentos do mesmo lead). */
+  adsLabel?: string | null
+  /** Página por onde o contato chegou (LP ou site). */
+  entryPage?: string | null
+  /** Formulário, pop-up ou botão de WhatsApp por onde entrou. */
+  entryChannel?: string | null
+  kind: Kind
+  leadAt: string
+  name: string
+  customerCode: string | null
+  phone: string | null
+  email: string | null
+  sellerId: string | null
+  /** Lead da base ligado ao atendimento. */
+  leadId?: string | null
+  unitId: string | null
+  originId: string | null
+  customerTypeId: string | null
+  country: string
+  state: string | null
+  city: string | null
+  region: string | null
+  brandIds: string[]
+  partTypeIds: string[]
+  forwarded: boolean
+  forwardedAt: string | null
+  returnStatus: ReturnStatus | null
+  returnedAt: string | null
+  saleStatus: SaleStatus
+  lostReasonId: string | null
+  invoiceNumber: string | null
+  saleValue: number | null
+  notes: string | null
+  importBatch: string | null
+  overdue: boolean
+  parentId: string | null
+  followStatus: FollowStatus | null
+  followNote: string | null
+  dueAt: string | null
+  firstActionAt: string | null
+  followOverdue: boolean
+  /** Em negociação: até quando chamar o cliente, quando chamaram por último e se o prazo já passou. */
+  callDueAt?: string | null
+  calledAt?: string | null
+  callOverdue?: boolean
+  /** Mensagem automática do dia seguinte: quando foi tentada e o resultado (ENVIADA ou ERRO: motivo). */
+  autoMessageAt?: string | null
+  autoMessageStatus?: string | null
+  /** Só na consulta individual: a pré-venda de origem e os pós-vendas gerados. */
+  parent?: { id: string; sellerId: string | null; leadAt: string; saleStatus: SaleStatus } | null
+  children?: { id: string; sellerId: string | null; followStatus: FollowStatus | null; followNote: string | null; dueAt: string | null; firstActionAt: string | null }[]
+  createdAt: string
+  updatedAt: string
+}
+
+export function useOptions() {
+  return useQuery({ queryKey: ['atendimento-options'], queryFn: () => api.get<Options>('/cadastros/opcoes'), staleTime: 5 * 60_000 })
+}
+
+/** Mapa id → nome de todas as listas (inclui itens desativados, para o histórico continuar legível). */
+export function namesOf(o: Options | undefined) {
+  const m = new Map<string, string>()
+  if (!o) return m
+  for (const list of [o.units, o.sellers, o.origins, o.customerTypes, o.brands, o.partTypes, o.lostReasons]) for (const i of list) m.set(i.id, i.name)
+  return m
+}
+
+export const UF_NAMES: Record<string, string> = {
+  AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia', CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo',
+  GO: 'Goiás', MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul', MG: 'Minas Gerais', PA: 'Pará', PB: 'Paraíba',
+  PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí', RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul',
+  RO: 'Rondônia', RR: 'Roraima', SC: 'Santa Catarina', SP: 'São Paulo', SE: 'Sergipe', TO: 'Tocantins',
+}
+export const UF_LIST = Object.keys(UF_NAMES)
+export const REGIONS = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul']
+
+/** Sugestão de estado a partir do DDD digitado (o operador pode trocar). */
+export function ufFromPhoneInput(value: string): string | null {
+  let d = value.replace(/\D/g, '')
+  if (d.length >= 12 && d.startsWith('55')) d = d.slice(2)
+  return d.length >= 10 ? (DDD_UF[d.slice(0, 2)] ?? null) : null
+}
+
+/** +5547996470159 → (47) 99647-0159 */
+export function formatPhone(e164: string | null) {
+  if (!e164) return ''
+  const d = e164.replace(/^\+55/, '')
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return e164
+}
+
+/** Máscara de digitação de telefone BR. */
+export function maskPhone(value: string) {
+  const d = value.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 2) return d.length ? `(${d}` : ''
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+
+export const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+export const brlCompact = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 })
+export const int = new Intl.NumberFormat('pt-BR')
+export const pctFmt = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1 })
+
+export { dateShort as formatDay, todaySP }
+
+/** Número para o link do WhatsApp (wa.me): só os dígitos, como cadastrado (celular com o 9; o WhatsApp acerta o resto). */
+export function waDigits(phone: string) {
+  return phone.replace(/\D/g, '')
+}
+
+export function whatsappLink(e164: string | null) {
+  return e164 ? `https://wa.me/${waDigits(e164)}` : null
+}

@@ -1,0 +1,223 @@
+/**
+ * Regras puras do rastreamento do site (testadas em test/rastreamento.spec.ts):
+ * de onde veio a visita, o que guardar da URL e quais domínios podem enviar dados.
+ */
+
+export interface Touch {
+  /** Ex.: google, facebook, instagram, newsletter, direto. */
+  source: string
+  /** Ex.: cpc, organico, social, referencia, email, direto. */
+  medium: string
+  campaign?: string
+  /** Número da campanha do Google Ads (gad_campaignid, que o Google acrescenta sozinho, ou utm_id). */
+  campaignId?: string
+  term?: string
+  content?: string
+  /** Só o domínio de quem indicou (nunca a URL completa). */
+  referrer?: string
+  /** Página de entrada, já limpa. */
+  landing?: string
+  /** Gravado como JSON no banco. */
+  [key: string]: string | undefined
+}
+
+const SEARCH: [string, string][] = [
+  ['google.', 'google'],
+  ['bing.com', 'bing'],
+  ['yahoo.', 'yahoo'],
+  ['duckduckgo.com', 'duckduckgo'],
+  ['ecosia.org', 'ecosia'],
+  ['search.brave.com', 'brave'],
+  ['yandex.', 'yandex'],
+]
+const SOCIAL: [string, string][] = [
+  ['facebook.com', 'facebook'],
+  ['fb.com', 'facebook'],
+  ['instagram.com', 'instagram'],
+  ['linkedin.com', 'linkedin'],
+  ['lnkd.in', 'linkedin'],
+  ['youtube.com', 'youtube'],
+  ['youtu.be', 'youtube'],
+  ['tiktok.com', 'tiktok'],
+  ['t.co', 'twitter'],
+  ['twitter.com', 'twitter'],
+  ['x.com', 'twitter'],
+  ['pinterest.', 'pinterest'],
+  ['whatsapp.com', 'whatsapp'],
+  ['wa.me', 'whatsapp'],
+]
+
+/** Parâmetros que podem ficar na URL guardada. O resto (que pode ter e-mail, CPF, token...) é descartado. */
+const KEEP_PARAMS = new Set(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'gbraid', 'wbraid', 'gad_source', 'gad_campaignid', 'utm_id', 'fbclid', 'q', 'busca', 'categoria', 'page', 'pagina'])
+
+function hostOf(url: string | undefined | null): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.hostname.toLowerCase() : null
+  } catch {
+    return null
+  }
+}
+
+function matchesHost(host: string, pattern: string) {
+  return pattern.endsWith('.') ? host.includes(pattern) : host === pattern || host.endsWith(`.${pattern}`)
+}
+
+/** O domínio está na lista (o próprio ou um subdomínio dele)? */
+export function domainAllowed(host: string | null, allowed: string[]) {
+  if (!host) return false
+  const h = host.toLowerCase()
+  return allowed.some((d) => {
+    const a = d.trim().toLowerCase().replace(/^\*\./, '')
+    return a && (h === a || h.endsWith(`.${a}`))
+  })
+}
+
+/** Normaliza um domínio digitado no painel ("https://www.loja.com.br/" -> "www.loja.com.br"). */
+export function cleanDomain(input: string): string | null {
+  const s = input.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^\*\./, '')
+  return /^([a-z0-9-]+\.)+[a-z]{2,}$/.test(s) ? s : null
+}
+
+/** URL guardada: sem senha/fragmento e só com os parâmetros conhecidos. */
+export function cleanUrl(url: string): string | null {
+  let u: URL
+  try {
+    u = new URL(url)
+  } catch {
+    return null
+  }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
+  const params = new URLSearchParams()
+  for (const [k, v] of u.searchParams) if (KEEP_PARAMS.has(k.toLowerCase())) params.append(k.toLowerCase(), v.slice(0, 120))
+  const qs = params.toString()
+  return `${u.protocol}//${u.host}${u.pathname}${qs ? `?${qs}` : ''}`.slice(0, 500)
+}
+
+const clip = (v: string | null | undefined, n = 120) => (v ? v.trim().slice(0, n) || undefined : undefined)
+
+/**
+ * Classifica a origem da visita, na ordem: UTMs > identificadores de anúncio (gclid/fbclid) >
+ * site que indicou (busca, rede social ou outro site) > direto.
+ * Retorna null quando a navegação veio do próprio site (não é uma nova origem).
+ */
+export function classifyTouch(pageUrl: string, referrer: string | null | undefined, siteDomains: string[]): Touch | null {
+  let page: URL
+  try {
+    page = new URL(pageUrl)
+  } catch {
+    return null
+  }
+  const p = page.searchParams
+  const landing = cleanUrl(pageUrl) ?? undefined
+  const refHost = hostOf(referrer)
+  const internal = !!refHost && (domainAllowed(refHost, siteDomains) || refHost === page.hostname.toLowerCase())
+  const utmSource = clip(p.get('utm_source'), 80)
+  // O link pode trazer utm_campaign repetido (o nome posto na URL final + o número posto pelo modelo do Google Ads):
+  // fica o nome como campanha e o número como número da campanha.
+  const campaigns = p.getAll('utm_campaign').map((v) => v.trim()).filter(Boolean)
+  const campaignName = campaigns.find((v) => !/^\d+$/.test(v))
+  const numericCampaign = campaigns.find((v) => /^\d{4,20}$/.test(v))
+  const idRaw = p.get('gad_campaignid') ?? p.get('utm_id') ?? numericCampaign ?? null
+  const campaignId = idRaw && /^\d{4,20}$/.test(idRaw) ? idRaw : undefined
+
+  if (utmSource) {
+    return {
+      source: utmSource.toLowerCase(),
+      medium: clip(p.get('utm_medium'), 80)?.toLowerCase() ?? 'desconhecido',
+      campaign: clip(campaignName ?? campaigns[0]),
+      ...(campaignId ? { campaignId } : {}),
+      term: clip(p.get('utm_term')),
+      content: clip(p.get('utm_content')),
+      referrer: internal ? undefined : (refHost ?? undefined),
+      landing,
+    }
+  }
+  if (p.get('gclid') || p.get('gbraid') || p.get('wbraid') || campaignId) return { source: 'google', medium: 'cpc', ...(campaignId ? { campaignId } : {}), referrer: refHost ?? undefined, landing }
+  if (p.get('fbclid')) return { source: refHost && refHost.includes('instagram') ? 'instagram' : 'facebook', medium: 'social', referrer: refHost ?? undefined, landing }
+  if (internal) return null
+  if (!refHost) return { source: 'direto', medium: 'direto', landing }
+
+  // Webmail antes da busca: mail.google.com também casa com "google.".
+  if (/(^|\.)(mail\.google\.com|outlook\.live\.com|outlook\.office\.com|mail\.yahoo\.com)$|(^|\.)webmail\./.test(refHost)) return { source: 'email', medium: 'email', referrer: refHost, landing }
+  const search = SEARCH.find(([s]) => matchesHost(refHost, s))
+  if (search) return { source: search[1], medium: 'organico', referrer: refHost, landing }
+  const social = SOCIAL.find(([s]) => matchesHost(refHost, s))
+  if (social) return { source: social[1], medium: 'social', referrer: refHost, landing }
+  return { source: refHost.replace(/^www\./, ''), medium: 'referencia', referrer: refHost, landing }
+}
+
+const MEDIUM_LABEL: Record<string, string> = {
+  cpc: 'anúncio',
+  ppc: 'anúncio',
+  paid: 'anúncio',
+  organico: 'busca orgânica',
+  social: 'rede social',
+  referencia: 'indicação de site',
+  email: 'e-mail',
+  direto: 'acesso direto',
+}
+
+/** Texto curto para a linha do tempo: "google (anúncio) · campanha black-friday". */
+export function describeTouch(t: Touch | null | undefined) {
+  if (!t) return 'origem desconhecida'
+  if (t.source === 'direto') return 'acesso direto'
+  const medium = MEDIUM_LABEL[t.medium] ?? t.medium
+  return `${t.source} (${medium})${t.campaign ? ` · campanha ${t.campaign}` : ''}`
+}
+
+export type Device = 'celular' | 'tablet' | 'computador' | 'app'
+
+/** Navegadores embutidos em redes sociais: são celular, não o app da loja. */
+const SOCIAL_INAPP = /FBAN|FBAV|FB_IAB|Instagram|Line\/|musical_ly|TikTok|BytedanceWebview|Twitter|LinkedInApp|Pinterest|Snapchat|WhatsApp|GSA\//i
+
+/**
+ * Categoria do dispositivo a partir do navegador (nada além da categoria é guardado).
+ * App da loja: marcador configurado no painel, dica da própria loja (dataLayer "device": "app")
+ * ou navegador embutido (WebView) que não seja de rede social.
+ */
+export function classifyDevice(ua: string | null | undefined, hint: string | null | undefined, appMarkers: string[] = []): Device {
+  const u = ua ?? ''
+  if (hint && /\bapp\b|aplicativo/i.test(hint)) return 'app'
+  if (appMarkers.some((m) => m.trim() && u.toLowerCase().includes(m.trim().toLowerCase()))) return 'app'
+  const social = SOCIAL_INAPP.test(u)
+  const androidWebView = /Android/.test(u) && /; wv\)/.test(u)
+  const iosWebView = /(iPhone|iPad|iPod)/.test(u) && /AppleWebKit/.test(u) && !/Safari\//.test(u) && !/CriOS|FxiOS|EdgiOS/.test(u)
+  if (!social && (androidWebView || iosWebView)) return 'app'
+  if (/iPad|Tablet/i.test(u) || (/Android/.test(u) && !/Mobile/.test(u))) return 'tablet'
+  if (/Mobi|iPhone|iPod|Android|Windows Phone/i.test(u)) return 'celular'
+  if (hint && /mobile|celular/i.test(hint)) return 'celular'
+  return 'computador'
+}
+
+export const DEVICE_LABEL: Record<Device, string> = { celular: 'Celular', tablet: 'Tablet', computador: 'Computador', app: 'App' }
+
+/** Identificadores gerados pelo navegador: aleatórios, curtos, sem dado pessoal. */
+export const CLIENT_ID = /^[A-Za-z0-9_-]{16,64}$/
+
+/**
+ * Caminho da página para cruzar páginas vistas com os produtos do catálogo: sem domínio, parâmetros e barra final,
+ * em minúsculas ("/filtro-racor-re539465"). Mesma regra do SQL da migração 20261014150000_produtos_vistos.
+ */
+export function pagePath(url: string | null | undefined): string | null {
+  if (!url) return null
+  const p = url
+    .replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^/?#]*/, '')
+    .replace(/[?#].*$/, '')
+    .replace(/\/+$/, '')
+    .toLowerCase()
+  return p ? p.slice(0, 500) : null
+}
+
+/** Marcas de campanha no endereço (anúncio do Google/Meta ou UTM): indicam uma nova origem, mesmo no meio da visita. */
+const CAMPAIGN_PARAMS = ['gclid', 'gbraid', 'wbraid', 'gad_source', 'gad_campaignid', 'fbclid', 'utm_source', 'utm_campaign', 'utm_medium']
+export function hasCampaign(url: string | null | undefined) {
+  if (!url) return false
+  try {
+    const p = new URL(url).searchParams
+    return CAMPAIGN_PARAMS.some((k) => !!p.get(k))
+  } catch {
+    return false
+  }
+}

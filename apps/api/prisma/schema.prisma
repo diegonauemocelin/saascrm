@@ -1,0 +1,2543 @@
+// Modelo de dados do CRM. Toda tabela de negócio carrega tenantId para permitir a evolução para SaaS.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LayoutMode {
+  CLASSIC
+  MODERN
+}
+
+enum ThemeMode {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum PermissionScope {
+  OWN
+  UNIT
+  ALL
+}
+
+enum ServiceKind {
+  PRE_VENDAS
+  POS_VENDAS
+}
+
+enum ReturnStatus {
+  SIM
+  NAO
+  PENDENTE
+}
+
+enum SaleStatus {
+  SIM
+  NAO
+  NEGOCIACAO
+}
+
+/// Acompanhamento do pós-venda gerado automaticamente a partir da pré-venda.
+enum FollowStatus {
+  PENDENTE
+  CONTATADO
+  ANALISANDO
+  RESOLVIDO
+  VOLTOU_AO_VENDEDOR
+}
+
+/// Listas configuráveis dos atendimentos. Itens são desativados, nunca apagados, para preservar o histórico.
+enum LookupType {
+  ORIGEM
+  TIPO_CLIENTE
+  MARCA
+  TIPO_PECA
+  MOTIVO_PERDA
+}
+
+/// Funil de marketing. "Visitante" (anônimo) fica no rastreamento do site; aqui estão as pessoas identificadas.
+enum LeadStage {
+  LEAD
+  QUALIFICADO
+  OPORTUNIDADE
+  CLIENTE
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+  SELECT
+  MULTISELECT
+  BOOLEAN
+}
+
+enum ScoreDimension {
+  PERFIL
+  INTERESSE
+}
+
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  users          User[]
+  roles          Role[]
+  settings       TenantSetting[]
+  files          FileAsset[]
+  units          Unit[]
+  sellers        Seller[]
+  lookups        LookupItem[]
+  serviceRecords ServiceRecord[]
+  leads          Lead[]
+  customFields   CustomFieldDef[]
+  scoreRules     ScoreRule[]
+  leadImports    LeadImport[]
+  siteVisitors   SiteVisitor[]
+  receipts       IntegrationReceipt[]
+  carts          EcommerceCart[]
+  orders         EcommerceOrder[]
+  products       StoreProduct[]
+  forms          CaptureForm[]
+  popups         CapturePopup[]
+  whatsapps      CaptureWhatsapp[]
+  segments       EmailSegment[]
+  campaigns      EmailCampaign[]
+  automations    Automation[]
+  savedReports   SavedReport[]
+  googleAdsConversions GoogleAdsConversion[]
+
+  @@map("tenants")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  name        String
+  description String?
+  /// Perfil de sistema (Administrador): não pode ser editado nem excluído e tem acesso total.
+  isSystem    Boolean  @default(false)
+  require2fa  Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  permissions RolePermission[]
+  users       User[]
+
+  @@unique([tenantId, name])
+  @@map("roles")
+}
+
+model RolePermission {
+  id        String          @id @default(uuid()) @db.Uuid
+  roleId    String          @db.Uuid
+  module    String
+  canView   Boolean         @default(false)
+  canCreate Boolean         @default(false)
+  canEdit   Boolean         @default(false)
+  canDelete Boolean         @default(false)
+  canExport Boolean         @default(false)
+  scope     PermissionScope @default(ALL)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, module])
+  @@map("role_permissions")
+}
+
+model User {
+  id                 String     @id @default(uuid()) @db.Uuid
+  tenantId           String     @db.Uuid
+  roleId             String     @db.Uuid
+  name               String
+  email              String
+  passwordHash       String
+  avatarFileId       String?    @db.Uuid
+  active             Boolean    @default(true)
+  mustChangePassword Boolean    @default(false)
+  passwordChangedAt  DateTime   @default(now())
+
+  /// Segredo TOTP criptografado (AES-256-GCM). O "pending" existe só durante a configuração.
+  totpSecretEnc        String?
+  totpPendingSecretEnc String?
+  totpEnabled          Boolean  @default(false)
+  /// Último time step TOTP aceito; impede reutilizar o mesmo código.
+  totpLastStep         Int?
+
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+  lastLoginAt  DateTime?
+  lastLoginIp  String?
+
+  layout LayoutMode?
+  /// Modelo das telas: ATUAL (telas de sempre) ou NOVO (Minha fila, quadro de pré-vendas, chat com painel do cliente). Vazio = padrão da empresa.
+  screens String?
+  /// Visões salvas por tela (telas novas): { leads: [{ id, name, query }], "pre-vendas": [...] }.
+  savedViews Json?
+  /// Como o nome aparece nas mensagens do WhatsApp enviadas pelo CRM (ex.: "Diego - Vendas"); vazio = primeiro nome.
+  chatSignature String?
+  /// Gestores desta pessoa no chat: podem acompanhar (monitorar, só leitura) as conversas que ela atende.
+  managerIds    String[]  @default([]) @db.Uuid
+  /// Lições da trilha de conhecimento concluídas (ids definidos na tela).
+  trailDone String[] @default([])
+  theme  ThemeMode   @default(SYSTEM)
+
+  /// Unidade do usuário: base do escopo "somente da sua unidade" nos perfis de acesso.
+  unitId String? @db.Uuid
+  unit   Unit?   @relation(fields: [unitId], references: [id])
+
+  /// Excluído: some das listas e não entra mais; o nome fica no histórico (conversas, auditoria, atendimentos).
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id])
+  role           Role                 @relation(fields: [roleId], references: [id])
+  seller         Seller?
+  refreshTokens  RefreshToken[]
+  resetTokens    PasswordResetToken[]
+  recoveryCodes  RecoveryCode[]
+
+  @@unique([tenantId, email])
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  /// Todos os tokens de uma mesma sessão compartilham a família. Reuso de token revogado derruba a família inteira.
+  familyId   String    @db.Uuid
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedAt DateTime?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model RecoveryCode {
+  id       String    @id @default(uuid()) @db.Uuid
+  userId   String    @db.Uuid
+  codeHash String
+  usedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("recovery_codes")
+}
+
+/// Log de auditoria encadeado por hash. UPDATE e DELETE são bloqueados por trigger no banco.
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  tenantId  String?  @db.Uuid
+  userId    String?  @db.Uuid
+  userEmail String?
+  action    String
+  entity    String?
+  entityId  String?
+  ip        String?
+  userAgent String?
+  data      Json?
+  prevHash  String
+  hash      String
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model TenantSetting {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, key])
+  @@map("tenant_settings")
+}
+
+model FileAsset {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  kind      String
+  mime      String
+  size      Int
+  path      String
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("file_assets")
+}
+
+/// Histórico de versões exibido na tela "Atualizações". Sincronizado a partir de releases.json a cada inicialização.
+model SystemRelease {
+  version     String   @id
+  releasedAt  DateTime
+  title       String
+  changes     Json
+  installedAt DateTime @default(now())
+
+  @@map("system_releases")
+}
+
+/// Vendedor que recebe os atendimentos. Pode ou não ter login: o vínculo com um usuário (perfil Vendedor)
+/// é o que permite o escopo "somente os próprios registros".
+/// Unidades da empresa (matriz e filiais). Segmentam atendimentos, vendedores, usuários e relatórios.
+model Unit {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @db.Uuid
+  name           String
+  city           String?
+  state          String?  @db.Char(2)
+  isHeadquarters Boolean  @default(false)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id])
+  sellers Seller[]
+  users   User[]
+  records ServiceRecord[]
+  leads   Lead[]
+
+  @@unique([tenantId, name])
+  @@map("units")
+}
+
+model Seller {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  name      String
+  unitId    String?  @db.Uuid
+  email     String?
+  phone     String?
+  userId    String?  @unique @db.Uuid
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id])
+  unit    Unit?           @relation(fields: [unitId], references: [id])
+  user    User?           @relation(fields: [userId], references: [id])
+  records ServiceRecord[]
+  leads   Lead[]
+
+  @@unique([tenantId, name])
+  @@map("sellers")
+}
+
+model LookupItem {
+  id        String     @id @default(uuid()) @db.Uuid
+  tenantId  String     @db.Uuid
+  type      LookupType
+  name      String
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  originOf       ServiceRecord[] @relation("RecordOrigin")
+  leadOriginOf   Lead[]          @relation("LeadOrigin")
+  customerTypeOf ServiceRecord[] @relation("RecordCustomerType")
+  lostReasonOf   ServiceRecord[] @relation("RecordLostReason")
+
+  @@unique([tenantId, type, name])
+  @@map("lookup_items")
+}
+
+/// Atendimento de Pré-Vendas ou Pós-Vendas.
+model ServiceRecord {
+  id             String        @id @default(uuid()) @db.Uuid
+  tenantId       String        @db.Uuid
+  kind           ServiceKind
+  leadAt         DateTime
+  name           String
+  customerCode   String?
+  phone          String?
+  email          String?
+  sellerId       String?       @db.Uuid
+  /// Lead da base vinculado (pelo telefone ou e-mail). Liga o atendimento à linha do tempo do lead.
+  leadId         String?       @db.Uuid
+  /// Unidade do atendimento. Preenchida pela unidade do vendedor quando ele é escolhido (pode ser alterada).
+  unitId         String?       @db.Uuid
+  originId       String?       @db.Uuid
+  customerTypeId String?       @db.Uuid
+  country        String        @default("BR")
+  state          String?       @db.Char(2)
+  city           String?
+  /// Marcas da máquina e tipos de peça (ids de LookupItem), seleção múltipla.
+  brandIds       String[]      @db.Uuid
+  partTypeIds    String[]      @db.Uuid
+  forwarded      Boolean       @default(false)
+  forwardedAt    DateTime?
+  returnStatus   ReturnStatus?
+  returnedAt     DateTime?
+  saleStatus     SaleStatus    @default(NEGOCIACAO)
+  lostReasonId   String?       @db.Uuid
+  invoiceNumber  String?
+  saleValue      Decimal?      @db.Decimal(12, 2)
+  notes          String?
+  /// Pós-venda: pré-venda que o originou (criado automaticamente ao fechar a pré-venda).
+  parentId       String?       @db.Uuid
+  /// Pós-venda: situação do acompanhamento, prazo para o primeiro contato e quando ele aconteceu.
+  followStatus   FollowStatus?
+  followNote     String?
+  dueAt          DateTime?
+  firstActionAt  DateTime?
+  /// Pré-venda em negociação (repassada ao vendedor): até quando chamar o cliente. Passou disso, vira aviso.
+  callDueAt      DateTime?
+  /// Última vez que marcaram "Chamei o cliente" (ou responderam pelo chat do CRM) com a pré-venda em negociação.
+  calledAt       DateTime?
+  /// Mensagem automática de WhatsApp do dia seguinte: quando foi tentada e o resultado (ENVIADA ou o motivo da falha).
+  autoMessageAt     DateTime?
+  autoMessageStatus String?
+  /// Chave de deduplicação da importação: reimportar a mesma planilha não duplica registros.
+  externalKey    String?
+  importBatch    String?
+  /// Google Ads: ANUNCIO (passou por anúncio até o contato) ou ORIGEM (origem com "Google" no nome, sem campanha).
+  adsVia         String?
+  /// Campanha do anúncio mais recente até o contato (número e nome); adsTouchAt diz quando foi o clique.
+  adsCampaignId  String?
+  adsCampaign    String?
+  adsTouchAt     DateTime?
+  /// Quando a campanha foi conferida (é refeita se o atendimento ou o lead mudar depois disso).
+  adsCheckedAt   DateTime?
+  /// Página por onde o contato chegou (LP ou página do site), sem os parâmetros do link. Ex.: lp.usaparts.com.br/hyundai
+  entryPage      String?
+  /// Por onde entrou no site: formulário, pop-up ou botão de WhatsApp (com o nome dado na Captura).
+  entryChannel   String?
+  /// Palavra-chave do anúncio (utm_term={keyword} no sufixo do link do Google Ads).
+  adsTerm        String?
+  createdById    String?       @db.Uuid
+  updatedById    String?       @db.Uuid
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id])
+  seller       Seller?                @relation(fields: [sellerId], references: [id])
+  lead         Lead?                  @relation(fields: [leadId], references: [id])
+  unit         Unit?                  @relation(fields: [unitId], references: [id])
+  origin       LookupItem?            @relation("RecordOrigin", fields: [originId], references: [id])
+  customerType LookupItem?            @relation("RecordCustomerType", fields: [customerTypeId], references: [id])
+  lostReason   LookupItem?            @relation("RecordLostReason", fields: [lostReasonId], references: [id])
+  parent       ServiceRecord?         @relation("PostSale", fields: [parentId], references: [id])
+  children     ServiceRecord[]        @relation("PostSale")
+  history      ServiceRecordHistory[]
+
+  @@unique([tenantId, externalKey])
+  @@index([tenantId, kind, leadAt])
+  @@index([sellerId])
+  @@index([unitId])
+  @@index([tenantId, kind, callDueAt])
+  @@index([leadId])
+  @@index([phone])
+  @@index([parentId])
+  @@index([tenantId, kind, followStatus, dueAt])
+  @@map("service_records")
+}
+
+/// Histórico de alterações de cada atendimento (quem mudou o quê e quando).
+model ServiceRecordHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  recordId  String   @db.Uuid
+  userId    String?  @db.Uuid
+  userName  String?
+  action    String
+  changes   Json
+  createdAt DateTime @default(now())
+
+  record ServiceRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([recordId, createdAt])
+  @@map("service_record_history")
+}
+
+/// Pessoa identificada (por e-mail e/ou telefone). Deduplicada por e-mail e por telefone (E.164).
+model Lead {
+  id           String    @id @default(uuid()) @db.Uuid
+  tenantId     String    @db.Uuid
+  name         String?
+  email        String?
+  phone        String?
+  company      String?
+  jobTitle     String?
+  country      String    @default("BR")
+  state        String?   @db.Char(2)
+  city         String?
+  stage        LeadStage @default(LEAD)
+  ownerId      String?   @db.Uuid
+  unitId       String?   @db.Uuid
+  originId     String?   @db.Uuid
+  /// Etiquetas em minúsculas (ex.: "revenda", "newsletter").
+  tags         String[]
+  /// Valores dos campos personalizados, por chave do campo.
+  customFields Json      @default("{}")
+
+  /// Permissão para receber e-mail marketing (LGPD). Histórico completo em lead_consents.
+  emailOptIn   Boolean   @default(false)
+  emailOptOutAt DateTime?
+  /// E-mail recusado pelo servidor do destinatário (inexistente): fica fora das campanhas até ser corrigido.
+  emailBouncedAt DateTime?
+
+  firstConversionAt DateTime?
+  lastConversionAt  DateTime?
+  /// Origem/UTMs da primeira e da última conversão.
+  firstConversion   Json?
+  lastConversion    Json?
+
+  lastOpportunityAt DateTime?
+  lastSaleAt        DateTime?
+  lastSaleValue     Decimal?  @db.Decimal(12, 2)
+
+  scoreProfile   Int       @default(0)
+  scoreInterest  Int       @default(0)
+  scoreGrade     String?   @db.Char(1)
+  scoreUpdatedAt DateTime?
+  lastActivityAt DateTime?
+
+  importBatch String?
+  /// Id do cliente na loja virtual (Magazord), quando ele tem cadastro lá.
+  ecommerceId String?
+  /// Dados pessoais apagados a pedido do titular (LGPD): o registro fica só para estatística.
+  anonymizedAt DateTime?
+
+  /// Google Ads: primeira e última campanha por onde o lead passou (histórico completo nas conversões e visitas).
+  adsFirstCampaignId String?
+  adsFirstCampaign   String?
+  adsFirstAt         DateTime?
+  adsLastCampaignId  String?
+  adsLastCampaign    String?
+  adsLastAt          DateTime?
+  adsCheckedAt       DateTime?
+
+  createdById  String?   @db.Uuid
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  owner    Seller?         @relation(fields: [ownerId], references: [id])
+  unit     Unit?           @relation(fields: [unitId], references: [id])
+  origin   LookupItem?     @relation("LeadOrigin", fields: [originId], references: [id])
+  events   LeadEvent[]
+  consents LeadConsent[]
+  records  ServiceRecord[]
+  visitors SiteVisitor[]
+  carts    EcommerceCart[]
+  orders   EcommerceOrder[]
+  captures CaptureSubmission[]
+  emails   EmailRecipient[]
+
+  automationRuns AutomationRun[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId, ecommerceId])
+  @@index([tenantId, phone])
+  @@index([tenantId, stage])
+  @@index([tenantId, scoreGrade])
+  @@index([ownerId])
+  @@map("leads")
+}
+
+/// Navegador que visitou o site (identificado por um número aleatório em cookie do próprio site).
+/// Fica anônimo até ser ligado a um lead (link de e-mail, formulário ou integração).
+model SiteVisitor {
+  id           String    @id @default(uuid()) @db.Uuid
+  tenantId     String    @db.Uuid
+  clientId     String
+  leadId       String?   @db.Uuid
+  firstSeenAt  DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+  /// Origem da primeira e da última visita (fonte, meio, campanha, página de entrada).
+  firstTouch   Json?
+  lastTouch    Json?
+  sessions     Int       @default(0)
+  pageviews    Int       @default(0)
+  identifiedAt DateTime?
+  /// Dispositivo da primeira e da última visita: celular, tablet, computador ou app (só a categoria, nunca o navegador).
+  firstDevice  String?
+  device       String?
+
+  tenant Tenant         @relation(fields: [tenantId], references: [id])
+  lead   Lead?          @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  views  SitePageview[]
+  events SiteEvent[]
+
+  @@unique([tenantId, clientId])
+  @@index([leadId])
+  @@index([tenantId, lastSeenAt])
+  @@map("site_visitors")
+}
+
+model SitePageview {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  visitorId  String   @db.Uuid
+  sessionId  String
+  /// URL sem parâmetros desconhecidos (só UTMs e afins), para não guardar dado pessoal por acidente.
+  url        String
+  /// Caminho da página (sem domínio e parâmetros), para cruzar com os produtos do catálogo.
+  path       String?
+  title      String?
+  newSession Boolean  @default(false)
+  /// Origem, só na primeira página de cada visita.
+  touch      Json?
+  device     String?
+  occurredAt DateTime @default(now())
+
+  visitor SiteVisitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  @@index([visitorId, occurredAt])
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, path])
+  @@map("site_pageviews")
+}
+
+/// Eventos de compra da loja captados pelo script (adicionou ao carrinho, iniciou checkout, comprou).
+model SiteEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  visitorId  String   @db.Uuid
+  name       String
+  value      Decimal? @db.Decimal(12, 2)
+  /// Produtos do evento: código, nome, preço e quantidade.
+  items      Json?
+  url        String?
+  device     String?
+  occurredAt DateTime @default(now())
+
+  visitor SiteVisitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  @@index([visitorId, occurredAt])
+  @@index([tenantId, name, occurredAt])
+  @@map("site_events")
+}
+
+/// Carrinho da loja virtual (Magazord). Aberto, abandonado ou comprado; base para recuperar vendas.
+model EcommerceCart {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  externalId     String
+  hash           String?
+  /// 1 aberto, 2 abandonado, 3 comprado (códigos da Magazord).
+  status         Int
+  leadId         String?   @db.Uuid
+  customerId     String?
+  customerName   String?
+  customerEmail  String?
+  customerPhone  String?
+  startedAt      DateTime?
+  lastActivityAt DateTime?
+  /// Cliente chegou ao checkout (preencheu endereço de entrega).
+  checkoutStarted Boolean  @default(false)
+  checkoutUrl    String?
+  items          Json      @default("[]")
+  itemCount      Int       @default(0)
+  value          Decimal?  @db.Decimal(12, 2)
+  orderCode      String?
+  /// Acompanhamento da recuperação pela equipe.
+  contactStatus  String    @default("PENDENTE")
+  contactNote    String?
+  contactedAt    DateTime?
+  contactedBy    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  lead   Lead?  @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, externalId])
+  @@index([tenantId, status, lastActivityAt])
+  @@index([leadId])
+  @@map("ecommerce_carts")
+}
+
+/// Pedido da loja virtual (Magazord). Alimenta a última venda do lead e, depois, a atribuição de receita.
+model EcommerceOrder {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  externalId  String
+  code        String
+  leadId      String?  @db.Uuid
+  customerId  String?
+  orderedAt   DateTime
+  total       Decimal  @db.Decimal(12, 2)
+  statusCode  Int
+  statusName  String
+  /// pago (aprovado, faturado, enviado, entregue), pendente ou cancelado.
+  statusGroup String
+  payment     String?
+  /// Canal de venda: Site, nome do marketplace (ex.: Mercado Livre), Manual ou PDV.
+  channel     String?
+  /// Itens e canal lidos do detalhe do pedido (vazio = ainda não buscado).
+  itemsAt     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  lead   Lead?  @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  items  EcommerceOrderItem[]
+
+  @@unique([tenantId, externalId])
+  @@index([leadId, orderedAt])
+  @@index([tenantId, orderedAt])
+  @@map("ecommerce_orders")
+}
+
+/// Produto de um pedido da loja virtual (para os mais vendidos).
+model EcommerceOrderItem {
+  id       String  @id @default(uuid()) @db.Uuid
+  tenantId String  @db.Uuid
+  orderId  String  @db.Uuid
+  /// Código da derivação (SKU) na Magazord.
+  sku      String?
+  name     String
+  brand    String?
+  quantity Int
+  /// Valor total do item (já com desconto).
+  total    Decimal @db.Decimal(12, 2)
+
+  order EcommerceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([tenantId])
+  @@map("ecommerce_order_items")
+}
+
+/// Catálogo de produtos da loja (Magazord), copiado para montar e-mails sem consultar a loja a cada busca.
+model StoreProduct {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  /// Derivação (SKU) na Magazord.
+  externalId String
+  code       String
+  name       String
+  brand      String?
+  price      Decimal? @db.Decimal(12, 2)
+  /// Preço "de" (antes do desconto).
+  priceFrom  Decimal? @db.Decimal(12, 2)
+  stock      Int?
+  image      String?
+  url        String?
+  /// Caminho da página do produto (ver pagePath), para saber quem viu o produto no site.
+  path       String?
+  active     Boolean  @default(true)
+  /// Última sincronização em que o produto apareceu (os que somem ficam inativos).
+  syncedAt   DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, externalId])
+  @@index([tenantId, active, name])
+  @@index([tenantId, path])
+  @@map("store_products")
+}
+
+/// Avisos recebidos de integrações (Meta Lead Ads e, depois, Magazord). A chave única impede processar
+/// duas vezes o mesmo aviso quando o serviço reenvia.
+model IntegrationReceipt {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  provider   String
+  externalId String
+  status     String
+  leadId     String?  @db.Uuid
+  error      String?
+  receivedAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, provider, externalId])
+  @@index([tenantId, provider, receivedAt])
+  @@map("integration_receipts")
+}
+
+/// Formulário de captura: usado no site (embutido ou em pop-up) e nas landing pages.
+model CaptureForm {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @db.Uuid
+  name           String
+  /// Campos: [{ key: "name" | "email" | "phone" | ... | "custom:<chave>" | "message", label, required, options? }]
+  fields         Json
+  submitLabel    String   @default("Enviar")
+  successMessage String   @default("Recebemos seus dados. Em breve entraremos em contato.")
+  /// Depois de enviar: abre o WhatsApp central com a mensagem preenchida ou vai para um endereço.
+  afterSubmit    String   @default("mensagem")
+  redirectUrl    String?
+  /// Caixa de consentimento para e-mail marketing (LGPD). Vazio = não mostra.
+  consentText    String?
+  originName     String   @default("Site - LP")
+  ownerId        String?  @db.Uuid
+  /// Opcionais: tipo de cliente e marcas da máquina gravados no atendimento (rastreiam de qual LP/site veio).
+  customerTypeId String?  @db.Uuid
+  brandIds       String[] @default([]) @db.Uuid
+  tags           String[]
+  /// Também cria um atendimento na fila de Pré-Vendas.
+  createRecord   Boolean  @default(true)
+  /// Layout do editor visual para o formulário embutido na página. Vazio = formulário simples.
+  design         Json?
+  active         Boolean  @default(true)
+  submissions    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant              @relation(fields: [tenantId], references: [id])
+  popups CapturePopup[]
+  sends  CaptureSubmission[]
+
+  @@index([tenantId])
+  @@map("capture_forms")
+}
+
+/// Pop-up exibido no site pelo script do CRM, com um formulário.
+model CapturePopup {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  name      String
+  formId    String   @db.Uuid
+  title     String
+  text      String?
+  imageUrl  String?
+  /// Quando abre: tempo na página, intenção de saída ou rolagem.
+  trigger   String   @default("delay")
+  delaySec  Int      @default(10)
+  scrollPct Int      @default(50)
+  /// Páginas onde aparece (trechos do endereço). Vazio = todas.
+  include   String[]
+  exclude   String[]
+  device    String   @default("todos")
+  /// Depois de fechado ou enviado, não aparece de novo por N dias para o mesmo visitante.
+  frequencyDays Int  @default(7)
+  color     String   @default("#1d4ed8")
+  /// Layout do editor visual (blocos, estilo, versão celular). Vazio = pop-up simples (título, texto e imagem).
+  design    Json?
+  /// Opcionais: substituem os do formulário (vazio = usa o do formulário).
+  ownerId        String?  @db.Uuid
+  customerTypeId String?  @db.Uuid
+  brandIds       String[] @default([]) @db.Uuid
+  active    Boolean  @default(false)
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id])
+  form   CaptureForm @relation(fields: [formId], references: [id])
+
+  @@index([tenantId])
+  @@map("capture_popups")
+}
+
+/// Botão flutuante de WhatsApp. Pode haver vários (ex.: um nas LPs de revenda, outro na loja); em cada página
+/// aparece o primeiro ativo cujas regras de página e dispositivo combinam.
+model CaptureWhatsapp {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @db.Uuid
+  name           String
+  /// E.164. Não vai para o site: o link só é entregue depois do cadastro.
+  phone          String
+  buttonText     String   @default("Fale no WhatsApp")
+  title          String   @default("Fale com a gente")
+  subtitle       String   @default("")
+  askEmail       Boolean  @default(false)
+  /// Campos obrigatórios do botão (o WhatsApp é sempre obrigatório).
+  requireName    Boolean  @default(true)
+  requireEmail   Boolean  @default(false)
+  message        String
+  position       String   @default("direita")
+  color          String   @default("#25D366")
+  include        String[]
+  exclude        String[]
+  device         String   @default("todos")
+  ownerId        String?  @db.Uuid
+  customerTypeId String?  @db.Uuid
+  brandIds       String[] @default([]) @db.Uuid
+  tags           String[]
+  /// Origem do atendimento criado pelo botão (ex.: "WhatsApp - LP Hyundai"), para separar cada LP.
+  originName     String   @default("WhatsApp")
+  createRecord   Boolean  @default(true)
+  active         Boolean  @default(false)
+  /// Ordem de prioridade quando mais de um botão serve para a mesma página (menor primeiro).
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("capture_whatsapps")
+}
+
+/// Segmento de leads para campanhas (e, na Fase 6, automações): filtros da base de leads salvos com um nome.
+model EmailSegment {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  name      String
+  /// Mesmos filtros da base de leads (estágio, nota, tags, estado, responsável, unidade, origem, datas).
+  filters   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  campaigns EmailCampaign[]
+
+  @@index([tenantId])
+  @@map("email_segments")
+}
+
+enum CampaignStatus {
+  RASCUNHO
+  AGENDADA
+  ENVIANDO
+  PAUSADA
+  ENVIADA
+  CANCELADA
+}
+
+/// Campanha de e-mail marketing: conteúdo em blocos, público (segmento) e andamento do envio.
+model EmailCampaign {
+  id          String         @id @default(uuid()) @db.Uuid
+  tenantId    String         @db.Uuid
+  name        String
+  subject     String
+  preheader   String?
+  fromName    String?
+  replyTo     String?
+  /// Cupom do e-mail ({cupom} no texto): criado à mão na Magazord, o mesmo código para todos.
+  coupon      String?
+  /// Blocos do editor (título, texto, imagem, botão, produtos...).
+  blocks      Json           @default("[]")
+  /// Links do conteúdo no momento do envio (o clique rastreado aponta para o índice, nunca para um endereço livre).
+  links       String[]
+  segmentId   String?        @db.Uuid
+  /// CAMPANHA (envio para um segmento) ou MODELO (enviado pelas automações, um lead por vez).
+  kind        String         @default("CAMPANHA")
+  status      CampaignStatus @default(RASCUNHO)
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  total       Int            @default(0)
+  sent        Int            @default(0)
+  failed      Int            @default(0)
+  opens       Int            @default(0)
+  clicks      Int            @default(0)
+  unsubscribes Int           @default(0)
+  createdById String?        @db.Uuid
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  tenant     Tenant           @relation(fields: [tenantId], references: [id])
+  segment    EmailSegment?    @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  recipients EmailRecipient[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, kind])
+  @@map("email_campaigns")
+}
+
+/// Um destinatário de uma campanha: envio, abertura, cliques e descadastro.
+model EmailRecipient {
+  id             String    @id @default(uuid()) @db.Uuid
+  campaignId     String    @db.Uuid
+  leadId         String    @db.Uuid
+  email          String
+  /// PENDENTE, ENVIADO, ERRO
+  status         String    @default("PENDENTE")
+  error          String?
+  sentAt         DateTime?
+  /// Quando o envio foi recusado (status ERRO).
+  failedAt       DateTime?
+  openedAt       DateTime?
+  opens          Int       @default(0)
+  clickedAt      DateTime?
+  clicks         Int       @default(0)
+  unsubscribedAt DateTime?
+  /// Envio feito por uma automação (o mesmo modelo pode ir de novo para o lead em outra passagem pelo fluxo).
+  runId          String?   @db.Uuid
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead     Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  clicksLog EmailClick[]
+
+  @@unique([campaignId, leadId, runId])
+  @@index([campaignId, status])
+  @@index([sentAt])
+  @@index([runId])
+  @@index([leadId])
+  @@map("email_recipients")
+}
+
+/// Clique em um link da campanha (para o relatório de links mais clicados).
+model EmailClick {
+  id          String   @id @default(uuid()) @db.Uuid
+  recipientId String   @db.Uuid
+  campaignId  String   @db.Uuid
+  linkIndex   Int
+  createdAt   DateTime @default(now())
+
+  recipient EmailRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, linkIndex])
+  @@map("email_clicks")
+}
+
+/// Cada envio de formulário, pop-up ou botão de WhatsApp (prova da conversão e do consentimento).
+model CaptureSubmission {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  /// formulario, popup, whatsapp, landing
+  channel   String
+  formId    String?  @db.Uuid
+  popupId   String?  @db.Uuid
+  whatsappId String? @db.Uuid
+  leadId    String?  @db.Uuid
+  recordId  String?  @db.Uuid
+  data      Json
+  pageUrl   String?
+  touch     Json?
+  device    String?
+  createdAt DateTime @default(now())
+
+  form CaptureForm? @relation(fields: [formId], references: [id], onDelete: SetNull)
+  lead Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([formId, createdAt])
+  @@index([leadId])
+  @@map("capture_submissions")
+}
+
+/// Linha do tempo do lead: conversões, mudanças, vendas, e-mails (próximas fases), importações.
+model LeadEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  leadId     String   @db.Uuid
+  type       String
+  title      String
+  data       Json?
+  occurredAt DateTime @default(now())
+  userId     String?  @db.Uuid
+  userName   String?
+  createdAt  DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, occurredAt])
+  @@index([tenantId, type, occurredAt])
+  @@map("lead_events")
+}
+
+/// Registro de consentimento (LGPD): o que foi aceito, quando, de onde e com qual texto.
+model LeadConsent {
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @db.Uuid
+  purpose   String
+  granted   Boolean
+  source    String
+  text      String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, purpose, createdAt])
+  @@map("lead_consents")
+}
+
+model CustomFieldDef {
+  id        String          @id @default(uuid()) @db.Uuid
+  tenantId  String          @db.Uuid
+  key       String
+  label     String
+  type      CustomFieldType
+  options   String[]
+  active    Boolean         @default(true)
+  position  Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, key])
+  @@map("custom_field_defs")
+}
+
+/// Regra de lead scoring. Perfil: atributos do lead. Interesse: eventos recentes.
+model ScoreRule {
+  id        String         @id @default(uuid()) @db.Uuid
+  tenantId  String         @db.Uuid
+  dimension ScoreDimension
+  name      String
+  /// Perfil: "stage", "state", "tag", "customer_type", "has_phone", "custom:<chave>". Interesse: tipo de evento.
+  field     String
+  operator  String
+  value     Json?
+  points    Int
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, dimension])
+  @@map("score_rules")
+}
+
+/// Importação de planilha de leads (arquivo, mapeamento de colunas, andamento e relatório).
+model LeadImport {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  fileName    String
+  filePath    String?
+  status      String    @default("ENVIADO")
+  headers     String[]
+  totalRows   Int       @default(0)
+  mapping     Json?
+  options     Json?
+  report      Json?
+  processed   Int       @default(0)
+  createdById String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@map("lead_imports")
+}
+
+
+// ---------- Fase 6: automações ----------
+
+enum AutomationRunStatus {
+  ATIVO
+  CONCLUIDO
+  SAIU
+  ERRO
+}
+
+/// Fluxo de automação montado pelo operador: gatilho (o que faz o lead entrar) e passos (esperar, condições e ações).
+model Automation {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  name           String
+  description    String?
+  active         Boolean   @default(false)
+  /// { type, ...configuração } — ver src/automacoes/fluxo.ts
+  trigger        Json
+  /// Árvore de passos; condições têm os caminhos "sim" e "não".
+  steps          Json      @default("[]")
+  /// nunca | apos_terminar: se o mesmo lead pode entrar de novo depois de terminar o fluxo.
+  reentry        String    @default("nunca")
+  /// Sai do fluxo quando o lead compra (pedido pago na loja ou compra no site).
+  exitOnPurchase Boolean   @default(true)
+  /// Só acontecimentos a partir daqui fazem o lead entrar (ligar o fluxo não puxa o passado).
+  activatedAt    DateTime?
+  createdById    String?   @db.Uuid
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant Tenant          @relation(fields: [tenantId], references: [id])
+  runs   AutomationRun[]
+
+  @@index([tenantId, active])
+  @@map("automations")
+}
+
+/// Passagem de um lead por um fluxo: em que passo está e quando o próximo passo roda.
+model AutomationRun {
+  id           String              @id @default(uuid()) @db.Uuid
+  tenantId     String              @db.Uuid
+  automationId String              @db.Uuid
+  leadId       String              @db.Uuid
+  status       AutomationRunStatus @default(ATIVO)
+  stepId       String?
+  nextRunAt    DateTime?
+  /// Dados do gatilho e do andamento (ex.: e-mail enviado no último passo, espera em curso).
+  context      Json                @default("{}")
+  startedAt    DateTime            @default(now())
+  finishedAt   DateTime?
+  exitReason   String?
+
+  automation Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  lead       Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  logs       AutomationLog[]
+
+  @@index([status, nextRunAt])
+  @@index([automationId, leadId])
+  @@index([automationId, status])
+  @@index([leadId])
+  @@map("automation_runs")
+}
+
+/// O que aconteceu em cada passo (para o relatório e para conferir por que o lead seguiu tal caminho).
+model AutomationLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  runId        String   @db.Uuid
+  automationId String   @db.Uuid
+  leadId       String   @db.Uuid
+  stepId       String?
+  /// entrou, passo, condicao, email, erro, saiu, concluiu
+  kind         String
+  message      String
+  createdAt    DateTime @default(now())
+
+  run AutomationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, createdAt])
+  @@index([automationId, createdAt])
+  @@map("automation_logs")
+}
+
+/// Relatório salvo no criador de relatórios: fonte, agrupamentos, métricas, filtros, período e gráfico (conferidos em src/relatorios/fontes.ts).
+model SavedReport {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  name        String
+  description String?
+  config      Json
+  /// privado (só quem criou) ou equipe (todos com acesso a Dashboards e relatórios).
+  visibility  String   @default("privado")
+  /// Aparece no Painel, na ordem de position. width: 1 (metade da tela) ou 2 (largura inteira).
+  pinned      Boolean  @default(false)
+  position    Int      @default(0)
+  width       Int      @default(1)
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, pinned, position])
+  @@map("saved_reports")
+}
+
+/// Resultado de um atendimento enviado (ou a enviar) ao Google Ads como conversão off-line (Data Manager API).
+model GoogleAdsConversion {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @db.Uuid
+  recordId      String    @db.Uuid
+  leadId        String?   @db.Uuid
+  /// contato, negociacao, venda ou perda
+  kind          String
+  /// Chave enviada ao Google para não contar o mesmo resultado duas vezes (atendimento + resultado).
+  transactionId String
+  actionId      String
+  eventAt       DateTime
+  value         Decimal?  @db.Decimal(12, 2)
+  /// Códigos de clique do anúncio (gclid, gbraid, wbraid), quando o contato passou pelo site.
+  clickIds      Json?
+  campaign      String?
+  /// PENDENTE, ENVIADO, ERRO ou IGNORADO
+  status        String    @default("PENDENTE")
+  error         String?
+  requestId     String?
+  /// Resposta final do Google ao envio (ele confere depois): PROCESSANDO, ACEITO, PARCIAL ou RECUSADO.
+  googleStatus  String?
+  /// Motivos das recusas informados pelo Google (por envio, com quantas conversões).
+  googleDetail  String?
+  googleCheckedAt DateTime?
+  attempts      Int       @default(0)
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, transactionId])
+  @@index([tenantId, status])
+  @@index([recordId])
+  @@map("google_ads_conversions")
+}
+
+/// Custo e cliques por dia e campanha, enviados pelo script do Google Ads (Ferramentas → Scripts).
+model GoogleAdsCampaignDay {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @db.Uuid
+  date         DateTime @db.Date
+  campaignId   String
+  campaignName String
+  /// Valor investido no dia (moeda da conta).
+  cost         Decimal  @db.Decimal(14, 2)
+  clicks       Int
+  impressions  Int
+  /// Conversões contadas pelo Google (inclui as que o CRM devolve).
+  conversions  Decimal  @db.Decimal(12, 2)
+  updatedAt    DateTime @updatedAt
+
+  @@unique([tenantId, date, campaignId])
+  @@index([tenantId, date])
+  @@map("google_ads_campaign_days")
+}
+
+/// Custo e cliques por dia e palavra-chave (do script do Google Ads).
+model GoogleAdsKeywordDay {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  date        DateTime @db.Date
+  campaignId  String
+  adGroupId   String
+  criterionId String
+  keyword     String
+  /// EXACT, PHRASE ou BROAD
+  matchType   String
+  cost        Decimal  @db.Decimal(14, 2)
+  clicks      Int
+  impressions Int
+  conversions Decimal  @db.Decimal(12, 2)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, date, adGroupId, criterionId])
+  @@index([tenantId, date])
+  @@map("google_ads_keyword_days")
+}
+
+/// Número de WhatsApp da empresa conectado pela Evolution API (um por vendedor ou setor).
+/// Limites no .env: WHATSAPP_MAX_NUMBERS cadastrados e WHATSAPP_MAX_CONNECTED conectados ao mesmo tempo.
+model WhatsappNumber {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  name           String
+  /// Nome da instância na Evolution (fixo, gerado pelo CRM).
+  instanceName   String    @unique
+  /// Preenchido quando conecta (o número do WhatsApp que leu o QR Code).
+  phone          String?
+  profileName    String?
+  /// CONECTADO, CONECTANDO ou DESCONECTADO
+  status         String    @default("DESCONECTADO")
+  statusReason   String?
+  unitId         String?   @db.Uuid
+  /// Vendedores que atendem por este número.
+  sellerIds      String[]  @default([]) @db.Uuid
+  /// Usuários (logins) que usam este número: com o escopo "Próprios" no Chat WhatsApp, só eles veem as conversas dele.
+  userIds        String[]  @default([]) @db.Uuid
+  /// Atendimento dividido: cada conversa de cliente tem um atendente; os outros do número não leem (veem a fila e os contatos da empresa).
+  splitAttendance Boolean  @default(false)
+  /// Atendimento dividido: atendente que recebe todos os clientes novos que chamarem neste número (vazio = ficam na fila).
+  defaultUserId  String?   @db.Uuid
+  /// Antigo: setores dentro do número (até a v0.64). Agora os setores são da empresa (tabela whatsapp_sectors).
+  sectors        Json      @default("[]")
+  /// Este número abre pré-venda (desligue em números que não são de venda). O que vira lead segue as regras do WhatsApp.
+  createRecords  Boolean   @default(true)
+  /// Mensagens enviadas pelo CRM começam com o nome de quem enviou (*Diego:*), para o cliente saber com quem fala.
+  signMessages   Boolean   @default(true)
+  connectingAt   DateTime?
+  connectedAt    DateTime?
+  disconnectedAt DateTime?
+  lastEventAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  @@index([tenantId, status])
+  @@map("whatsapp_numbers")
+}
+
+/// Chatbot de atendimento (sem IA): fluxo de etapas que recebe o cliente e direciona para um setor ou pessoa.
+model WhatsappFlow {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @db.Uuid
+  name          String
+  description   String?
+  active        Boolean  @default(false)
+  /// Números em que o fluxo atende (vazio = todos).
+  numberIds     String[] @default([]) @db.Uuid
+  /// NOVA_CONVERSA: cliente sem atendente chamou (conversa nova ou parada); PALAVRA: só quando escrever uma das palavras.
+  trigger       String   @default("NOVA_CONVERSA")
+  keywords      String[] @default([])
+  /// Só fora do horário comercial (Configurações › Regras e horário).
+  onlyAfterHours Boolean @default(false)
+  /// Etapas [{ id, type, text, options, go, label }] e a etapa inicial.
+  steps         Json     @default("[]")
+  startStepId   String   @default("")
+  /// Sem resposta do cliente por estes minutos: o robô sai e a conversa fica na fila.
+  timeoutMinutes Int     @default(30)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, active])
+  @@map("whatsapp_flows")
+}
+
+/// Setor de atendimento da empresa (Vendas, Pós-venda, Financeiro...): quem atende, quem gerencia e o que cada um vê.
+model WhatsappSector {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  name        String
+  description String?
+  /// Números em que o setor atende (vazio = todos os números com atendimento dividido).
+  numberIds   String[] @default([]) @db.Uuid
+  /// Atendentes do setor: recebem a fila do setor.
+  userIds     String[] @default([]) @db.Uuid
+  /// Gestores do setor: acompanham (só leitura) todas as conversas do setor e de quem atende nele, e transferem.
+  managerIds  String[] @default([]) @db.Uuid
+  /// PROPRIAS: cada atendente vê só as conversas dele (e a fila do setor). SETOR: todos do setor veem todas as conversas do setor.
+  visibility  String   @default("PROPRIAS")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("whatsapp_sectors")
+}
+
+/// Conversa de um número da empresa com um contato (uma por número + contato).
+model WhatsappConversation {
+  id               String    @id @default(uuid()) @db.Uuid
+  tenantId         String    @db.Uuid
+  numberId         String    @db.Uuid
+  /// Contato no WhatsApp (5549...@s.whatsapp.net, ou ...@lid quando o WhatsApp esconde o número).
+  jid              String
+  phone            String?
+  name             String?
+  leadId           String?   @db.Uuid
+  recordId         String?   @db.Uuid
+  assignedSellerId String?   @db.Uuid
+  /// Atendente (login) da conversa nos números com atendimento dividido; vazio = na fila.
+  assignedUserId   String?   @db.Uuid
+  /// Participantes: outros atendentes do mesmo número que também veem e respondem esta conversa.
+  helperUserIds    String[]  @default([]) @db.Uuid
+  /// Setor da fila (id do setor do número).
+  sectorId         String?
+  /// CLIENTE, COLEGA, FORNECEDOR ou OUTRO (vem do cadastro do contato, para filtrar a lista)
+  category         String    @default("CLIENTE")
+  /// ABERTA ou ARQUIVADA
+  status           String    @default("ABERTA")
+  unread           Int       @default(0)
+  lastMessageAt    DateTime?
+  lastPreview      String?
+  lastFromMe       Boolean   @default(false)
+  /// Cliente não espera resposta: agradeceu depois da despedida (ou o atendente marcou). Volta a esperar na próxima mensagem dele.
+  noReplyNeeded    Boolean   @default(false)
+  /// Última mensagem do cliente: o tempo de "aguardando retorno" conta daqui até alguém marcar "Não precisa responder" (ou finalizar).
+  lastInboundAt    DateTime?
+  /// Nota interna nova, ainda não vista por quem atende.
+  noteUnread       Boolean   @default(false)
+  /// Última mensagem de ausência enviada (fora do horário comercial), para não repetir a cada mensagem.
+  awaySentAt       DateTime?
+  /// Chatbot: fluxo e etapa em que a conversa está (vazio = robô fora da conversa), quando o robô falou por último e as respostas.
+  botFlowId        String?   @db.Uuid
+  botState         Json?
+  botAt            DateTime?
+  /// Atendimento finalizado (quando e por quem): a próxima mensagem do cliente abre um atendimento novo (fila ou robô).
+  closedAt         DateTime?
+  closedByName     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  messages  WhatsappMessage[]
+  reminders WhatsappReminder[]
+  labels    WhatsappConversationLabel[]
+
+  @@unique([numberId, jid])
+  @@index([tenantId, lastMessageAt])
+  @@index([leadId])
+  @@map("whatsapp_conversations")
+}
+
+/// Mensagem de uma conversa (recebida ou enviada pelo celular / pelo CRM).
+model WhatsappMessage {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @db.Uuid
+  conversationId String   @db.Uuid
+  /// Id da mensagem no WhatsApp (evita gravar a mesma duas vezes).
+  waId           String
+  fromMe         Boolean
+  /// texto, imagem, audio, video, documento, figurinha, localizacao, contato, outro
+  type           String
+  text           String?
+  /// Mídia guardada no CRM (FileAsset, tipo "whatsapp"); mediaStatus: PENDENTE, OK, GRANDE, ERRO.
+  fileId         String?  @db.Uuid
+  fileName       String?
+  mime           String?
+  mediaStatus    String?
+  /// Enviada pelo CRM: quem enviou e a situação (ENVIADA ou ERRO, com o motivo).
+  sentById       String?  @db.Uuid
+  sentByName     String?
+  status         String?
+  error          String?
+  sentAt         DateTime
+  /// Nota interna (administrador ou gestor): só aparece no CRM, nunca vai para o WhatsApp do cliente.
+  internal       Boolean  @default(false)
+  /// Resposta a outra mensagem (citação): id no WhatsApp e o trecho citado.
+  quotedWaId     String?
+  quotedText     String?
+  /// Reações: [{ emoji, by: "me" | "them", key, name }] (uma por pessoa).
+  reactions      Json?
+  /// Editada (pelo CRM, pelo celular da empresa ou pelo cliente) e apagada para todos (o texto deixa de aparecer).
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  /// Áudio transcrito pelo Gemini (quando alguém pediu "Transcrever").
+  transcript     String?
+  /// Chave da mensagem no WhatsApp (messageSecret, base64): abre as edições que chegam criptografadas.
+  secret         String?
+  createdAt      DateTime @default(now())
+
+  conversation WhatsappConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, waId])
+  @@index([conversationId, sentAt])
+  @@map("whatsapp_messages")
+}
+
+/// Respostas rápidas do chat ({nome} = primeiro nome do cliente, {vendedor} = nome de quem envia).
+model WhatsappQuickReply {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  /// Dono da resposta pessoal; vazio = padrão da empresa (todos veem).
+  userId    String?  @db.Uuid
+  title     String
+  text      String
+  /// Arquivo que vai junto (catálogo em PDF, tabela, foto...): o texto vira a legenda.
+  fileId    String?  @db.Uuid
+  fileName  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, userId])
+  @@map("whatsapp_quick_replies")
+}
+
+/// Etiqueta do chat (nome + cor) para organizar as conversas: padrão da empresa ou pessoal de um usuário.
+model WhatsappLabel {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  /// Dono da etiqueta pessoal (só ele vê); vazio = padrão da empresa (todos veem).
+  userId    String?  @db.Uuid
+  name      String
+  /// Cor da paleta (cinza, vermelho, laranja, amarelo, verde, azul, roxo, rosa)
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conversations WhatsappConversationLabel[]
+
+  @@index([tenantId, userId])
+  @@map("whatsapp_labels")
+}
+
+/// Etiqueta colocada numa conversa.
+model WhatsappConversationLabel {
+  conversationId String   @db.Uuid
+  labelId        String   @db.Uuid
+  createdAt      DateTime @default(now())
+
+  conversation WhatsappConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  label        WhatsappLabel        @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, labelId])
+  @@index([labelId])
+  @@map("whatsapp_conversation_labels")
+}
+
+/// Tipo do contato no WhatsApp (vale para todos os números): colega, fornecedor ou outro não viram lead nem pré-venda.
+model WhatsappContact {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  /// Telefone (+55...) ou, sem telefone conhecido, o identificador do WhatsApp.
+  contactKey  String
+  /// Nome (contatos da empresa importados ou cadastrados pelo administrador).
+  name        String?
+  /// CLIENTE, COLEGA, FORNECEDOR ou OUTRO
+  category    String
+  /// Agenda de qual número de WhatsApp (id do número); vazio = vale para todos os números (agenda geral).
+  scope       String   @default("")
+  updatedById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  /// Um telefone aparece uma vez só em cada agenda.
+  @@unique([tenantId, scope, contactKey])
+  @@map("whatsapp_contacts")
+}
+
+/// Lembrete de retorno numa conversa: no horário, quem criou recebe o aviso no CRM.
+model WhatsappReminder {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  conversationId String    @db.Uuid
+  userId         String    @db.Uuid
+  userName       String
+  dueAt          DateTime
+  note           String?
+  doneAt         DateTime?
+  /// Quando o aviso apareceu (para não repetir em todas as abas e a cada consulta).
+  notifiedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation WhatsappConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, doneAt, dueAt])
+  @@index([conversationId])
+  @@map("whatsapp_reminders")
+}
+
+/// Sugestão de melhoria enviada por um usuário; o administrador analisa, muda a situação e responde.
+model Suggestion {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  userId      String    @db.Uuid
+  userName    String
+  title       String
+  description String
+  /// Tela ou módulo do sistema (chave do menu), opcional.
+  area        String?
+  /// Imagem opcional (print da tela).
+  imageFileId String?   @db.Uuid
+  /// NOVA, ANALISE, PLANEJADA, APLICADA, RECUSADA
+  status      String    @default("NOVA")
+  reply       String?
+  repliedById String?   @db.Uuid
+  repliedByName String?
+  repliedAt   DateTime?
+  /// Resposta ou mudança de situação ainda não vista por quem enviou.
+  unreadByAuthor Boolean @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tenantId, status, createdAt])
+  @@index([userId, createdAt])
+  @@map("suggestions")
+}
+
+/// Produto da Tcar (ERP) copiado para a consulta rápida no CRM: códigos, título, estoque e preço (nunca o custo).
+model TcarProduct {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @db.Uuid
+  /// Código do produto na Tcar (SKU).
+  code            String
+  name            String
+  ean             String?
+  factoryCode     String?
+  integrationCode String?
+  /// Códigos de referência (REF1-5 e IMP1-5).
+  refs            String[]
+  brand           String?
+  groupName       String?
+  subgroupName    String?
+  application     String?
+  usedIn          String?
+  unit            String?
+  stock           Decimal? @db.Decimal(14, 3)
+  price           Decimal? @db.Decimal(12, 2)
+  resalePrice     Decimal? @db.Decimal(12, 2)
+  /// Estoque e preço por filial: [{ id, name, available, price, resalePrice }].
+  branches        Json     @default("[]")
+  /// Texto sem acentos para a busca.
+  searchText      String
+  /// Última cópia completa em que o produto apareceu (os que somem ficam fora da busca).
+  seenAt          DateTime
+  stockAt         DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId, factoryCode])
+  @@index([tenantId, integrationCode])
+  @@map("tcar_products")
+}
+
+/// Consulta pedida à Tcar pelo PingAlive: sai na resposta do "ping" e volta no "report".
+model TcarAction {
+  /// Também é o "transaction" enviado à Tcar.
+  id        String    @id @default(uuid()) @db.Uuid
+  tenantId  String    @db.Uuid
+  /// full (cópia completa, página a página), incremental (alterados) ou live (uma peça, pedido na tela).
+  kind      String
+  cmd       String
+  query     Json      @default("{}")
+  /// PENDENTE, ENVIADA, OK, ERRO
+  status    String    @default("PENDENTE")
+  attempts  Int       @default(0)
+  /// Início da cópia (marca os produtos vistos nela).
+  runAt     DateTime?
+  offset    Int       @default(0)
+  resultCode Int?
+  error     String?
+  sentAt    DateTime?
+  doneAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([tenantId, status, createdAt])
+  @@map("tcar_actions")
+}
+
+// ---------- Marketing Inteligente (tabelas próprias do módulo; só acréscimos, nada dos módulos atuais muda) ----------
+
+/// Google Ads por dia e campanha em recortes: dispositivo, rede, região, página de destino, anúncio, grupo e tipo de campanha (script do Google Ads).
+model GoogleAdsDetailDay {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @db.Uuid
+  date            DateTime @db.Date
+  campaignId      String
+  /// device, network, region, landing, ad, adgroup, type
+  dimension       String
+  key             String
+  label           String
+  cost            Decimal  @db.Decimal(14, 2)
+  clicks          Int
+  impressions     Int
+  conversions     Decimal  @db.Decimal(12, 2)
+  conversionValue Decimal  @default(0) @db.Decimal(14, 2)
+  /// Parcela de impressões na pesquisa (0 a 1), quando o Google informa.
+  impressionShare Decimal? @db.Decimal(6, 4)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, date, campaignId, dimension, key])
+  @@index([tenantId, dimension, date])
+  @@map("google_ads_detail_days")
+}
+
+/// Termos de pesquisa (o que a pessoa digitou) por dia, campanha e grupo de anúncios.
+model GoogleAdsSearchTermDay {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  date        DateTime @db.Date
+  campaignId  String
+  adGroupId   String
+  term        String
+  cost        Decimal  @db.Decimal(14, 2)
+  clicks      Int
+  impressions Int
+  conversions Decimal  @db.Decimal(12, 2)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, date, adGroupId, term])
+  @@index([tenantId, date])
+  @@map("google_ads_search_term_days")
+}
+
+/// Meta Ads e TikTok Ads por dia: campanha, conjunto/grupo e anúncio (somente leitura das plataformas).
+model MktAdDay {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @db.Uuid
+  /// meta ou tiktok
+  platform      String
+  /// campaign, adset ou ad
+  level         String
+  entityId      String
+  name          String
+  campaignId    String
+  campaignName  String
+  parentId      String?
+  objective     String?
+  date          DateTime @db.Date
+  spend         Decimal  @db.Decimal(14, 2)
+  impressions   Int
+  reach         Int?
+  clicks        Int
+  leads         Int      @default(0)
+  conversations Int      @default(0)
+  conversions   Decimal  @default(0) @db.Decimal(12, 2)
+  videoViews    Int?
+  creative      Json?
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, platform, level, entityId, date])
+  @@index([tenantId, platform, level, date])
+  @@map("mkt_ad_days")
+}
+
+/// Meta Ads e TikTok Ads por dia em recortes: posicionamento, dispositivo, região, idade e gênero.
+model MktAdBreakdownDay {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  platform    String
+  date        DateTime @db.Date
+  campaignId  String
+  dimension   String
+  key         String
+  spend       Decimal  @db.Decimal(14, 2)
+  impressions Int
+  clicks      Int
+  leads       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, platform, date, campaignId, dimension, key])
+  @@index([tenantId, platform, dimension, date])
+  @@map("mkt_ad_breakdown_days")
+}
+
+/// Perfis das redes (Instagram, Facebook) por dia: seguidores, alcance, impressões, visitas e cliques no link.
+model MktSocialProfileDay {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @db.Uuid
+  network       String
+  profileId     String
+  date          DateTime @db.Date
+  followers     Int?
+  reach         Int?
+  impressions   Int?
+  profileViews  Int?
+  websiteClicks Int?
+  /// Instagram: novos seguidores, deixaram de seguir, contas com interação, interações, toques nos links e visualizações do dia.
+  follows         Int?
+  unfollows       Int?
+  accountsEngaged Int?
+  interactions    Int?
+  linkTaps        Int?
+  views           Int?
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, network, profileId, date])
+  @@map("mkt_social_profile_days")
+}
+
+/// Publicações orgânicas com os números mais recentes.
+model MktSocialPost {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  network     String
+  postId      String
+  /// Conta que publicou (id do Instagram ou da página); vazio nas publicações guardadas antes da 0.76.
+  profileId   String?
+  publishedAt DateTime
+  format      String
+  caption     String
+  permalink   String?
+  likes       Int?
+  comments    Int?
+  shares      Int?
+  saves       Int?
+  reach       Int?
+  impressions Int?
+  videoViews  Int?
+  /// Métricas extras (stories: avanços, voltas, saídas e respostas; reels: tempo médio assistido).
+  extra       Json?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, network, postId])
+  @@index([tenantId, publishedAt])
+  @@index([tenantId, profileId, publishedAt])
+  @@map("mkt_social_posts")
+}
+
+/// Search Console por dia: totais, consultas e páginas (as mais relevantes de cada dia).
+model MktSeoDay {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  date        DateTime @db.Date
+  /// total, query ou page
+  kind        String
+  key         String
+  clicks      Int
+  impressions Int
+  /// Posição média ponderada pelas impressões.
+  position    Decimal  @db.Decimal(8, 2)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, date, kind, key])
+  @@index([tenantId, kind, date])
+  @@map("mkt_seo_days")
+}
+
+/// Calendário editorial das redes sociais.
+model MktEditorialItem {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  title       String
+  network     String
+  format      String
+  theme       String?
+  ownerId     String?   @db.Uuid
+  plannedAt   DateTime
+  status      String
+  postUrl     String?
+  notes       String?
+  createdById String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([tenantId, plannedAt])
+  @@map("mkt_editorial_items")
+}
+
+/// Concorrentes no Instagram: dados públicos do perfil comercial (Business Discovery), um registro por dia.
+model MktCompetitorDay {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  username   String
+  date       DateTime @db.Date
+  name       String?
+  followers  Int
+  mediaCount Int
+  updatedAt  DateTime @updatedAt
+
+  @@unique([tenantId, username, date])
+  @@map("mkt_competitor_days")
+}
+
+/// Publicações públicas dos concorrentes (feed e reels; a API não entrega stories de outras contas).
+model MktCompetitorPost {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  username    String
+  postId      String
+  publishedAt DateTime
+  format      String
+  caption     String
+  permalink   String?
+  likes       Int?
+  comments    Int?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, username, postId])
+  @@index([tenantId, username, publishedAt])
+  @@map("mkt_competitor_posts")
+}
+
+/// O que a equipe viu do concorrente e a API não entrega: stories do dia e anúncio ativo (Biblioteca de Anúncios).
+model MktCompetitorNote {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  username    String
+  date        DateTime  @db.Date
+  storiesSeen Int?
+  adsActive   Boolean?
+  note        String?
+  createdById String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  @@index([tenantId, username, date])
+  @@map("mkt_competitor_notes")
+}
+
+// ---------- Marketplaces (Mercado Livre; depois Shopee) ----------
+
+/// Campanha de publicidade de um marketplace (Mercado Livre: Product Ads e Display Ads).
+model MarketplaceCampaign {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  /// mercadolivre (depois shopee)
+  marketplace String
+  /// product_ads ou display
+  product     String
+  campaignId  String
+  name        String
+  status      String?
+  strategy    String?
+  budget      Decimal?  @db.Decimal(14, 2)
+  roasTarget  Decimal?  @db.Decimal(10, 2)
+  acosTarget  Decimal?  @db.Decimal(10, 2)
+  startDate   DateTime? @db.Date
+  endDate     DateTime? @db.Date
+  extra       Json?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([tenantId, marketplace, product, campaignId])
+  @@map("marketplace_campaigns")
+}
+
+/// Anúncio do marketplace (no Mercado Livre, o grupo de anúncios: item, família ou produto de catálogo).
+model MarketplaceAd {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  marketplace String
+  adId        String
+  campaignId  String?
+  externalId  String?
+  type        String?
+  title       String?
+  thumbnail   String?
+  status      String?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, marketplace, adId])
+  @@map("marketplace_ads")
+}
+
+/// Números do dia por campanha (level campaign) ou por anúncio (level ad). Receita = vendas atribuídas pelo marketplace.
+model MarketplaceAdDay {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @db.Uuid
+  marketplace     String
+  product         String
+  level           String
+  entityId        String
+  campaignId      String
+  date            DateTime @db.Date
+  impressions     Int      @default(0)
+  clicks          Int      @default(0)
+  cost            Decimal  @default(0) @db.Decimal(14, 2)
+  /// receita atribuída total (direta + indireta)
+  revenue         Decimal  @default(0) @db.Decimal(14, 2)
+  directRevenue   Decimal  @default(0) @db.Decimal(14, 2)
+  indirectRevenue Decimal  @default(0) @db.Decimal(14, 2)
+  units           Int      @default(0)
+  directUnits     Int      @default(0)
+  indirectUnits   Int      @default(0)
+  /// itens anunciados vendidos
+  items           Int      @default(0)
+  organicUnits    Int      @default(0)
+  organicRevenue  Decimal  @default(0) @db.Decimal(14, 2)
+  pageViews       Int      @default(0)
+  addToCart       Int      @default(0)
+  checkouts       Int      @default(0)
+  /// Display: vendas pela data do evento (a receita padrão é pelo ponto de contato)
+  eventRevenue    Decimal  @default(0) @db.Decimal(14, 2)
+  /// api (sincronizado pelo CRM) ou bi (trazido do Usaparts BI)
+  source          String   @default("api")
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, marketplace, product, level, entityId, date])
+  @@index([tenantId, marketplace, product, level, date])
+  @@map("marketplace_ad_days")
+}
+
+// ---------- Assistente de perguntas do Mercado Livre (veio do painel.usaparts.com.br) ----------
+// Os ids são números, como no painel: a IA cita os conhecimentos pelo número e as telas mostram "#123".
+
+/// Pergunta recebida no marketplace: registro único por pergunta, com a trajetória em assist_events.
+model AssistQuestion {
+  id                  Int       @id @default(autoincrement())
+  tenantId            String    @db.Uuid
+  marketplace         String    @default("mercadolivre")
+  mlQuestionId        String
+  mlItemId            String?
+  mlStatus            String?
+  customerId          String?
+  customerNickname    String?
+  customerName        String?
+  customerLookupAt    DateTime?
+  text                String
+  receivedAt          DateTime
+  firstSeenAt         DateTime
+  /// nova, aguardando_analise, em_atendimento, aguardando_cliente, aguardando_validacao, conhecimento_aprovacao, respondida, resolvida, nao_aplicavel
+  status              String    @default("nova")
+  processingState     String    @default("ocioso")
+  processingStartedAt DateTime?
+  /// A a G (motivo da pendência)
+  pendingReason       String?
+  pendingSince        DateTime?
+  brand               String?
+  model               String?
+  partCode            String?
+  purchaseIntent      Boolean   @default(false)
+  relevance           Int       @default(0)
+  assignedToId        String?   @db.Uuid
+  assignedToName      String?
+  confidence          Float?
+  answeredAt          DateTime?
+  resolvedAt          DateTime?
+  externalAnsweredAt  DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([tenantId, mlQuestionId])
+  @@index([tenantId, status])
+  @@index([tenantId, receivedAt])
+  @@index([tenantId, customerId])
+  @@map("assist_questions")
+}
+
+/// Cada resposta preparada ou enviada (nunca sobrescrita).
+model AssistAttempt {
+  id               Int       @id @default(autoincrement())
+  tenantId         String    @db.Uuid
+  questionId       Int
+  /// ia ou atendente
+  origin           String
+  /// resposta ou solicitar_info
+  kind             String    @default("resposta")
+  authorId         String?   @db.Uuid
+  authorName       String?
+  basedOnId        Int?
+  text             String
+  ai               Json?
+  confidence       Float?
+  /// preparada, pendente_aprovacao, enviando, enviada, pendente_confirmacao, falha, descartada
+  sendStatus       String
+  createdAt        DateTime  @default(now())
+  sendRequestedAt  DateTime?
+  sentAt           DateTime?
+  confirmedAt      DateTime?
+  mlResponse       Json?
+  mlAnswerRef      String?
+  error            String?
+  sendAttempts     Int       @default(0)
+  reviewed         Boolean   @default(false)
+  reviewedById     String?   @db.Uuid
+  reviewedByName   String?
+  flaggedForReview Boolean   @default(false)
+
+  @@index([tenantId, questionId])
+  @@index([tenantId, sendStatus])
+  @@map("assist_attempts")
+}
+
+/// Conhecimentos (com a versão) usados em cada resposta.
+model AssistAttemptKnowledge {
+  attemptId        Int
+  knowledgeId      Int
+  knowledgeVersion Int
+
+  @@id([attemptId, knowledgeId])
+  @@index([knowledgeId])
+  @@map("assist_attempt_knowledge")
+}
+
+/// Observação interna de uma pergunta ou de uma resposta.
+model AssistNote {
+  id        Int      @id @default(autoincrement())
+  tenantId  String   @db.Uuid
+  /// question ou answer
+  entity    String
+  entityId  Int
+  userId    String?  @db.Uuid
+  userName  String
+  note      String
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, entity, entityId])
+  @@map("assist_notes")
+}
+
+/// Trajetória de cada pergunta.
+model AssistEvent {
+  id         Int      @id @default(autoincrement())
+  tenantId   String   @db.Uuid
+  questionId Int
+  type       String
+  fromStatus String?
+  toStatus   String?
+  userId     String?  @db.Uuid
+  userName   String?
+  note       String?
+  data       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([questionId])
+  @@index([tenantId, type, createdAt])
+  @@map("assist_events")
+}
+
+/// Base de conhecimento (técnico e comercial) que a IA pode usar.
+model AssistKnowledge {
+  id               Int       @id @default(autoincrement())
+  tenantId         String    @db.Uuid
+  title            String
+  category         String
+  brand            String?
+  model            String?
+  partCode         String?
+  product          String?
+  application      String?
+  question         String?
+  answer           String
+  source           String?
+  /// ativo, em_revisao, inativo, rascunho
+  status           String    @default("em_revisao")
+  version          Int       @default(1)
+  originQuestionId Int?
+  originImportId   Int?
+  createdById      String?   @db.Uuid
+  createdByName    String?
+  updatedById      String?   @db.Uuid
+  updatedByName    String?
+  approvedById     String?   @db.Uuid
+  approvedByName   String?
+  approvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now())
+  deletedAt        DateTime?
+  deletedByName    String?
+  matchKey         String?
+  autoLearned      Boolean   @default(false)
+  /// conhecimento que vale só para um anúncio
+  mlItemId         String?
+  /// manual, aprovada, externa ou ia
+  learnedFrom      String?
+
+  @@index([tenantId, status])
+  @@index([tenantId, matchKey])
+  @@index([tenantId, partCode])
+  @@map("assist_knowledge")
+}
+
+model AssistKnowledgeVersion {
+  id            Int      @id @default(autoincrement())
+  tenantId      String   @db.Uuid
+  knowledgeId   Int
+  version       Int
+  snapshot      Json
+  changeType    String
+  changedById   String?  @db.Uuid
+  changedByName String?
+  changedAt     DateTime @default(now())
+
+  @@index([knowledgeId])
+  @@map("assist_knowledge_versions")
+}
+
+/// Importação de planilha Excel para a base de conhecimento (prévia, correções e confirmação).
+model AssistImport {
+  id           Int       @id @default(autoincrement())
+  tenantId     String    @db.Uuid
+  filename     String
+  userId       String?   @db.Uuid
+  userName     String?
+  createdAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  /// previa, confirmada, cancelada, invalida
+  status       String    @default("previa")
+  totalRows    Int       @default(0)
+  imported     Int       @default(0)
+  updated      Int       @default(0)
+  ignored      Int       @default(0)
+  errors       Int       @default(0)
+  headerErrors Json?
+  report       Json?
+
+  @@index([tenantId, createdAt])
+  @@map("assist_imports")
+}
+
+model AssistImportRow {
+  id         Int     @id @default(autoincrement())
+  importId   Int
+  rowNumber  Int
+  data       Json
+  /// novo, atualizacao, identico, duplicado, erro
+  action     String
+  existingId Int?
+  existing   Json?
+  errors     Json?
+  warnings   Json?
+  /// pendente, aceitar, rejeitar
+  decision   String  @default("pendente")
+  result     String?
+
+  @@index([importId])
+  @@map("assist_import_rows")
+}
+
+/// Anúncios da loja no Mercado Livre (cópia local sincronizada pela API).
+model AssistItem {
+  tenantId          String   @db.Uuid
+  id                String
+  sellerId          String?
+  officialStoreId   String?
+  title             String?
+  permalink         String?
+  price             Decimal? @db.Decimal(14, 2)
+  currency          String?
+  availableQuantity Int?
+  status            String?
+  sellerSku         String?
+  partNumber        String?
+  brand             String?
+  description       String?
+  attributes        Json?
+  mlLastUpdated     String?
+  syncedAt          DateTime
+
+  @@id([tenantId, id])
+  @@index([tenantId, status])
+  @@map("assist_items")
+}
+
+/// Aplicação peça × máquina (compatibilidade confirmada, pendente ou não confirmada).
+model AssistApplication {
+  id               Int       @id @default(autoincrement())
+  tenantId         String    @db.Uuid
+  partCode         String
+  productName      String?
+  partBrand        String?
+  machineBrand     String?
+  machineModel     String?
+  system           String?
+  application      String?
+  mlItemId         String?
+  /// confirmada, pendente, nao_confirmada
+  validationStatus String    @default("pendente")
+  knowledgeId      Int?
+  source           String?
+  validatedById    String?   @db.Uuid
+  validatedByName  String?
+  validatedAt      DateTime?
+  createdById      String?   @db.Uuid
+  createdByName    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now())
+  matchKey         String
+
+  @@unique([tenantId, matchKey])
+  @@index([tenantId, partCode])
+  @@index([tenantId, machineModel])
+  @@map("assist_applications")
+}
+
+/// Venda (ou ida ao checkout) do mesmo comprador ligada a uma pergunta.
+model AssistSale {
+  id                 Int      @id @default(autoincrement())
+  tenantId           String   @db.Uuid
+  mlOrderId          String
+  mlItemId           String
+  itemTitle          String?
+  questionId         Int
+  buyerId            String
+  orderStatus        String?
+  orderDate          DateTime
+  quantity           Int      @default(1)
+  unitPrice          Decimal? @db.Decimal(14, 2)
+  total              Decimal? @db.Decimal(14, 2)
+  currency           String?
+  /// mesmo_anuncio ou anuncio_indicado
+  matchType          String
+  hoursAfterQuestion Float?
+  linkedAt           DateTime @default(now())
+  updatedAt          DateTime @default(now())
+  paidBefore         Boolean  @default(false)
+  paymentStatus      String?
+
+  @@unique([tenantId, mlOrderId, mlItemId])
+  @@index([tenantId, questionId])
+  @@index([tenantId, orderDate])
+  @@map("assist_sales")
+}
+
+/// Landing page (E-mail marketing › Landing pages): blocos, tema, versão B para teste A/B e publicação no subdomínio.
+model LandingPage {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  name        String
+  /// Endereço da página no subdomínio (ex.: filtros-komatsu).
+  slug        String
+  /// RASCUNHO, PUBLICADA ou PAUSADA.
+  status      String    @default("RASCUNHO")
+  /// Cores, fonte, cantos e botões da página.
+  theme       Json
+  /// Blocos da versão A (e única, sem teste A/B).
+  blocks      Json
+  /// Blocos da versão B (teste A/B); vazio = sem teste.
+  blocksB     Json?
+  /// Parte das visitas que vê a versão B (0 a 100).
+  abSplit     Int       @default(50)
+  abActive    Boolean   @default(false)
+  /// Título e descrição para o Google e as redes, imagem de compartilhamento e "não aparecer no Google".
+  seo         Json
+  publishedAt DateTime?
+  createdById String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  events LandingEvent[]
+
+  @@unique([tenantId, slug])
+  @@map("landing_pages")
+}
+
+/// Visita, rolagem, clique no botão, clique no WhatsApp e lead de uma landing page (por versão A/B e origem).
+model LandingEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @db.Uuid
+  pageId     String   @db.Uuid
+  variant    String   @default("A")
+  /// view, scroll, cta, whatsapp ou lead.
+  type       String
+  /// Identificador aleatório do navegador (sem dado pessoal).
+  visitor    String
+  source     String?
+  medium     String?
+  campaign   String?
+  device     String?
+  leadId     String?  @db.Uuid
+  occurredAt DateTime @default(now())
+
+  page LandingPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, occurredAt])
+  @@index([tenantId, occurredAt])
+  @@map("landing_events")
+}
+
+/// SEO do e-commerce: textos de SEO de cada produto da Magazord (aba SEO e Descrição Geral), com a nota e os problemas.
+model SeoProduct {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  /// Código do produto pai na Magazord.
+  productCode    String
+  /// Derivação usada para ler o produto e as outras derivações dele.
+  derivationCode String
+  derivations    String[]  @default([])
+  name           String
+  brand          String?
+  categories     String[]  @default([])
+  /// Características cadastradas (nome e valor), base para a IA.
+  attributes     Json
+  ean            String?
+  image          String?
+  /// Página do produto na Magazord (aba SEO).
+  pageId         Int?
+  /// Textos atuais (título SEO, meta-description, URL, título, subtítulo, descrição, resumo).
+  fields         Json
+  score          Int
+  issues         Json
+  checkedAt      DateTime
+  error          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  changes SeoChange[]
+
+  @@unique([tenantId, productCode])
+  @@index([tenantId, score])
+  @@map("seo_products")
+}
+
+/// Alteração de SEO de um produto: sugestão (IA ou manual), revisão, envio para a Magazord e volta atrás.
+model SeoChange {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @db.Uuid
+  seoProductId  String    @db.Uuid
+  /// Textos antes da alteração (para desfazer).
+  before        Json
+  /// Textos propostos (todos os campos sugeridos).
+  proposed      Json
+  /// Campos escolhidos para enviar.
+  sendFields    String[]  @default([])
+  /// SUGERIDA, ENVIADA, ERRO, DESCARTADA ou DESFEITA.
+  status        String    @default("SUGERIDA")
+  /// ia ou manual.
+  source        String    @default("ia")
+  error         String?
+  createdById   String?   @db.Uuid
+  createdByName String?
+  sentByName    String?
+  sentAt        DateTime?
+  undoneAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  product SeoProduct @relation(fields: [seoProductId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status, createdAt])
+  @@index([seoProductId])
+  @@map("seo_changes")
+}
+
+/// Figurinhas salvas por cada atendente (recebidas no chat ou enviadas do computador), para mandar nas conversas.
+model WhatsappSticker {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  userId    String   @db.Uuid
+  /// Imagem guardada no CRM (FileAsset, tipo "figurinha").
+  fileId    String   @db.Uuid
+  /// SHA-256 da imagem: a mesma figurinha não entra duas vezes para a mesma pessoa.
+  hash      String
+  mime      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, hash])
+  @@index([tenantId, userId, createdAt])
+  @@map("whatsapp_stickers")
+}
+
+/// Biblioteca de mídias das postagens: fotos (JPEG) e vídeos (MP4) próprios, artes montadas no CRM e imagens da IA.
+model SocialMedia {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @db.Uuid
+  /// Arquivo guardado no CRM (FileAsset, tipo "postagem").
+  fileId        String   @db.Uuid
+  /// imagem ou video
+  kind          String
+  mime          String
+  name          String
+  /// upload, arte, catalogo, ia ou video (montado a partir de fotos)
+  source        String   @default("upload")
+  width         Int?
+  height        Int?
+  size          Int      @default(0)
+  createdById   String?  @db.Uuid
+  createdByName String?
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@map("social_media")
+}
+
+/// Postagens planejadas no Instagram e no Facebook: rascunho → aprovação → agendada → publicada.
+model SocialPost {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  title          String
+  caption        String    @default("")
+  /// Contas escolhidas (ids da lista de contas de Postagens): uma, várias ou todas.
+  accountIds     String[]  @default([])
+  /// Redes dessas contas (instagram, facebook), para os ícones e as regras de formato.
+  networks       String[]  @default([])
+  /// FEED, STORIES ou REELS
+  format         String    @default("FEED")
+  /// Mídias da biblioteca (SocialMedia), na ordem do carrossel.
+  mediaIds       String[]  @default([])
+  /// Quando publicar; vazio = assim que for aprovada.
+  scheduledAt    DateTime?
+  /// RASCUNHO, EM_APROVACAO, APROVADO, PUBLICANDO, PUBLICADO ou ERRO
+  status         String    @default("RASCUNHO")
+  /// Endereço público das mídias para a Meta baixar (difícil de adivinhar; só vale até publicar).
+  publicToken    String
+  /// Por rede: { id, permalink, at } ou { error }.
+  results        Json?
+  error          String?
+  /// Motivo de a aprovação ter devolvido a postagem.
+  reviewNote     String?
+  createdById    String?   @db.Uuid
+  createdByName  String?
+  updatedByName  String?
+  submittedAt    DateTime?
+  approvedById   String?   @db.Uuid
+  approvedByName String?
+  approvedAt     DateTime?
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tenantId, scheduledAt])
+  @@index([status, scheduledAt])
+  @@map("social_posts")
+}
