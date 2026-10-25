@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { can, fullPermissions } from '../src/common/permissions'
 import { paidUntilAfter, paymentStatus } from '../src/plataforma/asaas'
-import { accessOf, allowedModules, cleanSlug, filterPermissions, hostKind, nextStatus, onRequestModules, validDocument } from '../src/plataforma/sistemas'
+import { accessOf, allowedModules, avulsoTotal, chosenSystems, cleanSale, cleanSlug, filterPermissions, hostKind, isComplete, nextStatus, onRequestModules, SELLABLE_KEYS, validDocument } from '../src/plataforma/sistemas'
 
 const DAY = 86_400_000
 const now = Date.parse('2026-11-10T12:00:00Z')
@@ -100,5 +100,33 @@ describe('plataforma: cobrança', () => {
   it('integrações sob consulta ficam no menu de quem não tem', () => {
     expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['whatsapp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'consulta_produtos'])
     expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['erp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce'])
+  })
+})
+
+describe('venda: sistemas avulsos, kits e completo', () => {
+  it('limpa a configuração: só sistemas vendáveis, preços válidos e dias de teste aceitos', () => {
+    const s = cleanSale({ showPrices: 'sim', avulso: true, prices: { whatsapp: 9900, erp: 5000, captura: -1, postagens: 1.5, xpto: 10 }, sellable: ['whatsapp', 'erp', 'xpto', 'whatsapp'], maxUsers: 0, maxWhatsapp: 2, trialDays: 5 })
+    expect(s.showPrices).toBe(false)
+    expect(s.avulso).toBe(true)
+    expect(s.prices).toEqual({ whatsapp: 9900 })
+    expect(s.sellable).toEqual(['whatsapp'])
+    expect(s.maxUsers).toBe(3)
+    expect(s.maxWhatsapp).toBe(2)
+    expect(s.trialDays).toBe(3)
+    expect(cleanSale(null).trialDays).toBe(3)
+  })
+
+  it('mensalidade avulsa é a soma dos sistemas escolhidos (só os liberados)', () => {
+    const s = cleanSale({ avulso: true, prices: { whatsapp: 9900, marketplaces: 14900 }, sellable: ['whatsapp', 'marketplaces'] })
+    const chosen = chosenSystems(['marketplaces', 'captura', 'whatsapp', 'marketplaces'], s)
+    expect(chosen).toEqual(['marketplaces', 'whatsapp'])
+    expect(avulsoTotal(chosen, s)).toBe(24800)
+    expect(avulsoTotal([], s)).toBe(0)
+  })
+
+  it('completo tem todos os sistemas vendidos (sob consulta não conta)', () => {
+    expect(SELLABLE_KEYS).not.toContain('erp')
+    expect(isComplete([...SELLABLE_KEYS])).toBe(true)
+    expect(isComplete(SELLABLE_KEYS.filter((k) => k !== 'marketplaces'))).toBe(false)
   })
 })

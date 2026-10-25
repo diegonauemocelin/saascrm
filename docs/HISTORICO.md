@@ -26,7 +26,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 | Site | `sgmulticonecta.com.br` com apresentação, vídeos por segmento (autopeças, loja de roupas, fábrica de roupas para padel) e **planos sob consulta** |
 | Marca | SG Multiconecta (logo enviada pelo Diego, redesenhada em SVG): roxo `#5b3fd0`, azul `#2a9be3`, amarelo `#ffc21a`, frase "Atendimento omnichannel com IA" |
 | Ramo | Tudo genérico: nada do ramo de peças de máquinas da Usaparts (decisão de 25/10/2026) |
-| Preço dos planos | Sob consulta no site e no cadastro; o valor fica no painel e na fatura do Asaas |
+| Preço dos planos | Sob consulta no site e no cadastro (Plataforma → Venda, "Mostrar os preços" desligado); o valor fica no painel e na fatura do Asaas |
+| Formas de contratar | Monte o seu (sistemas avulsos, mensalidade = soma), Kits e Completo (planos; o completo tem todos os sistemas); teste grátis de 3 dias nos três; marketplaces é um sistema só |
+| Implantação e consultoria | Implantação e acompanhamento grátis em todos; consultoria em Marketing, CRM, Marketplaces e E-commerce à parte, negociada com o cliente (sem pacote) |
 | E-mail do sistema (SMTP) | Gmail `sgmulticonecta@gmail.com` com senha de app; os registros MX `.` e SPF `-all` do domínio ficam |
 | Contato comercial | WhatsApp (49) 99993-1041 e `sgmulticonecta@gmail.com` (Plataforma → Site) |
 | Contador "aguardando retorno" no chat | Vale a regra do CRM 0.91.0: para quando o atendente responde (decisão de 25/10/2026) |

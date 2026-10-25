@@ -11,12 +11,14 @@ import { MailService } from '../settings/mail.service'
 import { SettingsService } from '../settings/settings.service'
 import { AsaasClient, type AsaasPayment, brDate, isPaid, paidUntilAfter, paymentStatus } from './asaas'
 import { PlataformaService } from './plataforma.service'
-import { cleanSlug, STATUS_LABEL, SYSTEMS, type TenantStatus, validDocument } from './sistemas'
+import { avulsoTotal, chosenSystems, cleanSlug, isComplete, STATUS_LABEL, SYSTEMS, type TenantStatus, validDocument } from './sistemas'
 
 export interface SignupInput {
   company: string
   slug: string
-  planId: string
+  /** Kit ou completo (um plano) ou, sem plano, os sistemas avulsos escolhidos. */
+  planId?: string | null
+  systems?: string[]
   document: string
   adminName: string
   email: string
@@ -88,18 +90,45 @@ export class CobrancaService {
   }
 
   /** Planos que aparecem na página de cadastro. */
-  /** Planos do cadastro e do site: sem o preço (planos sob consulta; o valor aparece na fatura do Asaas). */
-  async publicPlans() {
+  /**
+   * O que o cadastro e o site oferecem: os kits (planos públicos; o que tem todos os sistemas é o "completo") e, quando
+   * ligada, a venda de sistemas avulsos. Os valores só vão juntos quando a plataforma decidiu mostrar os preços; senão,
+   * sob consulta.
+   */
+  async publicOffer() {
+    const sale = await this.plataforma.sale()
     const rows = await this.prisma.plan.findMany({ where: { active: true, public: true }, orderBy: [{ sortOrder: 'asc' }, { priceCents: 'asc' }] })
-    return rows.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      maxUsers: p.maxUsers,
-      maxWhatsapp: p.maxWhatsapp,
-      trialDays: p.trialDays,
-      systems: SYSTEMS.filter((s) => p.systems.includes(s.key)).map((s) => s.label),
-    }))
+    const price = (cents: number) => (sale.showPrices ? { priceCents: cents } : {})
+    return {
+      showPrices: sale.showPrices,
+      plans: rows.map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        maxUsers: p.maxUsers,
+        maxWhatsapp: p.maxWhatsapp,
+        trialDays: p.trialDays,
+        complete: isComplete(p.systems),
+        systems: SYSTEMS.filter((s) => p.systems.includes(s.key)).map((s) => s.label),
+        ...price(p.priceCents),
+      })),
+      avulso: sale.avulso && sale.sellable.length
+        ? {
+            maxUsers: sale.maxUsers,
+            maxWhatsapp: sale.maxWhatsapp,
+            trialDays: sale.trialDays,
+            systems: SYSTEMS.filter((s) => sale.sellable.includes(s.key)).map((s) => ({ key: s.key, label: s.label, ...price(sale.prices[s.key] ?? 0) })),
+          }
+        : null,
+    }
+  }
+
+  /** Mensalidade da empresa: o valor do plano (kit ou completo) ou a soma dos sistemas avulsos. */
+  private async monthly(t: { name: string; plan: { name: string; priceCents: number } | null; extraSystems: string[] }) {
+    if (t.plan) return { cents: t.plan.priceCents, description: `Plano ${t.plan.name} — ${t.name}`, label: t.plan.name }
+    const sale = await this.plataforma.sale()
+    const labels = SYSTEMS.filter((s) => t.extraSystems.includes(s.key)).map((s) => s.label.replace(/ \(.*\)$/, ''))
+    return { cents: avulsoTotal(t.extraSystems, sale), description: `Sistemas: ${labels.join(', ')} — ${t.name}`.slice(0, 500), label: 'Sistemas avulsos' }
   }
 
   async slugAvailable(input: string) {
@@ -114,15 +143,20 @@ export class CobrancaService {
    * o administrador com a senha escolhida e a assinatura no Asaas. Sem teste, o acesso só libera com o pagamento.
    */
   async signup(d: SignupInput, ctx: RequestCtx) {
-    const plan = await this.prisma.plan.findFirst({ where: { id: d.planId, active: true, public: true } })
-    if (!plan) throw new BadRequestException('Escolha um plano.')
+    const plan = d.planId ? await this.prisma.plan.findFirst({ where: { id: d.planId, active: true, public: true } }) : null
+    const sale = await this.plataforma.sale()
+    const systems = plan ? [] : chosenSystems(d.systems, sale)
+    if (d.planId && !plan) throw new BadRequestException('Plano não encontrado. Escolha outro.')
+    if (!plan && (!sale.avulso || !systems.length)) throw new BadRequestException('Escolha um kit, o completo ou pelo menos um sistema.')
+    const trialDays = plan ? plan.trialDays : sale.trialDays
+    const cents = plan ? plan.priceCents : avulsoTotal(systems, sale)
     if (!validDocument(d.document)) throw new BadRequestException('CPF ou CNPJ inválido.')
     const problem = passwordProblems(d.password, d.email)
     if (problem) throw new BadRequestException(problem)
-    if (plan.priceCents > 0 && !this.client()) throw new ServiceUnavailableException('O cadastro está temporariamente indisponível (cobrança não configurada). Fale com a SG Multiconecta.')
+    if (cents > 0 && !this.client()) throw new ServiceUnavailableException('O cadastro está temporariamente indisponível (cobrança não configurada). Fale com a SG Multiconecta.')
     const r = await this.plataforma.createCompany(
       null,
-      { name: d.company, slug: d.slug, planId: plan.id, start: plan.trialDays ? 'TESTE' : 'AGUARDANDO_PAGAMENTO', trialDays: plan.trialDays || undefined, adminName: d.adminName, adminEmail: d.email, document: d.document, contactName: d.adminName, contactEmail: d.email, contactPhone: d.phone ?? null, password: d.password },
+      { name: d.company, slug: d.slug, planId: plan?.id ?? null, ...(plan ? {} : { extraSystems: systems, extraUsers: sale.maxUsers, extraWhatsapp: sale.maxWhatsapp }), start: trialDays ? 'TESTE' : 'AGUARDANDO_PAGAMENTO', trialDays: trialDays || undefined, adminName: d.adminName, adminEmail: d.email, document: d.document, contactName: d.adminName, contactEmail: d.email, contactPhone: d.phone ?? null, password: d.password },
       ctx,
     )
     let payUrl: string | null = null
@@ -135,10 +169,10 @@ export class CobrancaService {
     }
     return {
       url: r.url,
-      trialDays: plan.trialDays,
+      trialDays,
       payUrl,
-      message: plan.trialDays
-        ? `Pronto! Seu teste grátis de ${plan.trialDays} dias começou. Entre em ${r.url} com o seu e-mail e a senha que você criou.`
+      message: trialDays
+        ? `Pronto! Seu teste grátis de ${trialDays} dias começou. Entre em ${r.url} com o seu e-mail e a senha que você criou.`
         : billingError
           ? `Empresa cadastrada. A cobrança da primeira mensalidade não foi gerada agora (${billingError}); a SG Multiconecta vai entrar em contato.`
           : 'Empresa cadastrada. Pague a primeira mensalidade para liberar o acesso: assim que o pagamento for confirmado, você já pode entrar.',
@@ -156,7 +190,8 @@ export class CobrancaService {
     if (!asaas) throw new BadRequestException('Cobrança não configurada: informe ASAAS_API_KEY no servidor.')
     const t = await this.prisma.tenant.findUniqueOrThrow({ where: { id: tenantId }, include: { plan: true } })
     if (t.isPlatform) throw new BadRequestException('A empresa dona da plataforma não paga mensalidade.')
-    if (!t.plan || t.plan.priceCents <= 0) throw new BadRequestException('A empresa precisa de um plano pago para gerar a cobrança.')
+    const m = await this.monthly(t)
+    if (m.cents <= 0) throw new BadRequestException('A empresa precisa de um plano ou de sistemas com valor para gerar a cobrança.')
     if (!t.document || !validDocument(t.document)) throw new BadRequestException('Informe o CPF ou CNPJ da empresa (obrigatório para cobrar no Asaas).')
     let customer = t.asaasCustomerId
     if (!customer) {
@@ -165,9 +200,9 @@ export class CobrancaService {
     }
     if (!t.asaasSubscriptionId) {
       const first = t.status === 'TESTE' && t.trialEndsAt && t.trialEndsAt.getTime() > Date.now() ? brDate(t.trialEndsAt) : brDate(Date.now())
-      const sub = await asaas.createSubscription({ customer, value: t.plan.priceCents / 100, nextDueDate: first, description: `Plano ${t.plan.name} — ${t.name}`, externalReference: t.id })
+      const sub = await asaas.createSubscription({ customer, value: m.cents / 100, nextDueDate: first, description: m.description, externalReference: t.id })
       await this.prisma.tenant.update({ where: { id: t.id }, data: { asaasSubscriptionId: sub.id } })
-      await this.audit.log({ tenantId: t.id, action: 'plataforma.assinatura_criada', entity: 'tenant', entityId: t.id, data: { plano: t.plan.name, valor: t.plan.priceCents / 100, primeiroVencimento: first } })
+      await this.audit.log({ tenantId: t.id, action: 'plataforma.assinatura_criada', entity: 'tenant', entityId: t.id, data: { plano: m.label, valor: m.cents / 100, primeiroVencimento: first } })
       t.asaasSubscriptionId = sub.id
     }
     await this.syncPayments(t.id)
@@ -194,12 +229,14 @@ export class CobrancaService {
     return p?.invoiceUrl ?? null
   }
 
-  /** Troca de plano: o valor da assinatura acompanha (inclusive as cobranças ainda não pagas). */
+  /** Troca de plano ou de sistemas avulsos: o valor da assinatura acompanha (inclusive as cobranças ainda não pagas). */
   async planChanged(tenantId: string) {
     const asaas = this.client()
     const t = await this.prisma.tenant.findUnique({ where: { id: tenantId }, include: { plan: true } })
-    if (!asaas || !t?.asaasSubscriptionId || !t.plan) return
-    await asaas.updateSubscription(t.asaasSubscriptionId, { value: t.plan.priceCents / 100, description: `Plano ${t.plan.name} — ${t.name}` })
+    if (!asaas || !t?.asaasSubscriptionId) return
+    const m = await this.monthly(t)
+    if (m.cents <= 0) return
+    await asaas.updateSubscription(t.asaasSubscriptionId, { value: m.cents / 100, description: m.description })
   }
 
   /** Cancelada na plataforma: a assinatura no Asaas para de cobrar. */
@@ -247,12 +284,21 @@ export class CobrancaService {
   async billing(user: AuthUser) {
     const t = await this.prisma.tenant.findUniqueOrThrow({ where: { id: user.tenantId }, include: { plan: true } })
     if (t.asaasSubscriptionId) await this.syncPayments(t.id).catch(() => undefined)
+    const m = await this.monthly(t)
     const payments = await this.prisma.tenantPayment.findMany({ where: { tenantId: t.id }, orderBy: { dueDate: 'desc' }, take: 24, select: { id: true, valueCents: true, status: true, billingType: true, dueDate: true, paidAt: true, invoiceUrl: true } })
     return {
       company: t.name,
       status: t.status,
       statusLabel: STATUS_LABEL[t.status as TenantStatus] ?? t.status,
-      plan: t.plan ? { name: t.plan.name, priceCents: t.plan.priceCents, maxUsers: t.plan.maxUsers + t.extraUsers, maxWhatsapp: t.plan.maxWhatsapp + t.extraWhatsapp, systems: SYSTEMS.filter((s) => t.plan!.systems.includes(s.key)).map((s) => s.label) } : null,
+      plan: t.plan || t.extraSystems.length
+        ? {
+            name: m.label,
+            priceCents: m.cents,
+            maxUsers: (t.plan?.maxUsers ?? 0) + t.extraUsers,
+            maxWhatsapp: (t.plan?.maxWhatsapp ?? 0) + t.extraWhatsapp,
+            systems: SYSTEMS.filter((s) => (t.plan?.systems ?? []).includes(s.key) || t.extraSystems.includes(s.key)).map((s) => s.label),
+          }
+        : null,
       trialEndsAt: t.trialEndsAt,
       paidUntil: t.paidUntil,
       payUrl: await this.openInvoice(t.id),

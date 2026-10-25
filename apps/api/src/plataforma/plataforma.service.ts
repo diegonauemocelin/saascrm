@@ -13,7 +13,7 @@ import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
 import { createDefaultRoles } from './perfis-padrao'
-import { accessOf, cleanSlug, cleanSystems, nextStatus, PLATFORM_MODULE, STATUS_LABEL, SYSTEMS, TENANT_STATUSES, type TenantStatus } from './sistemas'
+import { accessOf, avulsoTotal, cleanSale, cleanSlug, cleanSystems, nextStatus, PLATFORM_MODULE, SALE_DEFAULTS, type SaleSettings, STATUS_LABEL, SYSTEMS, TENANT_STATUSES, type TenantStatus } from './sistemas'
 
 const DAY = 86_400_000
 
@@ -46,6 +46,10 @@ export interface CompanyInput {
   contactPhone?: string | null
   /** Senha escolhida no cadastro (sem ela, o administrador recebe o convite para criar a senha). */
   password?: string
+  /** Sistemas avulsos (sem plano) e os limites que vêm com eles. */
+  extraSystems?: string[]
+  extraUsers?: number
+  extraWhatsapp?: number
 }
 
 /**
@@ -71,6 +75,27 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
     private readonly auth: AuthService,
     private readonly settings: SettingsService,
   ) {}
+
+  // ---------- Venda (sistemas avulsos, kits e completo) ----------
+
+  private async platformId() {
+    return (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id ?? null
+  }
+
+  /** Como a plataforma vende: preços à mostra ou sob consulta, e os sistemas avulsos com o valor mensal de cada um. */
+  async sale(): Promise<SaleSettings> {
+    const id = await this.platformId()
+    return id ? cleanSale(await this.settings.get(id, 'venda', SALE_DEFAULTS)) : SALE_DEFAULTS
+  }
+
+  async saveSale(user: AuthUser, d: unknown, ctx: RequestCtx) {
+    await this.assertCan(user, 'edit')
+    const value = cleanSale(d)
+    if (value.avulso && !value.sellable.length) throw new BadRequestException('Escolha pelo menos um sistema para a venda avulsa.')
+    await this.settings.set(user.tenantId, 'venda', value)
+    await this.audit.byUser(user, ctx, 'plataforma.venda', 'settings', 'venda', { precosVisiveis: value.showPrices, avulso: value.avulso, sistemas: value.sellable, valores: Object.fromEntries(Object.entries(value.prices).map(([k, v]) => [k, v / 100])), testeDias: value.trialDays })
+    return value
+  }
 
   // ---------- Site de apresentação ----------
 
@@ -125,9 +150,10 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
 
   async summary(user: AuthUser) {
     await this.assertCan(user, 'view')
-    const companies = await this.prisma.tenant.findMany({ where: { isPlatform: false }, select: { status: true, plan: { select: { priceCents: true } } } })
+    const companies = await this.prisma.tenant.findMany({ where: { isPlatform: false }, select: { status: true, extraSystems: true, plan: { select: { priceCents: true } } } })
+    const sale = await this.sale()
     const byStatus = Object.fromEntries(TENANT_STATUSES.map((s) => [s, companies.filter((c) => c.status === s).length]))
-    const mrrCents = companies.filter((c) => c.status === 'ATIVA' || c.status === 'ATRASADA').reduce((s, c) => s + (c.plan?.priceCents ?? 0), 0)
+    const mrrCents = companies.filter((c) => c.status === 'ATIVA' || c.status === 'ATRASADA').reduce((s, c) => s + (c.plan ? c.plan.priceCents : avulsoTotal(c.extraSystems, sale)), 0)
     const overdue = await this.prisma.tenantPayment.aggregate({ where: { status: 'VENCIDA' }, _sum: { valueCents: true }, _count: true })
     return { total: companies.length, byStatus, mrrCents, overdueCents: overdue._sum.valueCents ?? 0, overdueCount: overdue._count, platformDomain: env.platformDomain }
   }
@@ -258,6 +284,9 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
           name,
           slug,
           planId: plan?.id ?? null,
+          extraSystems: cleanSystems(d.extraSystems ?? []),
+          extraUsers: Math.max(0, Math.min(1000, Math.round(d.extraUsers ?? 0))),
+          extraWhatsapp: Math.max(0, Math.min(1000, Math.round(d.extraWhatsapp ?? 0))),
           status: start,
           trialEndsAt: start === 'TESTE' ? new Date(Date.now() + trialDays * DAY) : null,
           paidUntil,
@@ -280,7 +309,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
     } catch (err) {
       invite = `não enviado (${(err as Error).message.slice(0, 120).replace(/\.+$/, '')}). Configure o SMTP da plataforma em Configurações › E-mail e use "Reenviar convite"`
     }
-    await this.audit.log({ tenantId: tenant.id, userId: user?.id, userEmail: user?.email ?? email, action: user ? 'plataforma.empresa_criada' : 'plataforma.cadastro', entity: 'tenant', entityId: tenant.id, ...ctx, data: { nome: name, endereco: slug, plano: plan?.name ?? null, inicio: start } })
+    await this.audit.log({ tenantId: tenant.id, userId: user?.id, userEmail: user?.email ?? email, action: user ? 'plataforma.empresa_criada' : 'plataforma.cadastro', entity: 'tenant', entityId: tenant.id, ...ctx, data: { nome: name, endereco: slug, plano: plan?.name ?? null, sistemasAvulsos: d.extraSystems?.length ? d.extraSystems : undefined, inicio: start } })
     return { id: tenant.id, slug, url, invite, inviteSent: invite !== 'enviado' ? !!d.password : true, message: `Empresa criada em ${url}. Convite para ${email}: ${invite}.` }
   }
 

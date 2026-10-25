@@ -49,6 +49,66 @@ export function filterPermissions(perms: PermissionSet, allowed: Set<string>): P
 
 export const cleanSystems = (list: unknown) => (Array.isArray(list) ? [...new Set(list.filter((s): s is string => typeof s === 'string' && SYSTEM_KEYS.includes(s)))] : [])
 
+// ---------- Venda: sistemas avulsos, kits e completo ----------
+
+/** Sistemas que podem ser vendidos avulsos ou num kit (os sob consulta ficam fora). */
+export const SELLABLE_KEYS = SYSTEMS.filter((s) => !('onRequest' in s && s.onRequest)).map((s) => s.key) as readonly string[]
+
+/** Dias de teste aceitos (planos e venda avulsa). */
+export const TRIAL_OPTIONS = [0, 3, 7, 14, 30] as const
+
+/**
+ * Como a plataforma vende (configuração da empresa dona, chave "venda"): preços à mostra ou sob consulta, e a venda de
+ * sistemas avulsos (valor mensal de cada um, quais podem ser escolhidos, limites e dias de teste de quem monta o seu).
+ */
+export interface SaleSettings {
+  showPrices: boolean
+  avulso: boolean
+  /** Valor mensal de cada sistema, em centavos. */
+  prices: Record<string, number>
+  sellable: string[]
+  maxUsers: number
+  maxWhatsapp: number
+  trialDays: number
+}
+
+export const SALE_DEFAULTS: SaleSettings = { showPrices: false, avulso: false, prices: {}, sellable: [], maxUsers: 3, maxWhatsapp: 1, trialDays: 3 }
+
+const intIn = (v: unknown, min: number, max: number, fallback: number) => {
+  const n = Number(v)
+  return Number.isInteger(n) && n >= min && n <= max ? n : fallback
+}
+
+export function cleanSale(raw: unknown): SaleSettings {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const pricesRaw = (r.prices && typeof r.prices === 'object' ? r.prices : {}) as Record<string, unknown>
+  const prices: Record<string, number> = {}
+  for (const k of SELLABLE_KEYS) {
+    const v = intIn(pricesRaw[k], 0, 10_000_000, -1)
+    if (v >= 0) prices[k] = v
+  }
+  return {
+    showPrices: r.showPrices === true,
+    avulso: r.avulso === true,
+    prices,
+    sellable: cleanSystems(r.sellable).filter((k) => SELLABLE_KEYS.includes(k)),
+    maxUsers: intIn(r.maxUsers, 1, 10_000, SALE_DEFAULTS.maxUsers),
+    maxWhatsapp: intIn(r.maxWhatsapp, 0, 10_000, SALE_DEFAULTS.maxWhatsapp),
+    trialDays: (TRIAL_OPTIONS as readonly number[]).includes(Number(r.trialDays)) ? Number(r.trialDays) : SALE_DEFAULTS.trialDays,
+  }
+}
+
+/** Mensalidade de quem montou o seu: soma do valor mensal de cada sistema escolhido. */
+export const avulsoTotal = (systems: readonly string[], s: Pick<SaleSettings, 'prices'>) => systems.reduce((sum, k) => sum + (s.prices[k] ?? 0), 0)
+
+/** Sistemas escolhidos no "monte o seu": só os liberados para venda avulsa, sem repetir. */
+export function chosenSystems(list: unknown, s: Pick<SaleSettings, 'sellable'>): string[] {
+  return cleanSystems(list).filter((k) => s.sellable.includes(k))
+}
+
+/** Kit "completo": tem todos os sistemas vendidos (os sob consulta não contam). */
+export const isComplete = (systems: readonly string[]) => SELLABLE_KEYS.every((k) => systems.includes(k))
+
 // ---------- Situação da assinatura ----------
 
 export const TENANT_STATUSES = ['TESTE', 'AGUARDANDO_PAGAMENTO', 'ATIVA', 'ATRASADA', 'SUSPENSA', 'CANCELADA'] as const

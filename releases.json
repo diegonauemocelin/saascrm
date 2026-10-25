@@ -2,6 +2,33 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.6",
+      "date": "2026-10-25",
+      "title": "Contratar do seu jeito: sistemas avulsos, kits ou completo",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Cadastro",
+          "text": "Três formas de contratar: Monte o seu (o cliente escolhe os sistemas e a mensalidade é a soma do valor de cada um), Kits e Completo."
+        },
+        {
+          "type": "novo",
+          "area": "Plataforma",
+          "text": "Aba Venda no painel: valor mensal de cada sistema, quais podem ser vendidos avulsos, usuários e números de WhatsApp incluídos, dias de teste e a opção de mostrar os preços (desligada: tudo sob consulta)."
+        },
+        {
+          "type": "novo",
+          "area": "Cobrança",
+          "text": "A assinatura no Asaas de quem monta o seu é a soma dos sistemas escolhidos; mudar os sistemas da empresa no painel atualiza o valor. A receita mensal do painel inclui os sistemas avulsos."
+        },
+        {
+          "type": "novo",
+          "area": "Site",
+          "text": "Planos no site com Monte o seu, kits e completo; implantação e acompanhamento grátis em todos; consultoria em Marketing, CRM, Marketplaces e E-commerce contratada à parte."
+        }
+      ]
+    },
+    {
       "version": "1.0.5",
       "date": "2026-10-25",
       "title": "Site: marketplaces, anúncios e novidades em breve",

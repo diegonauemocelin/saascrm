@@ -128,6 +128,7 @@ export function PlataformaPage() {
           <TabsTrigger value="empresas">Empresas</TabsTrigger>
           <TabsTrigger value="planos">Planos</TabsTrigger>
           <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
+          <TabsTrigger value="venda">Venda</TabsTrigger>
           <TabsTrigger value="site">Site</TabsTrigger>
         </TabsList>
         <TabsContent value="empresas">
@@ -135,6 +136,7 @@ export function PlataformaPage() {
         </TabsContent>
         <TabsContent value="planos">{plans.error ? <ErrorState error={plans.error} /> : <Plans plans={plans.data} systems={systems.data ?? []} />}</TabsContent>
         <TabsContent value="cobrancas">{tab === 'cobrancas' && <Payments />}</TabsContent>
+        <TabsContent value="venda">{tab === 'venda' && <SaleSettingsCard systems={systems.data ?? []} />}</TabsContent>
         <TabsContent value="site">{tab === 'site' && <SiteContact />}</TabsContent>
       </Tabs>
     </RequirePermission>
@@ -203,7 +205,7 @@ function Companies({ plans, systems }: { plans: Plan[]; systems: System[] }) {
                     <span className="block font-medium">{c.name}</span>
                     <span className="text-xs text-muted-foreground">{c.url.replace(/^https:\/\//, '')}</span>
                   </TableCell>
-                  <TableCell>{c.plan ? `${c.plan.name} · ${brl(c.plan.priceCents)}` : <span className="text-muted-foreground">Sem plano</span>}</TableCell>
+                  <TableCell>{c.plan ? `${c.plan.name} · ${brl(c.plan.priceCents)}` : c.extraSystems.length ? <span>Sistemas avulsos ({c.extraSystems.length})</span> : <span className="text-muted-foreground">Sem plano</span>}</TableCell>
                   <TableCell>
                     <StatusBadge s={c.status} label={c.statusLabel} />
                   </TableCell>
@@ -806,6 +808,126 @@ function SiteContact() {
         <Label htmlFor="st-ig">Instagram (opcional)</Label>
         <Input id="st-ig" placeholder="@sgmulticonecta" value={f.instagram} onChange={(e) => setF({ ...f, instagram: e.target.value })} />
       </div>
+      <Can module="plataforma" action="edit">
+        <Button className="self-start" onClick={() => save.mutate(f)} disabled={save.isPending}>
+          {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar
+        </Button>
+      </Can>
+    </Card>
+  )
+}
+
+interface SaleSettings {
+  showPrices: boolean
+  avulso: boolean
+  prices: Record<string, number>
+  sellable: string[]
+  maxUsers: number
+  maxWhatsapp: number
+  trialDays: number
+}
+
+const centsOf = (v: string) => Math.max(0, Math.round(Number(v.replace(/\./g, '').replace(',', '.')) * 100) || 0)
+const moneyText = (cents: number | undefined) => (cents === undefined ? '' : (cents / 100).toFixed(2).replace('.', ','))
+
+/**
+ * Como a plataforma vende: preços à mostra ou sob consulta (site e cadastro) e a venda de sistemas avulsos, com o valor
+ * mensal de cada um. Os kits e o completo são os planos (aba Planos; o completo é o plano com todos os sistemas).
+ */
+function SaleSettingsCard({ systems }: { systems: System[] }) {
+  const qc = useQueryClient()
+  const q = useQuery({ queryKey: ['plataforma-venda'], queryFn: () => api.get<SaleSettings>('/plataforma/venda') })
+  const [f, setF] = useState<SaleSettings | null>(null)
+  const [prices, setPrices] = useState<Record<string, string>>({})
+  useEffect(() => {
+    if (!q.data) return
+    setF(q.data)
+    setPrices(Object.fromEntries(Object.entries(q.data.prices).map(([k, v]) => [k, moneyText(v)])))
+  }, [q.data])
+  const save = useMutation({
+    mutationFn: (d: SaleSettings) => api.put<SaleSettings>('/plataforma/venda', { ...d, prices: Object.fromEntries(Object.entries(prices).filter(([, v]) => v.trim()).map(([k, v]) => [k, centsOf(v)])) }),
+    onSuccess: (d) => {
+      qc.setQueryData(['plataforma-venda'], d)
+      toast.success('Venda salva.')
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  })
+  if (q.error) return <ErrorState error={q.error} />
+  if (!f) return <TableSkeleton />
+  const sellable = systems.filter((s) => !s.onRequest)
+  return (
+    <Card className="max-w-3xl gap-5 p-5">
+      <div>
+        <p className="font-medium">Como a plataforma vende</p>
+        <p className="text-sm text-muted-foreground">
+          Três formas de contratar no cadastro: <b>monte o seu</b> (sistemas avulsos, valor de cada um), <b>kits</b> e <b>completo</b> (os planos da aba Planos; o completo é o plano com
+          todos os sistemas). Integração com e-commerce e ERP continua sob consulta.
+        </p>
+      </div>
+      <label className="flex items-start gap-3">
+        <Switch checked={f.showPrices} onCheckedChange={(v) => setF({ ...f, showPrices: v })} />
+        <span>
+          <span className="font-medium">Mostrar os preços no site e no cadastro</span>
+          <span className="block text-sm text-muted-foreground">Desligado: tudo aparece como "Sob consulta", com o botão para consultar no WhatsApp. O valor é cobrado do mesmo jeito.</span>
+        </span>
+      </label>
+      <label className="flex items-start gap-3">
+        <Switch checked={f.avulso} onCheckedChange={(v) => setF({ ...f, avulso: v })} />
+        <span>
+          <span className="font-medium">Venda de sistemas avulsos ("Monte o seu")</span>
+          <span className="block text-sm text-muted-foreground">O cliente marca os sistemas que quer; a mensalidade é a soma dos valores abaixo.</span>
+        </span>
+      </label>
+      <div className="overflow-hidden rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Sistema</TableHead>
+              <TableHead className="w-28 text-center">Vende avulso</TableHead>
+              <TableHead className="w-40">Valor mensal (R$)</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sellable.map((s) => (
+              <TableRow key={s.key}>
+                <TableCell>{s.label}</TableCell>
+                <TableCell className="text-center">
+                  <Checkbox checked={f.sellable.includes(s.key)} onCheckedChange={(v) => setF({ ...f, sellable: v ? [...f.sellable, s.key] : f.sellable.filter((k) => k !== s.key) })} aria-label={`Vender ${s.label} avulso`} />
+                </TableCell>
+                <TableCell>
+                  <Input inputMode="decimal" placeholder="0,00" value={prices[s.key] ?? ''} onChange={(e) => setPrices({ ...prices, [s.key]: e.target.value })} aria-label={`Valor mensal de ${s.label}`} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="v-users">Usuários incluídos</Label>
+          <Input id="v-users" type="number" min={1} value={f.maxUsers} onChange={(e) => setF({ ...f, maxUsers: Number(e.target.value) })} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="v-wa">Números de WhatsApp</Label>
+          <Input id="v-wa" type="number" min={0} value={f.maxWhatsapp} onChange={(e) => setF({ ...f, maxWhatsapp: Number(e.target.value) })} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Teste grátis</Label>
+          <Select value={String(f.trialDays)} onValueChange={(v) => setF({ ...f, trialDays: Number(v) })}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[0, 3, 7, 14, 30].map((d) => (
+                <SelectItem key={d} value={String(d)}>
+                  {d ? `${d} dias` : 'Sem teste'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">Usuários, números e teste valem para quem monta o seu. Os kits e o completo usam os da aba Planos.</p>
       <Can module="plataforma" action="edit">
         <Button className="self-start" onClick={() => save.mutate(f)} disabled={save.isPending}>
           {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar

@@ -3,7 +3,7 @@ import type { Response } from 'express'
 import { ApiTags } from '@nestjs/swagger'
 import { SkipThrottle, Throttle } from '@nestjs/throttler'
 import { Type } from 'class-transformer'
-import { IsArray, IsBoolean, IsEmail, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator'
+import { ArrayMaxSize, IsArray, IsBoolean, IsEmail, IsIn, IsInt, IsISO8601, IsObject, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator'
 import { AllowBlocked, CurrentUser, Public, ReqContext, type RequestCtx } from '../common/decorators'
 import { can } from '../common/permissions'
 import { env } from '../config/env'
@@ -60,7 +60,8 @@ class CompanyUpdateDto {
 class SignupDto {
   @IsString() @MinLength(2) @MaxLength(120) company!: string
   @IsString() @MaxLength(40) slug!: string
-  @IsUUID() planId!: string
+  @IsOptional() @IsUUID() planId?: string
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @IsString({ each: true }) systems?: string[]
   @IsString() @MaxLength(20) document!: string
   @IsString() @MinLength(2) @MaxLength(120) adminName!: string
   @IsEmail() @MaxLength(200) email!: string
@@ -82,6 +83,16 @@ class PaymentsDto {
   @IsOptional() @Type(() => Number) @IsInt() pagina?: number
 }
 
+class SaleDto {
+  @IsBoolean() showPrices!: boolean
+  @IsBoolean() avulso!: boolean
+  @IsObject() prices!: Record<string, number>
+  @IsArray() @ArrayMaxSize(20) @IsString({ each: true }) sellable!: string[]
+  @Type(() => Number) @IsInt() @Min(1) @Max(10_000) maxUsers!: number
+  @Type(() => Number) @IsInt() @Min(0) @Max(10_000) maxWhatsapp!: number
+  @Type(() => Number) @IsInt() @IsIn([0, 3, 7, 14, 30]) trialDays!: number
+}
+
 class SiteDto {
   @IsString() @MaxLength(30) whatsapp!: string
   @ValidateIf((o: SiteDto) => o.email !== '') @IsEmail() @MaxLength(200) email!: string
@@ -96,6 +107,16 @@ export class PlataformaController {
     private readonly svc: PlataformaService,
     private readonly billing: CobrancaService,
   ) {}
+
+  @Get('venda')
+  sale(@CurrentUser() user: AuthUser) {
+    return this.svc.assertCan(user, 'view').then(() => this.svc.sale())
+  }
+
+  @Put('venda')
+  saveSale(@CurrentUser() user: AuthUser, @Body() dto: SaleDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveSale(user, dto, ctx)
+  }
 
   @Get('site')
   async site(@CurrentUser() user: AuthUser) {
@@ -153,7 +174,7 @@ export class PlataformaController {
     let billing: string | null = null
     try {
       if (dto.status === 'CANCELADA') await this.billing.canceled(id)
-      else if (dto.planId !== undefined) await this.billing.planChanged(id)
+      else if (dto.planId !== undefined || dto.extraSystems !== undefined) await this.billing.planChanged(id)
     } catch (err) {
       billing = `Salvo, mas o Asaas não foi atualizado: ${(err as Error).message}`
     }
@@ -213,13 +234,13 @@ export class SiteController {
   @Public()
   @Get()
   async info() {
-    const [contact, plans] = await Promise.all([this.svc.siteContact(), this.billing.publicPlans()])
+    const [contact, offer] = await Promise.all([this.svc.siteContact(), this.billing.publicOffer()])
     const base = env.platformAdminHost ?? env.platformDomain
     return {
       contact,
       signupUrl: base ? `https://${base}/cadastro` : null,
       loginUrl: base ? `https://${base}/login` : null,
-      plans,
+      ...offer,
     }
   }
 }
@@ -237,7 +258,7 @@ export class CadastroController {
   @Public()
   @Get('planos')
   plans() {
-    return this.billing.publicPlans()
+    return this.billing.publicOffer()
   }
 
   @Public()
