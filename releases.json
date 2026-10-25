@@ -4,8 +4,13 @@
     {
       "version": "1.0.2",
       "date": "2026-10-25",
-      "title": "Entrada da plataforma: entrar na empresa, recuperar o acesso ou criar conta",
+      "title": "Marca SG Multiconecta e a entrada da plataforma: entrar na empresa, recuperar o acesso ou criar conta",
       "changes": [
+        {
+          "type": "novo",
+          "area": "Marca",
+          "text": "Marca SG Multiconecta na plataforma: logo, ícone da aba do navegador, nome e cores (roxo da marca). A logo completa aparece na tela de entrada; as empresas clientes continuam com a marca delas."
+        },
         {
           "type": "novo",
           "area": "Entrada",

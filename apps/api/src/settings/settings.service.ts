@@ -13,6 +13,10 @@ export interface BrandingSettings {
   logoFileId: string | null
   logoDarkFileId: string | null
   faviconFileId: string | null
+  /** Imagens fixas do próprio sistema (ex.: /marca/sg-icone.svg), usadas quando não há arquivo enviado. */
+  logoPath?: string | null
+  logoDarkPath?: string | null
+  faviconPath?: string | null
   loginTitle: string
   loginSubtitle: string
   defaultLayout: 'MODERN' | 'CLASSIC'
@@ -100,11 +104,11 @@ export class SettingsService {
 }
 
 export function publicBranding(b: BrandingSettings) {
-  const { logoFileId, logoDarkFileId, faviconFileId, ...rest } = b
+  const { logoFileId, logoDarkFileId, faviconFileId, logoPath, logoDarkPath, faviconPath, ...rest } = b
   return {
     ...rest,
-    logoUrl: logoFileId ? `/api/files/public/${logoFileId}` : null,
-    logoDarkUrl: logoDarkFileId ? `/api/files/public/${logoDarkFileId}` : null,
-    faviconUrl: faviconFileId ? `/api/files/public/${faviconFileId}` : null,
+    logoUrl: logoFileId ? `/api/files/public/${logoFileId}` : (logoPath ?? null),
+    logoDarkUrl: logoDarkFileId ? `/api/files/public/${logoDarkFileId}` : (logoDarkPath ?? null),
+    faviconUrl: faviconFileId ? `/api/files/public/${faviconFileId}` : (faviconPath ?? null),
   }
 }

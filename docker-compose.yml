@@ -79,7 +79,7 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-}
-      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-sgmulticonecta}
+      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-SG Multiconecta}
       # WhatsApp (Evolution API). Vazio = módulo desligado. Gerados por deploy/whatsapp.sh ativar.
       EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
       EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:-}

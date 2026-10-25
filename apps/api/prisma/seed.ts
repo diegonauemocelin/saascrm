@@ -9,7 +9,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import * as argon2 from 'argon2'
 import { randomBytes } from 'node:crypto'
 import { PrismaClient } from '../src/generated/prisma/client'
-import { createDefaultRoles } from '../src/plataforma/perfis-padrao'
+import { applyPlatformBranding, createDefaultRoles } from '../src/plataforma/perfis-padrao'
 
 async function main() {
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) })
@@ -18,11 +18,12 @@ async function main() {
   const tenant = await prisma.tenant.upsert({
     where: { slug },
     // A primeira empresa é a dona da plataforma (painel de empresas, planos e cobranças): não paga e não é bloqueada.
-    create: { slug, name: process.env.SEED_TENANT_NAME || 'sgmulticonecta', isPlatform: true, status: 'ATIVA' },
+    create: { slug, name: process.env.SEED_TENANT_NAME || 'SG Multiconecta', isPlatform: true, status: 'ATIVA' },
     update: { isPlatform: true, status: 'ATIVA' },
   })
 
   await createDefaultRoles(prisma, tenant.id)
+  if (!(await prisma.tenantSetting.findUnique({ where: { tenantId_key: { tenantId: tenant.id, key: 'branding' } } }))) await applyPlatformBranding(prisma, tenant.id)
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase()
   if (!adminEmail) {

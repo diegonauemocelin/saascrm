@@ -110,7 +110,7 @@ BACKUP_RETENTION_DAYS=30
 BACKUP_HOUR=3
 SEED_ADMIN_EMAIL=$ADMIN_EMAIL
 SEED_ADMIN_NAME=$ADMIN_NOME
-SEED_TENANT_NAME=sgmulticonecta
+SEED_TENANT_NAME=SG Multiconecta
 # Asaas (mensalidades): preencha depois de criar a conta (Integrações > Chaves de API) e reinicie (deploy/deploy.sh).
 ASAAS_API_KEY=
 ASAAS_ENV=sandbox

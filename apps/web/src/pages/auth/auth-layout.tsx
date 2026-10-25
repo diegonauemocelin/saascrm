@@ -12,10 +12,15 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         className="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex"
         style={{ background: 'var(--brand-nav)', color: 'var(--brand-nav-foreground)' }}
       >
-        <div className="flex items-center gap-3 text-lg font-semibold">
-          <BrandMark onDark className="size-10" />
-          {b.appName}
-        </div>
+        {/* No endereço da plataforma, a logo completa da SG Multiconecta (versão para fundo escuro). */}
+        {b.signup ? (
+          <img src="/marca/sg-logo-branco.svg" alt={b.appName} className="h-20 w-auto self-start" />
+        ) : (
+          <div className="flex items-center gap-3 text-lg font-semibold">
+            <BrandMark onDark className="size-10" />
+            {b.appName}
+          </div>
+        )}
         <div className="relative z-10 max-w-md">
           <p className="text-3xl font-semibold leading-tight">Leads, atendimento e marketing em um só lugar.</p>
           <p className="mt-3 opacity-75">CRM, automação de marketing e acompanhamento de pré e pós-vendas.</p>
@@ -29,7 +34,10 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
       <div className="flex flex-col">
         <main className="flex flex-1 items-center justify-center p-6">
           <div className="w-full max-w-sm">
-            <div className="mb-8 flex items-center gap-2 font-semibold lg:hidden">
+            {b.signup ? (
+              <img src="/marca/sg-logo.svg" alt={b.appName} className="mb-8 h-12 w-auto dark:hidden lg:hidden" />
+            ) : null}
+            <div className={b.signup ? 'mb-8 hidden items-center gap-2 font-semibold dark:flex lg:!hidden' : 'mb-8 flex items-center gap-2 font-semibold lg:hidden'}>
               <BrandMark />
               {b.appName}
             </div>

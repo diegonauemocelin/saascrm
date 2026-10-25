@@ -4,6 +4,27 @@
  */
 import type { PrismaClient } from '../generated/prisma/client'
 
+/** Marca da empresa dona da plataforma (SG Multiconecta): nome, cores e as imagens em apps/web/public/marca. */
+export const PLATFORM_BRANDING = {
+  appName: 'SG Multiconecta',
+  shortName: 'SG Multiconecta',
+  primaryColor: '#5b3fd0',
+  brandColor: '#5b3fd0',
+  sidebarColor: '#16133a',
+  loginTitle: 'Bem-vindo ao SG Multiconecta',
+  loginSubtitle: 'Atendimento omnichannel com IA.',
+  logoPath: '/marca/sg-icone.svg',
+  logoDarkPath: '/marca/sg-icone.svg',
+  faviconPath: '/marca/sg-icone.svg',
+}
+
+/** Grava a marca da plataforma, mantendo o que já foi configurado nos outros campos (e-mail de suporte, layout...). */
+export async function applyPlatformBranding(prisma: PrismaClient, tenantId: string) {
+  const row = await prisma.tenantSetting.findUnique({ where: { tenantId_key: { tenantId, key: 'branding' } } })
+  const value = { ...((row?.value as object | null) ?? {}), ...PLATFORM_BRANDING }
+  await prisma.tenantSetting.upsert({ where: { tenantId_key: { tenantId, key: 'branding' } }, create: { tenantId, key: 'branding', value }, update: { value } })
+}
+
 const MODULES = [
   'dashboard', 'leads', 'carrinhos', 'pre_vendas', 'pos_vendas', 'cadastros', 'chat', 'captura', 'email_marketing',
   'whatsapp', 'automacoes', 'catalogo', 'relatorios', 'google_ads', 'usuarios', 'perfis', 'configuracoes', 'auditoria',
