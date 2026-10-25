@@ -35,6 +35,10 @@ else
   LINK=""
 fi
 
+# O Nginx do servidor já atende em IPv6? Então a plataforma também (sem IPv6 no servidor, só IPv4).
+IPV6=""
+ss -tlnH '( sport = :443 )' 2>/dev/null | grep -q '\[::\]' && IPV6=1
+
 # Endereços que a plataforma usa (domínio, painel, empresas e domínios próprios conferidos), por dentro do container.
 HOSTS="$(dc exec -T api node -e "fetch('http://127.0.0.1:3000/api/public/certificados').then(async (r) => { if (!r.ok) process.exit(1); process.stdout.write(await r.text()) }).catch(() => process.exit(1))" 2>/dev/null | grep -E '^[a-z0-9.-]+$' || true)"
 [ -n "$HOSTS" ] || fatal "A API não respondeu a lista de endereços (o sistema está no ar? sudo docker compose ps). Nada foi alterado."
@@ -54,6 +58,7 @@ gerar() {
   echo
   echo "server {"
   echo "    listen 80;"
+  [ -z "$IPV6" ] || echo "    listen [::]:80;"
   echo "    server_name $(echo "$HOSTS" | tr '\n' ' ');"
   echo "    server_tokens off;"
   echo "    location /.well-known/acme-challenge/ { root $WEBROOT; }"
@@ -64,7 +69,7 @@ gerar() {
     cat <<EOF
 
 server {
-    listen 443 ssl;
+    listen 443 ssl;$([ -z "$IPV6" ] || printf '\n    listen [::]:443 ssl;')
     server_name $h;
     server_tokens off;
     ssl_certificate $LIVE/$h/fullchain.pem;
