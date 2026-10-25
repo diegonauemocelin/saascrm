@@ -1,10 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
 import { AuditService } from '../audit/audit.service'
 import type { RequestCtx } from '../common/decorators'
-import { can, fullPermissions, MODULES } from '../common/permissions'
+import { can, MODULES } from '../common/permissions'
 import type { AuthUser } from '../common/types'
 import type { LayoutMode, ThemeMode } from '../generated/prisma/client'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
+import { accessOf, allowedModules, STATUS_LABEL, type TenantStatus } from '../plataforma/sistemas'
 import { SettingsService } from '../settings/settings.service'
 import { cleanSignature } from '../whatsapp/envio'
 import { AuthService } from './auth.service'
@@ -20,11 +22,13 @@ export class AccountService {
     private readonly settings: SettingsService,
     private readonly auth: AuthService,
     private readonly security: SecurityService,
+    private readonly tenants: TenantService,
   ) {}
 
   async profile(user: AuthUser) {
     const row = await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } })
     const branding = await this.settings.branding(user.tenantId)
+    const tenant = await this.tenants.info(user.tenantId)
     // Vendedor ligado ao login: define a base de quem tem perfil "somente os próprios".
     const seller = await this.prisma.seller.findUnique({ where: { userId: user.id }, select: { id: true, name: true } })
     const layout = branding.allowLayoutChoice ? (row.layout ?? branding.defaultLayout) : branding.defaultLayout
@@ -46,8 +50,22 @@ export class AccountService {
       lastLoginAt: row.lastLoginAt,
       role: user.role,
       seller,
-      permissions: user.role.isSystem ? fullPermissions() : user.permissions,
-      modules: MODULES,
+      permissions: user.permissions,
+      // Só os módulos dos sistemas do plano (o editor de perfis mostra só esses).
+      modules: MODULES.filter((m) => allowedModules(tenant).has(m.key)),
+      company: {
+        name: tenant.name,
+        slug: tenant.slug,
+        isPlatform: tenant.isPlatform,
+        status: tenant.status,
+        statusLabel: STATUS_LABEL[tenant.status as TenantStatus] ?? tenant.status,
+        plan: tenant.planName,
+        trialEndsAt: tenant.trialEndsAt,
+        paidUntil: tenant.paidUntil,
+        maxUsers: tenant.maxUsers,
+        maxWhatsapp: tenant.maxWhatsapp,
+        ...accessOf(tenant),
+      },
     }
   }
 

@@ -85,7 +85,7 @@ export class TrackingController {
   @RequirePermission('configuracoes', 'view')
   async config(@CurrentUser() user: AuthUser) {
     const s = await this.tracking.config(user.tenantId)
-    return { ...s, snippet: this.tracking.snippet(s) }
+    return { ...s, snippet: await this.tracking.snippet(user.tenantId, s) }
   }
 
   @Put('config')
@@ -102,7 +102,7 @@ export class TrackingController {
     const appMarkers = (dto.appMarkers ?? current.appMarkers).map((m) => m.trim()).filter((m) => m.length >= 3)
     const next = await this.tracking.save(user.tenantId, { ...current, ...dto, domains, appMarkers })
     await this.audit.byUser(user, ctx, 'settings.tracking_updated', 'settings', 'tracking', { ...dto, domains })
-    return { ...next, snippet: this.tracking.snippet(next) }
+    return { ...next, snippet: await this.tracking.snippet(user.tenantId, next) }
   }
 
   /** Troca a chave do site (o código antigo para de funcionar e precisa ser substituído no site). */
@@ -113,7 +113,7 @@ export class TrackingController {
     const current = await this.tracking.config(user.tenantId)
     const next = await this.tracking.save(user.tenantId, { ...current, siteKey: randomToken(18) })
     await this.audit.byUser(user, ctx, 'settings.tracking_key_rotated', 'settings', 'tracking')
-    return { ...next, snippet: this.tracking.snippet(next) }
+    return { ...next, snippet: await this.tracking.snippet(user.tenantId, next) }
   }
 
   @Get('resumo')
@@ -177,7 +177,7 @@ export class MetaAdminController {
   @RequirePermission('configuracoes', 'view')
   async get(@CurrentUser() user: AuthUser) {
     const s = await this.meta.config(user.tenantId)
-    return metaView(s, this.meta.webhookUrl(s))
+    return metaView(s, await this.meta.webhookUrl(user.tenantId, s))
   }
 
   @Put()
@@ -201,7 +201,7 @@ export class MetaAdminController {
       chaveAlterada: !!appSecret,
       tokenAlterado: !!pageToken,
     })
-    return metaView(next, this.meta.webhookUrl(next))
+    return metaView(next, await this.meta.webhookUrl(user.tenantId, next))
   }
 
   @Post('testar')

@@ -54,9 +54,10 @@ export class AuthService {
     private readonly security: SecurityService,
   ) {}
 
-  async login(emailRaw: string, password: string, ctx: RequestCtx): Promise<LoginResult> {
+  async login(emailRaw: string, password: string, ctx: RequestCtx, host?: string): Promise<LoginResult> {
     const email = emailRaw.trim().toLowerCase()
-    const tenantId = await this.tenants.defaultId()
+    // Empresa do endereço acessado: o mesmo e-mail pode existir em outra empresa da plataforma.
+    const tenantId = await this.tenants.requireFromHost(host)
     const user = await this.prisma.user.findUnique({
       where: { tenantId_email: { tenantId, email } },
       include: { role: true },
@@ -193,9 +194,9 @@ export class AuthService {
   }
 
   /** Sempre responde igual, exista ou não o e-mail, para não permitir descobrir contas. */
-  async requestPasswordReset(emailRaw: string, ctx: RequestCtx) {
+  async requestPasswordReset(emailRaw: string, ctx: RequestCtx, host?: string) {
     const email = emailRaw.trim().toLowerCase()
-    const tenantId = await this.tenants.defaultId()
+    const tenantId = await this.tenants.requireFromHost(host)
     const user = await this.prisma.user.findUnique({ where: { tenantId_email: { tenantId, email } } })
     await this.audit.log({ tenantId, userId: user?.id, userEmail: email, action: 'auth.password_reset_requested', ...ctx })
     if (!user || !user.active) return
@@ -210,7 +211,7 @@ export class AuthService {
       data: { userId, tokenHash: sha256(token), expiresAt: new Date(Date.now() + ttlHours * 3600_000) },
     })
     const branding = await this.settings.branding(tenantId)
-    const link = `${env.appUrl}/redefinir-senha?token=${encodeURIComponent(token)}`
+    const link = `${await this.tenants.url(tenantId)}/redefinir-senha?token=${encodeURIComponent(token)}`
     const title = kind === 'invite' ? `Seu acesso ao ${branding.appName}` : `Redefinição de senha - ${branding.appName}`
     const intro =
       kind === 'invite'

@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, type OnApplicationBootstrap, typ
 import { AuditService } from '../audit/audit.service'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { MailService } from '../settings/mail.service'
 import { SettingsService } from '../settings/settings.service'
@@ -39,6 +39,7 @@ export class SecurityService implements OnApplicationBootstrap, OnModuleDestroy 
     private readonly mail: MailService,
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -130,7 +131,7 @@ export class SecurityService implements OnApplicationBootstrap, OnModuleDestroy 
     const when = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date())
     const details = `${when} · ${deviceOf(ctx.userAgent).label} · IP ${maskIp(ctx.ip)}`
     const advice = 'Se foi você, não precisa fazer nada. Se não foi, troque a senha agora e, em Meu perfil → Aparelhos conectados, desconecte os aparelhos que não reconhece.'
-    const link = `${env.appUrl}/meu-perfil`
+    const link = `${await this.tenants.url(user.tenantId)}/meu-perfil`
     await this.mail.send(user.tenantId, {
       to: user.email,
       subject: `${text.subject} - ${branding.appName}`,

@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { AuditService } from '../audit/audit.service'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { MailService } from '../settings/mail.service'
 import { SettingsService } from '../settings/settings.service'
@@ -40,6 +40,7 @@ export class MarketingReportsService implements OnApplicationBootstrap, OnModule
     private readonly management: MarketingManagementService,
     private readonly chat: ChatService,
     private readonly marketplaces: MarketplacesService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -134,9 +135,10 @@ export class MarketingReportsService implements OnApplicationBootstrap, OnModule
       sch.sections.includes('mercado_livre') ? this.marketplaces.mercadoLivre(tenantId, period.from, period.to).catch(() => null) : Promise.resolve(null),
     ])
     const periodLabel = REPORT_PERIODS.find((p) => p.key === sch.period)?.label ?? ''
-    const link = `${env.appUrl}/marketing/executivo?de=${period.from}&ate=${period.to}`
+    const base = await this.tenants.url(tenantId)
+    const link = `${base}/marketing/executivo?de=${period.from}&ate=${period.to}`
     // Logo pelo endereço público do CRM (o e-mail não carrega imagem anexada em todos os programas).
-    const logoUrl = branding.logoFileId ? `${env.appUrl}/api/files/public/${branding.logoFileId}` : null
+    const logoUrl = branding.logoFileId ? `${base}/api/files/public/${branding.logoFileId}` : null
     const input = { schedule: sch, periodLabel, data, email, health, branding: { ...branding, primaryColor: branding.brandColor || branding.primaryColor, logoUrl }, link, ai, store, ml }
     const file = (format: 'pdf' | 'xlsx') => this.management.file(tenantId, format, { ...period, filters: sch.filters, sections: sch.sections.filter((x) => x !== 'resumo_ia'), title: sch.name })
     const attachments = sch.emails.length && (sch.attach === 'pdf' || sch.attach === 'xlsx') ? [await file(sch.attach)] : []

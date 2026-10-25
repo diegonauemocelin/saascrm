@@ -3,7 +3,7 @@ import { AuditService } from '../audit/audit.service'
 import type { RequestCtx } from '../common/decorators'
 import { can, MODULES } from '../common/permissions'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { FilesService } from '../files/files.service'
 import type { Prisma } from '../generated/prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
@@ -25,6 +25,7 @@ export class SugestoesService {
     private readonly audit: AuditService,
     private readonly mail: MailService,
     private readonly settings: SettingsService,
+    private readonly tenants: TenantService,
   ) {}
 
   canManage(user: AuthUser, action: 'view' | 'edit' = 'view') {
@@ -118,7 +119,7 @@ export class SugestoesService {
     if (!author?.active) return
     const branding = await this.settings.branding(s.tenantId)
     const label = STATUS_LABEL[s.status as SuggestionStatus] ?? s.status
-    const link = `${env.appUrl}/sugestoes`
+    const link = `${await this.tenants.url(s.tenantId)}/sugestoes`
     const body = `Sua sugestão “${s.title}” está agora como: ${label}.${s.reply ? ` Resposta: ${s.reply}` : ''}`
     await this.mail.send(s.tenantId, {
       to: author.email,

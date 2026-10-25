@@ -7,7 +7,7 @@ import { LeadConfigService } from '../leads/lead-config.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { pagePath } from '../rastreamento/origem'
 import { RastreamentoService } from '../rastreamento/rastreamento.service'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { MailService } from '../settings/mail.service'
 import { SettingsService } from '../settings/settings.service'
 import type { SeoFields } from './seo'
@@ -165,6 +165,7 @@ export class MagazordService implements OnApplicationBootstrap, OnModuleDestroy 
     private readonly tracking: RastreamentoService,
     private readonly audit: AuditService,
     private readonly mail: MailService,
+    private readonly tenants: TenantService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -760,7 +761,7 @@ export class MagazordService implements OnApplicationBootstrap, OnModuleDestroy 
       this.prisma.user.findMany({ where: { tenantId, active: true, role: { isSystem: true } }, select: { email: true, name: true } }),
       this.settings.branding(tenantId),
     ])
-    const link = `${env.appUrl}/catalogo`
+    const link = `${await this.tenants.url(tenantId)}/catalogo`
     const body = `A cópia diária do catálogo de produtos da Magazord falhou ${PRODUCTS_MAX_ATTEMPTS} vezes hoje. Os preços, o estoque e os produtos dos e-mails continuam como na última cópia. Motivo: ${error}`
     for (const a of admins) {
       await this.mail.send(tenantId, {

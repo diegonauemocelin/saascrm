@@ -7,6 +7,7 @@ import { linkSellersByEmail } from '../common/seller-link'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import type { Prisma } from '../generated/prisma/client'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 
 export interface CreateUserInput {
@@ -47,7 +48,16 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly auth: AuthService,
+    private readonly tenants: TenantService,
   ) {}
+
+  /** Plano da empresa: no máximo N usuários ativos (os adicionais contratados contam). */
+  private async assertUserLimit(tenantId: string) {
+    const l = await this.tenants.limits(tenantId)
+    if (!l) return
+    const active = await this.prisma.user.count({ where: { tenantId, active: true, deletedAt: null } })
+    if (active >= l.users) throw new BadRequestException(`O plano${l.plan ? ` ${l.plan}` : ''} permite ${l.users} usuário(s) ativo(s). Desative um usuário ou contrate usuários adicionais com a sgmulticonecta.`)
+  }
 
   async list(tenantId: string, q: { search?: string; status?: 'active' | 'inactive' }) {
     const rows = await this.prisma.user.findMany({
@@ -105,6 +115,7 @@ export class UsersService {
     if (!input.password && !input.sendInvite) {
       throw new BadRequestException('Informe uma senha provisória ou marque o envio de convite por e-mail.')
     }
+    await this.assertUserLimit(actor.tenantId)
     if (input.password) {
       const problem = passwordProblems(input.password, email)
       if (problem) throw new BadRequestException(problem)
@@ -143,6 +154,7 @@ export class UsersService {
     const losingAdmin =
       current.role.isSystem && current.active && (input.active === false || (input.roleId !== undefined && input.roleId !== current.roleId))
     if (losingAdmin) await this.assertAnotherAdmin(actor.tenantId, id)
+    if (input.active === true && !current.active) await this.assertUserLimit(actor.tenantId)
 
     const email = input.email?.trim().toLowerCase()
     if (email && email !== current.email) {

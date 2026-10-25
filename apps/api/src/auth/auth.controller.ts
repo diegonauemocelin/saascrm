@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 import type { Request, Response } from 'express'
-import { AllowPending2fa, CurrentUser, Public, ReqContext, type RequestCtx } from '../common/decorators'
+import { AllowPending2fa, CurrentUser, ReqContext, ReqHost, type RequestCtx, Public } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import { AccountService } from './account.service'
 import { ForgotPasswordDto, LoginDto, MfaCodeDto, OptionalPasswordDto, PasswordDto, ResetPasswordDto } from './auth.dto'
@@ -23,8 +23,8 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('login')
   @HttpCode(200)
-  async login(@Body() dto: LoginDto, @ReqContext() ctx: RequestCtx, @Res({ passthrough: true }) res: Response) {
-    const result = await this.auth.login(dto.email, dto.password, ctx)
+  async login(@Body() dto: LoginDto, @ReqContext() ctx: RequestCtx, @ReqHost() host: string, @Res({ passthrough: true }) res: Response) {
+    const result = await this.auth.login(dto.email, dto.password, ctx, host)
     if (result.status === 'mfa_required') {
       setMfaCookie(res, result.mfaToken)
       return { status: result.status }
@@ -71,8 +71,8 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('forgot-password')
   @HttpCode(200)
-  async forgot(@Body() dto: ForgotPasswordDto, @ReqContext() ctx: RequestCtx) {
-    await this.auth.requestPasswordReset(dto.email, ctx)
+  async forgot(@Body() dto: ForgotPasswordDto, @ReqContext() ctx: RequestCtx, @ReqHost() host: string) {
+    await this.auth.requestPasswordReset(dto.email, ctx, host)
     return { message: 'Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.' }
   }
 

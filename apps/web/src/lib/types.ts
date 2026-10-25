@@ -42,6 +42,26 @@ export interface Me {
   seller: { id: string; name: string } | null
   permissions: Record<string, PermissionEntry>
   modules: ModuleDef[]
+  /** Empresa e assinatura (plataforma SaaS). */
+  company?: CompanyInfo
+}
+
+export interface CompanyInfo {
+  name: string
+  slug: string
+  isPlatform: boolean
+  status: string
+  statusLabel: string
+  plan: string | null
+  trialEndsAt: string | null
+  paidUntil: string | null
+  maxUsers: number
+  maxWhatsapp: number
+  /** Sem acesso (teste encerrado, sem pagamento, suspensa ou cancelada). */
+  blocked: boolean
+  reason: string | null
+  /** Aviso sem bloquear (teste acabando, mensalidade vencida na tolerância). */
+  warning: string | null
 }
 
 export interface Branding {

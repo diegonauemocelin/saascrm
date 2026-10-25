@@ -4,7 +4,7 @@ import { randomToken, safeEqual, sha256 } from '../common/crypto'
 import type { RequestCtx } from '../common/decorators'
 import { can } from '../common/permissions'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { Prisma } from '../generated/prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
@@ -38,6 +38,7 @@ export class TcarService {
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
+    private readonly tenants: TenantService,
   ) {}
 
   private async config(tenantId: string): Promise<TcarSettings> {
@@ -305,10 +306,11 @@ export class TcarService {
     this.assertAdmin(user, 'view')
     const [s, st, pending] = await Promise.all([this.config(user.tenantId), this.state(user.tenantId), this.prisma.tcarAction.count({ where: { tenantId: user.tenantId, status: { in: ['PENDENTE', 'ENVIADA'] } } })])
     const { keyHash, ...rest } = s
+    const base = await this.tenants.url(user.tenantId)
     return {
       ...rest,
       hasKey: !!keyHash,
-      urls: { ping: `${env.appUrl}/api/webhooks/tcar/ping`, report: `${env.appUrl}/api/webhooks/tcar/report` },
+      urls: { ping: `${base}/api/webhooks/tcar/ping`, report: `${base}/api/webhooks/tcar/report` },
       state: { ...st, pendingActions: pending },
     }
   }

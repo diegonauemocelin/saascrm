@@ -88,8 +88,38 @@ enum ScoreDimension {
 model Tenant {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
+  /// Endereço da empresa na plataforma: <slug>.<domínio da plataforma>.
   slug      String   @unique
   createdAt DateTime @default(now())
+
+  // ---------- Assinatura (SaaS) ----------
+  /// A empresa dona da plataforma (painel da sgmulticonecta): não paga e não é bloqueada.
+  isPlatform          Boolean   @default(false)
+  /// TESTE, AGUARDANDO_PAGAMENTO, ATIVA, ATRASADA, SUSPENSA ou CANCELADA
+  status              String    @default("AGUARDANDO_PAGAMENTO")
+  planId              String?   @db.Uuid
+  /// Fim do período de teste (quando a empresa começou em teste).
+  trialEndsAt         DateTime?
+  /// Pago até (vencimento da próxima mensalidade).
+  paidUntil           DateTime?
+  /// Usuários e números de WhatsApp contratados além do plano.
+  extraUsers          Int       @default(0)
+  extraWhatsapp       Int       @default(0)
+  document            String?
+  contactName         String?
+  contactEmail        String?
+  contactPhone        String?
+  asaasCustomerId     String?
+  asaasSubscriptionId String?
+  suspendedAt         DateTime?
+  canceledAt          DateTime?
+  /// Observação interna da sgmulticonecta.
+  notes               String?
+  updatedAt           DateTime  @default(now()) @updatedAt
+
+  plan     Plan?           @relation(fields: [planId], references: [id])
+  domains  TenantDomain[]
+  payments TenantPayment[]
 
   users          User[]
   roles          Role[]
@@ -2540,4 +2570,68 @@ model SocialPost {
   @@index([tenantId, scheduledAt])
   @@index([status, scheduledAt])
   @@map("social_posts")
+}
+
+// ---------- Plataforma SaaS ----------
+
+/// Plano vendido pela plataforma: valor fixo por mês, sistemas liberados e limites.
+model Plan {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String   @default("")
+  /// Mensalidade em centavos.
+  priceCents  Int
+  /// Sistemas liberados (chaves de SYSTEMS em src/plataforma/sistemas.ts).
+  systems     String[] @default([])
+  maxUsers    Int      @default(5)
+  maxWhatsapp Int      @default(1)
+  /// Dias de teste grátis ao se cadastrar (0 = paga antes de usar).
+  trialDays   Int      @default(0)
+  /// Aparece na página de cadastro.
+  public      Boolean  @default(true)
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenants Tenant[]
+
+  @@map("plans")
+}
+
+/// Domínio próprio de uma empresa (ex.: crm.empresa.com.br). O endereço <slug>.<domínio da plataforma> não precisa de registro.
+model TenantDomain {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @db.Uuid
+  host       String    @unique
+  /// Quando o DNS foi conferido apontando para a plataforma.
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("tenant_domains")
+}
+
+/// Cobranças da mensalidade (Asaas): o histórico que a empresa e a plataforma veem.
+model TenantPayment {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @db.Uuid
+  asaasPaymentId String    @unique
+  /// Valor em centavos.
+  valueCents     Int
+  /// PENDENTE, CONFIRMADA, RECEBIDA, VENCIDA, ESTORNADA ou CANCELADA
+  status         String
+  billingType    String?
+  dueDate        DateTime
+  paidAt         DateTime?
+  invoiceUrl     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dueDate])
+  @@map("tenant_payments")
 }

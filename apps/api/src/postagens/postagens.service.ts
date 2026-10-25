@@ -5,7 +5,7 @@ import { decrypt } from '../common/crypto'
 import type { RequestCtx } from '../common/decorators'
 import { type Action, can } from '../common/permissions'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { EmailAiService } from '../email/ia.service'
 import { FilesService } from '../files/files.service'
 import { Prisma } from '../generated/prisma/client'
@@ -65,6 +65,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     private readonly audit: AuditService,
     private readonly files: FilesService,
     private readonly ai: EmailAiService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -129,7 +130,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
       accounts: await this.accounts(user.tenantId),
       hasAi: await this.ai.available(user.tenantId),
       canApprove: can(user.permissions, user.role.isSystem, 'postagens', 'edit'),
-      publicBase: env.appUrl,
+      publicBase: await this.tenants.url(user.tenantId),
     }
   }
 
@@ -452,9 +453,9 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     }
   }
 
-  /** Endereço público de uma mídia da postagem (a Meta baixa daqui). */
-  mediaUrl(token: string, mediaId: string) {
-    return `${env.appUrl}/api/public/postagens/${token}/${mediaId}`
+  /** Endereço público de uma mídia da postagem (a Meta baixa daqui); base = endereço da empresa. */
+  mediaUrl(base: string, token: string, mediaId: string) {
+    return `${base}/api/public/postagens/${token}/${mediaId}`
   }
 
   private async publish(id: string) {
@@ -468,7 +469,8 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
       const media = await this.prisma.socialMedia.findMany({ where: { tenantId: p.tenantId, id: { in: p.mediaIds } }, select: { id: true, kind: true } })
       const ordered = p.mediaIds.map((m) => media.find((x) => x.id === m)).filter((m): m is NonNullable<typeof m> => !!m)
       if (!ordered.length) throw new Error('As mídias da postagem foram apagadas da biblioteca.')
-      const input = { format: p.format as PostFormat, caption: p.caption, media: ordered.map((m) => ({ kind: m.kind as 'imagem' | 'video', url: this.mediaUrl(p.publicToken, m.id) })) }
+      const base = await this.tenants.url(p.tenantId)
+      const input = { format: p.format as PostFormat, caption: p.caption, media: ordered.map((m) => ({ kind: m.kind as 'imagem' | 'video', url: this.mediaUrl(base, p.publicToken, m.id) })) }
       const accounts = await this.accounts(p.tenantId)
       // Uma conta por vez: cada uma tem o seu resultado (e a nova tentativa pula as que já saíram).
       for (const id of pendingAccounts(p.accountIds, results)) {

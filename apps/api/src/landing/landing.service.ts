@@ -4,7 +4,7 @@ import { CapturaService } from '../captura/captura.service'
 import type { RequestCtx } from '../common/decorators'
 import { type Action, can } from '../common/permissions'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { EmailAiService } from '../email/ia.service'
 import { Prisma } from '../generated/prisma/client'
 import { PrismaService } from '../prisma/prisma.service'
@@ -60,6 +60,7 @@ export class LandingService {
     private readonly captura: CapturaService,
     private readonly tracking: RastreamentoService,
     private readonly ai: EmailAiService,
+    private readonly tenants: TenantService,
   ) {}
 
   assertCan(user: AuthUser, action: Action) {
@@ -88,9 +89,9 @@ export class LandingService {
     return next
   }
 
-  /** Endereço público da página: no subdomínio, ou pelo CRM enquanto o subdomínio não estiver configurado. */
-  publicUrl(s: LandingSettings, slug: string) {
-    return s.domain ? `https://${s.domain}/${slug}` : `${env.appUrl}/lp/${slug}`
+  /** Endereço público da página: no subdomínio, ou pelo CRM (base = endereço da empresa) enquanto o subdomínio não estiver configurado. */
+  publicUrl(base: string, s: LandingSettings, slug: string) {
+    return s.domain ? `https://${s.domain}/${slug}` : `${base}/lp/${slug}`
   }
 
   // ---------- Telas ----------
@@ -115,7 +116,7 @@ export class LandingService {
       whatsapps,
       config: s,
       aiAvailable: ai,
-      base: s.domain ? `https://${s.domain}/` : `${env.appUrl}/lp/`,
+      base: s.domain ? `https://${s.domain}/` : `${await this.tenants.url(T)}/lp/`,
     }
   }
 
@@ -129,12 +130,12 @@ export class LandingService {
           SELECT "pageId", count(DISTINCT visitor) FILTER (WHERE type = 'view') AS visitors, count(*) FILTER (WHERE type = 'lead') AS leads
           FROM landing_events WHERE "tenantId" = ${T}::uuid AND "occurredAt" >= ${since} GROUP BY "pageId"`
       : []
-    const s = await this.config(T)
+    const [s, base] = await Promise.all([this.config(T), this.tenants.url(T)])
     return pages.map((p) => {
       const st = stats.find((x) => x.pageId === p.id)
       const visitors = Number(st?.visitors ?? 0)
       const leads = Number(st?.leads ?? 0)
-      return { ...p, url: this.publicUrl(s, p.slug), visitors30: visitors, leads30: leads, conversion30: visitors ? Math.round((leads / visitors) * 1000) / 10 : null }
+      return { ...p, url: this.publicUrl(base, s, p.slug), visitors30: visitors, leads30: leads, conversion30: visitors ? Math.round((leads / visitors) * 1000) / 10 : null }
     })
   }
 
@@ -147,7 +148,7 @@ export class LandingService {
   async get(user: AuthUser, id: string) {
     this.assertCan(user, 'view')
     const p = await this.load(user, id)
-    return { ...p, url: this.publicUrl(await this.config(user.tenantId), p.slug) }
+    return { ...p, url: this.publicUrl(await this.tenants.url(user.tenantId), await this.config(user.tenantId), p.slug) }
   }
 
   /** Tema inicial com as cores da marca (Configurações › Marca). */
@@ -295,7 +296,7 @@ export class LandingService {
   // ---------- Montagem da página ----------
 
   private async renderInput(tenantId: string, page: { id: string; name: string; slug: string; theme: unknown; seo: unknown }, blocks: Block[], variant: 'A' | 'B', preview: boolean): Promise<RenderInput> {
-    const [s, branding, pub, track] = await Promise.all([this.config(tenantId), this.settings.branding(tenantId), this.captura.publicConfig(tenantId), this.tracking.config(tenantId)])
+    const [s, branding, pub, track, base] = await Promise.all([this.config(tenantId), this.settings.branding(tenantId), this.captura.publicConfig(tenantId), this.tracking.config(tenantId), this.tenants.url(tenantId)])
     const formIds = new Set(blocks.filter((b) => b.type === 'formulario').map((b) => String(b.formId)))
     const waIds = new Set(blocks.filter((b) => b.type === 'whatsapp' && b.mode === 'captura').map((b) => String(b.whatsappId)))
     const forms = Object.fromEntries(Object.entries(pub.forms as Record<string, { fields: RenderInput['forms'][string]['fields']; submitLabel: string; successMessage: string; consentText: string | null }>).filter(([k]) => formIds.has(k)))
@@ -304,15 +305,15 @@ export class LandingService {
     )
     const ads = s.useAdsTag && pub.adsTag ? { tagId: pub.adsTag.tagId, formSendTo: pub.adsTag.formSendTo, whatsappSendTo: pub.adsTag.whatsappSendTo } : null
     // Script de rastreamento do CRM (liga a visita ao lead e à venda) quando o subdomínio é um dos domínios do site.
-    const crmScript = track.enabled && track.siteKey && s.domain && domainAllowed(s.domain, track.domains) ? `${env.appUrl}/api/public/rastreamento/script.js?k=${track.siteKey}` : null
+    const crmScript = track.enabled && track.siteKey && s.domain && domainAllowed(s.domain, track.domains) ? `${base}/api/public/rastreamento/script.js?k=${track.siteKey}` : null
     return {
       page: { id: page.id, name: page.name, slug: page.slug, theme: cleanTheme(page.theme), blocks, seo: cleanSeo(page.seo) },
       variant,
-      brand: { name: branding.shortName || branding.appName, logoUrl: branding.logoFileId ? `${env.appUrl}/api/files/public/${branding.logoFileId}` : null, companyInfo: branding.companyInfo ?? '', privacyUrl: pub.privacyUrl ?? null },
+      brand: { name: branding.shortName || branding.appName, logoUrl: branding.logoFileId ? `${base}/api/files/public/${branding.logoFileId}` : null, companyInfo: branding.companyInfo ?? '', privacyUrl: pub.privacyUrl ?? null },
       forms,
       whatsapps,
       tracking: { ga4: s.ga4Id || null, pixel: s.pixelId || null, ads: ads?.tagId || ads?.formSendTo || ads?.whatsappSendTo ? ads : null, crmScript, cookieText: s.cookieText },
-      url: this.publicUrl(s, page.slug),
+      url: this.publicUrl(base, s, page.slug),
       preview,
     }
   }
@@ -344,12 +345,12 @@ export class LandingService {
     const variant: 'A' | 'B' = !hasB ? 'A' : cookieVariant === 'A' || cookieVariant === 'B' ? cookieVariant : Math.random() * 100 < page.abSplit ? 'B' : 'A'
     const key = `${page.id}:${variant}:${page.updatedAt.getTime()}`
     const hit = this.cache.get(key)
-    if (hit && Date.now() - hit.at < CACHE_MS) return { html: hit.html, variant, pageId: page.id, ab: hasB }
+    if (hit && Date.now() - hit.at < CACHE_MS) return { html: hit.html, variant, pageId: page.id, tenantId: page.tenantId, ab: hasB }
     const blocks = (variant === 'B' ? page.blocksB : page.blocks) as Block[]
     const html = renderLanding(await this.renderInput(page.tenantId, page, blocks, variant, false))
     if (this.cache.size > 200) this.cache.clear()
     this.cache.set(key, { html, at: Date.now() })
-    return { html, variant, pageId: page.id, ab: hasB }
+    return { html, variant, pageId: page.id, tenantId: page.tenantId, ab: hasB }
   }
 
   /** Para onde vai quem abre o subdomínio sem o endereço de uma página. */

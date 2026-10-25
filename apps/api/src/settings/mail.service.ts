@@ -4,6 +4,7 @@ import { isIP } from 'node:net'
 import * as nodemailer from 'nodemailer'
 import { env } from '../config/env'
 import { decrypt } from '../common/crypto'
+import { PrismaService } from '../prisma/prisma.service'
 import { type BrandingSettings, SettingsService, type SmtpSettings } from './settings.service'
 
 export interface MailMessage {
@@ -40,7 +41,10 @@ function escapeHtml(value: string) {
 
 @Injectable()
 export class MailService {
-  constructor(private readonly settings: SettingsService) {}
+  constructor(
+    private readonly settings: SettingsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   /** Resolve o host uma única vez e conecta direto no IP verificado, evitando DNS rebinding entre a checagem e a conexão. */
   async resolveSafeHost(host: string): Promise<string> {
@@ -75,8 +79,19 @@ export class MailService {
     })
   }
 
+  /**
+   * E-mail do sistema (convite, senha, avisos). Empresa sem SMTP próprio usa o da plataforma (empresa dona), com o
+   * nome da empresa no remetente.
+   */
   async send(tenantId: string, message: MailMessage) {
-    const config = await this.settings.smtp(tenantId)
+    let config = await this.settings.smtp(tenantId)
+    if (!config.host || !config.fromEmail) {
+      const platform = await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } })
+      if (platform && platform.id !== tenantId) {
+        const p = await this.settings.smtp(platform.id)
+        if (p.host && p.fromEmail) config = { ...p, fromName: (await this.settings.branding(tenantId)).appName || p.fromName }
+      }
+    }
     await this.sendWith(config, message)
   }
 

@@ -6,6 +6,7 @@ import type { Request, Response } from 'express'
 import { CurrentUser, Public, ReqContext, type RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { LandingService } from './landing.service'
 import { LP_RUNTIME } from './runtime'
 
@@ -159,17 +160,18 @@ export class LandingController {
 
 /**
  * Política de segurança da página publicada: só o próprio endereço, as ferramentas de medição (GA4, Google Ads,
- * Meta Pixel), as fontes do Google, o YouTube e o script de rastreamento do CRM.
+ * Meta Pixel), as fontes do Google, o YouTube e o script de rastreamento do CRM (endereço da empresa da página).
+ * Sem empresa (página não encontrada): nada do CRM é liberado.
  */
-function lpCsp() {
-  const crm = new URL(env.appUrl).origin
+function lpCsp(crmUrl: string | null) {
+  const crm = crmUrl ? ` ${new URL(crmUrl).origin}` : ''
   return [
     "default-src 'self'",
-    `script-src 'self' ${crm} https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://connect.facebook.net`,
+    `script-src 'self'${crm} https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://connect.facebook.net`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: https:",
-    `connect-src 'self' ${crm} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.facebook.com https://connect.facebook.net`,
+    `connect-src 'self'${crm} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.facebook.com https://connect.facebook.net`,
     'frame-src https://www.youtube-nocookie.com https://www.googletagmanager.com https://td.doubleclick.net',
     "form-action 'self'",
     "base-uri 'self'",
@@ -184,7 +186,10 @@ const NOT_FOUND = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"
 @ApiTags('Público')
 @Controller('public/lp')
 export class PublicLandingController {
-  constructor(private readonly lp: LandingService) {}
+  constructor(
+    private readonly lp: LandingService,
+    private readonly tenants: TenantService,
+  ) {}
 
   @Public()
   @SkipThrottle()
@@ -218,7 +223,7 @@ export class PublicLandingController {
   async home(@Headers('x-forwarded-host') fwd: string | undefined, @Headers('host') host: string | undefined, @Res() res: Response) {
     const url = await this.lp.homeFor(fwd ?? host)
     if (url) return res.redirect(302, url)
-    res.status(404).setHeader('Content-Security-Policy', lpCsp())
+    res.status(404).setHeader('Content-Security-Policy', lpCsp(null))
     res.type('html').send(NOT_FOUND)
   }
 
@@ -229,7 +234,7 @@ export class PublicLandingController {
     const name = `_lpab_${String(slug ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60)}`
     const saved = new RegExp(`(?:^|; )${name}=([AB])`).exec(String(req.headers.cookie ?? ''))?.[1]
     const r = await this.lp.publicPage(fwd ?? host, String(slug ?? ''), saved)
-    res.setHeader('Content-Security-Policy', lpCsp())
+    res.setHeader('Content-Security-Policy', lpCsp(r ? await this.tenants.url(r.tenantId) : null))
     res.setHeader('X-Frame-Options', 'DENY')
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
     if (!r) {
@@ -237,7 +242,7 @@ export class PublicLandingController {
       return
     }
     // Teste A/B: o visitante fica sempre na mesma versão, e o HTML não pode ficar em cache compartilhado.
-    if (r.ab) res.setHeader('Set-Cookie', `${name}=${r.variant}; Max-Age=2592000; Path=/; SameSite=Lax${env.appUrl.startsWith('https') ? '; Secure' : ''}`)
+    if (r.ab) res.setHeader('Set-Cookie', `${name}=${r.variant}; Max-Age=2592000; Path=/; SameSite=Lax${env.cookieSecure ? '; Secure' : ''}`)
     res.setHeader('Cache-Control', r.ab ? 'private, no-store' : 'public, max-age=60')
     res.type('html').send(r.html)
   }

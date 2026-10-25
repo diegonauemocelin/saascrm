@@ -206,7 +206,7 @@ describe('avisos de segurança por e-mail (Fase 8)', () => {
     }
     const mail = { send: async (_t: string, m: { to: string; subject: string; text: string }) => void sent.push(m), simpleTemplate: () => '<html></html>' }
     const settings = { branding: async () => ({ appName: 'CRM Usaparts', primaryColor: '#1d4ed8' }) }
-    return { service: new SecurityService(prisma as never, mail as never, settings as never, {} as never), sent }
+    return { service: new SecurityService(prisma as never, mail as never, settings as never, {} as never, { url: async () => 'https://crm.exemplo.com.br' } as never), sent }
   }
 
   it('aparelho novo só quando o navegador/sistema nunca foi usado (e nunca no primeiro acesso)', async () => {

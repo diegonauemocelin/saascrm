@@ -10,6 +10,7 @@ import {
   InboxIcon,
   LayoutDashboardIcon,
   LayoutTemplateIcon,
+  Building2Icon,
   CalendarClockIcon,
   SearchCheckIcon,
   LightbulbIcon,
@@ -69,6 +70,10 @@ export const SETTINGS_MODULES = ['configuracoes', 'cadastros', 'usuarios', 'perf
 
 /** Menu único, usado pelos dois layouts (Moderno e Clássico). Cada item respeita a permissão do perfil. */
 export const NAVIGATION: NavGroup[] = [
+  {
+    title: 'Plataforma',
+    items: [{ title: 'Empresas e planos', to: '/plataforma', icon: Building2Icon, module: 'plataforma' }],
+  },
   {
     title: 'Dashboards',
     items: [

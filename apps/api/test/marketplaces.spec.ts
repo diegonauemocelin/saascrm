@@ -84,7 +84,7 @@ describe('Mercado Livre: autorização com PKCE', () => {
       },
     }
     const calls: string[] = []
-    const svc = new MercadoLivreService({} as never, settings as never)
+    const svc = new MercadoLivreService({} as never, settings as never, { url: async () => 'https://crm.exemplo.com.br' } as never)
     svc.gapMs = 0
     svc.fetcher = (async (input: string | URL, init?: RequestInit) => {
       const url = String(input)

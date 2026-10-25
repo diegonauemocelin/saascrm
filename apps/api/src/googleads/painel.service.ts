@@ -3,7 +3,7 @@ import { AuditService } from '../audit/audit.service'
 import { randomToken } from '../common/crypto'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { MailService } from '../settings/mail.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
@@ -27,6 +27,7 @@ export class GoogleAdsPanelService {
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
     private readonly mail: MailService,
+    private readonly tenants: TenantService,
   ) {}
 
   // ---------- Saldo pré-pago (estimado) ----------
@@ -103,7 +104,7 @@ export class GoogleAdsPanelService {
     const branding = await this.settings.branding(tenantId)
     const dias = e.daysLeft === null ? '' : e.daysLeft < 1 ? ' (acaba hoje)' : ` (cerca de ${Math.floor(e.daysLeft)} dia(s), no ritmo de ${brl.format(e.avgDaily ?? 0)} por dia)`
     const body = e.balance <= 0 ? `O saldo estimado do Google Ads acabou (${brl.format(e.balance)}). Os anúncios podem parar.` : `O saldo estimado do Google Ads é ${brl.format(e.balance)}${dias}.`
-    const link = `${env.appUrl}/google-ads`
+    const link = `${await this.tenants.url(tenantId)}/google-ads`
     for (const to of s.alertEmails) {
       await this.mail
         .send(tenantId, {

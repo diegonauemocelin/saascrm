@@ -38,6 +38,28 @@ export interface TrailModule {
 
 export const TRAIL: TrailModule[] = [
   {
+    key: 'plataforma',
+    title: 'Plataforma',
+    module: 'plataforma',
+    routes: ['/plataforma'],
+    purpose: 'Administrar a plataforma da sgmulticonecta: empresas clientes, planos, domínios próprios e cobranças.',
+    howItWorks: 'Cada empresa cliente usa o sistema no endereço dela (empresa.sgmulticonecta.com.br ou o domínio próprio), só com os sistemas do plano contratado e dentro dos limites de usuários e números de WhatsApp. A situação da assinatura libera ou bloqueia o acesso: em teste até o fim do teste, ativa enquanto paga, e bloqueada depois da tolerância sem pagamento.',
+    media: { src: '/trilha/plataforma.jpg', alt: 'Painel da plataforma' },
+    lessons: [
+      {
+        id: 'plataforma.planos',
+        title: 'Criar os planos',
+        steps: ['Na aba Planos, clique em Novo plano.', 'Informe o valor mensal, marque os sistemas liberados e os limites de usuários e de WhatsApp.', 'Escolha os dias de teste grátis (ou sem teste) e se o plano aparece na página de cadastro.'],
+      },
+      {
+        id: 'plataforma.empresas',
+        title: 'Cadastrar e acompanhar empresas',
+        steps: ['Na aba Empresas, clique em Nova empresa: nome, endereço, plano, como começa (teste, aguardando pagamento ou ativa) e o administrador.', 'O administrador recebe o convite por e-mail para criar a senha.', 'Clique numa empresa para mudar o plano, os adicionais, a situação (suspender, reativar, cancelar), o vencimento e o domínio próprio.'],
+        tip: 'Domínio próprio: o cliente cria um CNAME do domínio dele para o endereço da empresa na plataforma; depois clique em Conferir.',
+      },
+    ],
+  },
+  {
     key: 'primeiros-passos',
     title: 'Primeiros passos',
     routes: ['/meu-perfil', '/atualizacoes', '/trilha'],

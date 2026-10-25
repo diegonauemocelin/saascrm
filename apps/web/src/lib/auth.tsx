@@ -67,7 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const can = useCallback(
     (module: string, action: Action = 'view') => {
       if (!data) return false
-      if (data.role.isSystem) return true
+      // Administrador: tudo nos módulos do plano da empresa (o servidor manda só esses).
+      if (data.role.isSystem) return Object.keys(data.permissions).length === 0 || !!data.permissions[module]
       return data.permissions[module]?.[action] === true
     },
     [data],

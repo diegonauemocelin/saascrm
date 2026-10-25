@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy } from '@nestjs/common'
 import { decrypt, encrypt } from '../common/crypto'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { MercadoLivreService } from '../marketplaces/mercadolivre.service'
 import { type Actor, AssistService } from './assist.service'
 import { AssistMlService } from './assist-ml.service'
@@ -52,6 +52,7 @@ export class AssistIntegrationService implements OnApplicationBootstrap, OnModul
     private readonly knowledge: AssistKnowledgeService,
     private readonly pipeline: AssistPipelineService,
     private readonly sales: AssistSalesService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -65,8 +66,9 @@ export class AssistIntegrationService implements OnApplicationBootstrap, OnModul
     if (this.timer) clearInterval(this.timer)
   }
 
-  webhookUrl() {
-    return `${env.appUrl}/api/webhooks/mercadolivre`
+  /** Endereço de notificações que a empresa cadastra no app do Mercado Livre (no endereço da própria empresa). */
+  async webhookUrl(tenantId: string) {
+    return `${await this.tenants.url(tenantId)}/api/webhooks/mercadolivre`
   }
 
   private async activeTenants() {
@@ -133,7 +135,7 @@ export class AssistIntegrationService implements OnApplicationBootstrap, OnModul
       active,
       taken: integ.active,
       status: !connected ? 'desconectada' : !integ.active ? 'painel_antigo' : active ? 'ativa' : 'aguardando_teste',
-      webhookUrl: this.webhookUrl(),
+      webhookUrl: await this.webhookUrl(tenantId),
       lastTestAt: st.lastTestAt ?? null,
       lastTestOk: !!st.lastTestOk,
       lastItemsSyncAt: st.lastItemsSyncAt ?? null,

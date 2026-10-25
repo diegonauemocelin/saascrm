@@ -2,10 +2,12 @@ import { type CanActivate, type ExecutionContext, ForbiddenException, Injectable
 import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
 import type { Request } from 'express'
-import { ALLOW_PENDING_2FA, IS_PUBLIC, PERMISSION } from '../common/decorators'
-import { type Action, can, type PermissionSet } from '../common/permissions'
+import { ALLOW_BLOCKED, ALLOW_PENDING_2FA, IS_PUBLIC, PERMISSION } from '../common/decorators'
+import { type Action, can, fullPermissions, type PermissionSet } from '../common/permissions'
 import type { AuthUser } from '../common/types'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
+import { accessOf, allowedModules, filterPermissions } from '../plataforma/sistemas'
 import type { AccessPayload } from './auth.service'
 import { ACCESS_COOKIE } from './cookies'
 
@@ -20,6 +22,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly jwt: JwtService,
     private readonly prisma: PrismaService,
+    private readonly tenants: TenantService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -50,12 +53,15 @@ export class AuthGuard implements CanActivate {
     // Senha trocada depois da emissão do token invalida a sessão.
     if (payload.iat * 1000 < user.passwordChangedAt.getTime() - 1000) throw new UnauthorizedException()
 
-    const permissions: PermissionSet = Object.fromEntries(
+    const own: PermissionSet = Object.fromEntries(
       user.role.permissions.map((p) => [
         p.module,
         { view: p.canView, create: p.canCreate, edit: p.canEdit, delete: p.canDelete, export: p.canExport, scope: p.scope },
       ]),
     )
+    // Só os módulos dos sistemas do plano da empresa (o administrador recebe todos esses).
+    const tenant = await this.tenants.info(user.tenantId)
+    const permissions = filterPermissions(user.role.isSystem ? fullPermissions() : own, allowedModules(tenant))
     const pending2faSetup = user.role.require2fa && !user.totpEnabled
     const authUser: AuthUser = {
       id: user.id,
@@ -76,6 +82,13 @@ export class AuthGuard implements CanActivate {
     }
     if (pending2faSetup && !allowIncomplete) {
       throw new ForbiddenException({ code: 'MFA_SETUP_REQUIRED', message: 'Configure a autenticação em dois fatores para continuar.' })
+    }
+
+    // Assinatura sem pagamento (teste encerrado, mensalidade vencida além da tolerância, suspensa): só o básico da conta
+    // e a tela de pagamento.
+    const access = accessOf(tenant)
+    if (access.blocked && !allowIncomplete && !this.reflector.getAllAndOverride<boolean>(ALLOW_BLOCKED, targets)) {
+      throw new ForbiddenException({ code: 'SUBSCRIPTION_BLOCKED', message: access.reason })
     }
 
     const required = this.reflector.getAllAndOverride<{ module: string; action: Action } | undefined>(PERMISSION, targets)

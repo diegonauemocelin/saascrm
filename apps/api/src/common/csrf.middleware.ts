@@ -23,6 +23,20 @@ function originOf(referer: string | undefined): string | undefined {
   }
 }
 
+/** Primeiro valor de um header que pode vir repetido ou como lista separada por vírgula (proxies). */
+function firstHeader(v: string | string[] | undefined): string | undefined {
+  const raw = Array.isArray(v) ? v[0] : v
+  const first = raw?.split(',')[0]?.trim()
+  return first || undefined
+}
+
+/** Origem do próprio endereço acessado (cada empresa tem o seu), respeitando o proxy reverso. */
+function selfOrigin(req: Request): string {
+  const host = firstHeader(req.headers['x-forwarded-host']) ?? firstHeader(req.headers.host)
+  const proto = firstHeader(req.headers['x-forwarded-proto']) ?? req.protocol
+  return `${proto}://${host}`
+}
+
 /**
  * Defesa CSRF em duas camadas, além do SameSite=Strict:
  * 1. Origin/Referer precisam ser do próprio domínio em métodos que alteram dados.
@@ -42,7 +56,7 @@ export class CsrfMiddleware implements NestMiddleware {
     if (SAFE_METHODS.has(req.method)) return next()
 
     const origin = req.headers.origin ?? originOf(req.headers.referer)
-    if (origin !== undefined && origin !== env.appUrl) throw new ForbiddenException('Origem da requisição não permitida.')
+    if (origin !== undefined && origin !== selfOrigin(req)) throw new ForbiddenException('Origem da requisição não permitida.')
 
     const header = req.headers['x-csrf-token']
     if (typeof header !== 'string' || !req.cookies?.[CSRF_COOKIE] || !safeEqual(header, req.cookies[CSRF_COOKIE])) {

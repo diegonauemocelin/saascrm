@@ -7,6 +7,7 @@ import type { RequestCtx } from '../common/decorators'
 import { type Action, can } from '../common/permissions'
 import type { AuthUser } from '../common/types'
 import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import type { CampaignStatus, Prisma } from '../generated/prisma/client'
 import { LeadConfigService } from '../leads/lead-config.service'
 import { type LeadFilters, LeadsService } from '../leads/leads.service'
@@ -38,7 +39,8 @@ export interface EmailSettings {
 
 export const DEFAULT_EMAIL: EmailSettings = { fromName: '', replyTo: '', footerText: '', ratePerMinute: 60, logoFileId: null, social: {}, socialInFooter: true }
 
-const fileUrl = (id: string) => `${env.appUrl}/api/files/public/${id}`
+/** Endereço público de um arquivo; base = endereço da empresa. */
+const fileUrl = (base: string, id: string) => `${base}/api/files/public/${id}`
 
 export interface CampaignInput {
   name: string
@@ -83,6 +85,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
     private readonly audit: AuditService,
     private readonly files: FilesService,
     private readonly magazord: MagazordService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -276,14 +279,15 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
   async listImages(user: AuthUser) {
     this.assertCan(user, 'view')
     const rows = await this.prisma.fileAsset.findMany({ where: { tenantId: user.tenantId, kind: 'email-image' }, orderBy: { createdAt: 'desc' }, take: 300, select: { id: true, size: true, createdAt: true } })
-    return rows.map((r) => ({ ...r, url: fileUrl(r.id) }))
+    const base = await this.tenants.url(user.tenantId)
+    return rows.map((r) => ({ ...r, url: fileUrl(base, r.id) }))
   }
 
   async uploadImage(user: AuthUser, file: Express.Multer.File | undefined, ctx: RequestCtx) {
     this.assertCan(user, 'edit')
     const asset = await this.files.saveImage(user.tenantId, 'email-image', file, true, { maxBytes: EMAIL_IMAGE_LIMIT, types: ['png', 'jpg', 'gif', 'webp'] })
     await this.audit.byUser(user, ctx, 'email.image_uploaded', 'file', asset.id, { tamanho: asset.size })
-    return { id: asset.id, size: asset.size, createdAt: asset.createdAt, url: fileUrl(asset.id) }
+    return { id: asset.id, size: asset.size, createdAt: asset.createdAt, url: fileUrl(await this.tenants.url(user.tenantId), asset.id) }
   }
 
   /** Só apaga imagem que nenhuma campanha usa (e-mails enviados precisam continuar mostrando). */
@@ -351,10 +355,10 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
   // ---------- Montagem ----------
 
   private async brand(tenantId: string): Promise<Brand> {
-    const [b, cfg] = await Promise.all([this.settings.branding(tenantId), this.config(tenantId)])
+    const [b, cfg, base] = await Promise.all([this.settings.branding(tenantId), this.config(tenantId), this.tenants.url(tenantId)])
     const pub = publicBranding(b)
-    const logoUrl = cfg.logoFileId ? fileUrl(cfg.logoFileId) : pub.logoUrl ? `${env.appUrl}${pub.logoUrl}` : null
-    return { appName: b.appName, color: b.brandColor || b.primaryColor, logoUrl, footerText: cfg.footerText, social: cfg.social ?? {}, socialInFooter: cfg.socialInFooter ?? true, iconBase: `${env.appUrl}/api/public/e/icones` }
+    const logoUrl = cfg.logoFileId ? fileUrl(base, cfg.logoFileId) : pub.logoUrl ? `${base}${pub.logoUrl}` : null
+    return { appName: b.appName, color: b.brandColor || b.primaryColor, logoUrl, footerText: cfg.footerText, social: cfg.social ?? {}, socialInFooter: cfg.socialInFooter ?? true, iconBase: `${base}/api/public/e/icones` }
   }
 
   /** Pré-visualização com os dados de quem está editando (nada é rastreado). */
@@ -362,7 +366,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
     this.assertCan(user, 'view')
     const checked = cleanBlocks(d.blocks)
     if ('error' in checked) throw new BadRequestException(checked.error)
-    const r = renderEmail(checked.blocks, { brand: await this.brand(user.tenantId), subject: d.subject || '(sem assunto)', preheader: d.preheader, person: { name: user.name, email: user.email, vars: sampleVars(d.coupon) }, unsubscribeUrl: `${env.appUrl}/descadastro/exemplo`, cart: 'exemplo' })
+    const r = renderEmail(checked.blocks, { brand: await this.brand(user.tenantId), subject: d.subject || '(sem assunto)', preheader: d.preheader, person: { name: user.name, email: user.email, vars: sampleVars(d.coupon) }, unsubscribeUrl: `${await this.tenants.url(user.tenantId)}/descadastro/exemplo`, cart: 'exemplo' })
     return { html: r.html, subject: r.subject }
   }
 
@@ -370,8 +374,8 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
   async sendTest(user: AuthUser, id: string, to: string, ctx: RequestCtx) {
     this.assertCan(user, 'edit')
     const c = await this.load(user, id)
-    const [smtp, cfg, brand] = await Promise.all([this.settings.smtp(user.tenantId), this.config(user.tenantId), this.brand(user.tenantId)])
-    const r = renderEmail(c.blocks as unknown as Block[], { brand, subject: c.subject, preheader: c.preheader, person: { name: user.name, email: to, vars: sampleVars(c.coupon) }, unsubscribeUrl: `${env.appUrl}/descadastro/exemplo`, cart: 'exemplo' })
+    const [smtp, cfg, brand, base] = await Promise.all([this.settings.smtp(user.tenantId), this.config(user.tenantId), this.brand(user.tenantId), this.tenants.url(user.tenantId)])
+    const r = renderEmail(c.blocks as unknown as Block[], { brand, subject: c.subject, preheader: c.preheader, person: { name: user.name, email: to, vars: sampleVars(c.coupon) }, unsubscribeUrl: `${base}/descadastro/exemplo`, cart: 'exemplo' })
     await this.mail.sendWith(
       { ...smtp, fromName: c.fromName || cfg.fromName || smtp.fromName, replyTo: c.replyTo || cfg.replyTo || smtp.replyTo },
       { to, subject: `[TESTE] ${r.subject}`, html: r.html, text: r.text },
@@ -456,7 +460,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
       this.logger.log(`Campanha ${c.id.slice(0, 8)} concluída.`)
       return
     }
-    const [smtp, brand] = await Promise.all([this.settings.smtp(c.tenantId), this.brand(c.tenantId)])
+    const [smtp, brand, base] = await Promise.all([this.settings.smtp(c.tenantId), this.brand(c.tenantId), this.tenants.url(c.tenantId)])
     const transport = await this.mail.transport({ ...smtp })
     const from = { name: c.fromName || cfg.fromName || smtp.fromName || brand.appName, address: smtp.fromEmail }
     const replyTo = c.replyTo || cfg.replyTo || smtp.replyTo || undefined
@@ -468,15 +472,15 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
           continue
         }
         const token = this.token(r.id)
-        const unsub = `${env.appUrl}/descadastro/${this.leads.unsubscribeToken(r.leadId)}?c=${c.id}`
+        const unsub = `${base}/descadastro/${this.leads.unsubscribeToken(r.leadId)}?c=${c.id}`
         const out = renderEmail(c.blocks as unknown as Block[], {
           brand,
           subject: c.subject,
           preheader: c.preheader,
           person: { name: r.lead.name, email: r.email, vars: { cupom: c.coupon ?? '' } },
           unsubscribeUrl: unsub,
-          trackLink: (_u, i) => `${env.appUrl}/api/public/e/l/${token}/${i}`,
-          openPixelUrl: `${env.appUrl}/api/public/e/a/${token}`,
+          trackLink: (_u, i) => `${base}/api/public/e/l/${token}/${i}`,
+          openPixelUrl: `${base}/api/public/e/a/${token}`,
         })
         try {
           await transport.sendMail({
@@ -488,7 +492,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
             text: out.text,
             headers: {
               // Descadastro em 1 clique direto no Gmail/Outlook (RFC 8058).
-              'List-Unsubscribe': `<${env.appUrl}/api/public/descadastro/${this.leads.unsubscribeToken(r.leadId)}?c=${c.id}>`,
+              'List-Unsubscribe': `<${base}/api/public/descadastro/${this.leads.unsubscribeToken(r.leadId)}?c=${c.id}>`,
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
           })
@@ -559,7 +563,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
     if (lead.emailBouncedAt) return { status: 'pulado', message: 'E-mail do lead já foi recusado antes.' }
     if (lead.anonymizedAt || lead.deletedAt) return { status: 'pulado', message: 'Lead excluído.' }
     if (await this.prisma.emailRecipient.count({ where: { campaignId: tpl.id, runId: a.runId } })) return { status: 'pulado', message: 'Este e-mail já foi enviado nesta passagem pelo fluxo.' }
-    const [smtp, cfg, brand] = await Promise.all([this.settings.smtp(a.tenantId), this.config(a.tenantId), this.brand(a.tenantId)])
+    const [smtp, cfg, brand, base] = await Promise.all([this.settings.smtp(a.tenantId), this.config(a.tenantId), this.brand(a.tenantId), this.tenants.url(a.tenantId)])
     if (!smtp.host || !smtp.fromEmail) return { status: 'tentar_depois', message: 'Servidor de e-mail (SMTP) não configurado.' }
 
     const r = await this.prisma.emailRecipient.create({ data: { campaignId: tpl.id, leadId: a.leadId, email: lead.email, runId: a.runId } })
@@ -570,9 +574,9 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
       subject: tpl.subject,
       preheader: tpl.preheader,
       person: { name: lead.name, email: lead.email, vars: { cupom: tpl.coupon ?? '', ...a.vars } },
-      unsubscribeUrl: `${env.appUrl}/descadastro/${unsubToken}?c=${tpl.id}`,
-      trackLink: (_u, i) => `${env.appUrl}/api/public/e/l/${token}/${i}`,
-      openPixelUrl: `${env.appUrl}/api/public/e/a/${token}`,
+      unsubscribeUrl: `${base}/descadastro/${unsubToken}?c=${tpl.id}`,
+      trackLink: (_u, i) => `${base}/api/public/e/l/${token}/${i}`,
+      openPixelUrl: `${base}/api/public/e/a/${token}`,
       linkList: tpl.links,
       cart: a.cart ?? null,
     })
@@ -585,7 +589,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
         subject: out.subject,
         html: out.html,
         text: out.text,
-        headers: { 'List-Unsubscribe': `<${env.appUrl}/api/public/descadastro/${unsubToken}?c=${tpl.id}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+        headers: { 'List-Unsubscribe': `<${base}/api/public/descadastro/${unsubToken}?c=${tpl.id}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
       })
     } catch (err) {
       const e = err as { message?: string; response?: string; responseCode?: number }

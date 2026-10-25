@@ -4,7 +4,7 @@ import { AuditService } from '../audit/audit.service'
 import type { RequestCtx } from '../common/decorators'
 import { type Action, can } from '../common/permissions'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import type { CartContent, CartVar } from '../email/blocos'
 import { EmailService } from '../email/email.service'
 import { MagazordService } from '../integracoes/magazord.service'
@@ -82,6 +82,7 @@ export class AutomacoesService implements OnApplicationBootstrap, OnModuleDestro
     private readonly mail: MailService,
     private readonly audit: AuditService,
     private readonly magazord: MagazordService,
+    private readonly tenants: TenantService,
     private readonly chat?: ChatService,
   ) {}
 
@@ -620,7 +621,7 @@ export class AutomacoesService implements OnApplicationBootstrap, OnModuleDestro
           this.settings.smtp(run.tenantId),
         ])
         if (!users.length || !smtp.host) return void (await this.log(run, s.id, 'erro', !smtp.host ? 'Servidor de e-mail não configurado: aviso não enviado.' : 'Nenhum usuário ativo para avisar.'))
-        const link = `${env.appUrl}/leads/${run.leadId}`
+        const link = `${await this.tenants.url(run.tenantId)}/leads/${run.leadId}`
         const text = fillMessage(s.message, { name: lead?.name ?? null, email: lead?.email ?? null, phone: lead?.phone ?? null, link, automation: a.name })
         const esc = (v: string) => v.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
         await this.mail.sendWith(smtp, {

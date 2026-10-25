@@ -2,6 +2,7 @@ import { createHmac } from 'node:crypto'
 import { Injectable, Logger, type OnApplicationBootstrap, type OnModuleDestroy } from '@nestjs/common'
 import { randomToken, safeEqual } from '../common/crypto'
 import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { Prisma } from '../generated/prisma/client'
 import { LeadConfigService } from '../leads/lead-config.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -109,6 +110,7 @@ export class RastreamentoService implements OnApplicationBootstrap, OnModuleDest
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly scoring: LeadConfigService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -139,8 +141,9 @@ export class RastreamentoService implements OnApplicationBootstrap, OnModuleDest
     return s
   }
 
-  snippet(s: TrackingSettings) {
-    return `<script async src="${env.appUrl}/api/public/rastreamento/script.js?k=${s.siteKey}"></script>`
+  /** Código para colar no site; o script é servido pelo endereço da empresa. */
+  async snippet(tenantId: string, s: TrackingSettings) {
+    return `<script async src="${await this.tenants.url(tenantId)}/api/public/rastreamento/script.js?k=${s.siteKey}"></script>`
   }
 
   /** Empresa e configuração pela chave pública do site (também usada pela captura). */
@@ -162,7 +165,7 @@ export class RastreamentoService implements OnApplicationBootstrap, OnModuleDest
   async script(key: string) {
     const site = /^[A-Za-z0-9_-]{10,64}$/.test(key) ? await this.site(key) : null
     if (!site?.s.enabled) return '/* Rastreamento do CRM desativado. */\n'
-    return buildScript({ key, endpoint: `${env.appUrl}/api/public/rastreamento/coleta`, requireConsent: site.s.requireConsent, cookieDomains: site.s.domains })
+    return buildScript({ key, endpoint: `${await this.tenants.url(site.tenantId)}/api/public/rastreamento/coleta`, requireConsent: site.s.requireConsent, cookieDomains: site.s.domains })
   }
 
   // ---------- Link rastreável (e-mails e, depois, WhatsApp) ----------

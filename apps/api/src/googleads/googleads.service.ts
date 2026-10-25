@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger, Optional, type OnApplicationBootstrap, type OnModuleDestroy } from '@nestjs/common'
 import { AuditService } from '../audit/audit.service'
 import { decrypt, encrypt, randomToken, safeEqual, sha256 } from '../common/crypto'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import type { Prisma } from '../generated/prisma/client'
@@ -121,6 +121,7 @@ export class GoogleAdsService implements OnApplicationBootstrap, OnModuleDestroy
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
+    private readonly tenants: TenantService,
     @Optional() private readonly panel?: GoogleAdsPanelService,
   ) {}
 
@@ -140,9 +141,9 @@ export class GoogleAdsService implements OnApplicationBootstrap, OnModuleDestroy
     return this.settings.get<GoogleAdsSettings>(tenantId, 'google_ads', DEFAULT_GOOGLE_ADS)
   }
 
-  view(s: GoogleAdsSettings) {
+  async view(tenantId: string, s: GoogleAdsSettings) {
     const { privateKeyEnc, campaignsToken, ...rest } = s
-    const url = campaignsToken ? `${env.appUrl}/api/webhooks/google-ads/campanhas/${campaignsToken}` : null
+    const url = campaignsToken ? `${await this.tenants.url(tenantId)}/api/webhooks/google-ads/campanhas/${campaignsToken}` : null
     return { ...rest, hasKey: !!privateKeyEnc, campaignsScript: url ? adsScript(url) : null }
   }
 
@@ -293,7 +294,7 @@ export class GoogleAdsService implements OnApplicationBootstrap, OnModuleDestroy
       desde: next.startDate,
       reenviar: requeued,
     })
-    return { ...this.view(next), requeued }
+    return { ...(await this.view(user.tenantId, next)), requeued }
   }
 
   /**

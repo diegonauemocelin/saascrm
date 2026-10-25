@@ -121,7 +121,7 @@ export class MarketplacesService {
 
     return {
       period: { from, to, prevFrom: prev.from, prevTo: prev.to },
-      config: { ...mlView(config), redirectUri: this.ml.redirectUri() },
+      config: { ...mlView(config), redirectUri: await this.ml.redirectUri(tenantId) },
       sync,
       coverage: { from: coverage._min.date ? day(coverage._min.date) : null, to: coverage._max.date ? day(coverage._max.date) : null, rows: coverage._count._all },
       totals: { all: kpis('all'), pads: kpis('pads'), display: kpis('display') },

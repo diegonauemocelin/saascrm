@@ -11,6 +11,10 @@ export const ALLOW_PENDING_2FA = 'allowPending2fa'
 /** Rota liberada enquanto o usuário ainda precisa configurar o 2FA obrigatório. */
 export const AllowPending2fa = () => SetMetadata(ALLOW_PENDING_2FA, true)
 
+export const ALLOW_BLOCKED = 'allowBlocked'
+/** Rota liberada mesmo com a assinatura da empresa bloqueada (pagar a mensalidade, ver a situação, sair). */
+export const AllowBlocked = () => SetMetadata(ALLOW_BLOCKED, true)
+
 export const PERMISSION = 'permission'
 export const RequirePermission = (module: ModuleKey, action: Action) => SetMetadata(PERMISSION, { module, action })
 
@@ -27,3 +31,11 @@ export function requestContext(req: Request) {
   return { ip: req.ip ?? null, userAgent: req.headers['user-agent']?.slice(0, 300) ?? null }
 }
 export type RequestCtx = ReturnType<typeof requestContext>
+
+/** Endereço acessado (atrás do proxy, o X-Forwarded-Host): define a empresa nas rotas sem login. */
+export function requestHost(req: Request) {
+  const raw = (req.headers['x-forwarded-host'] as string | undefined) ?? req.headers.host ?? ''
+  return raw.split(',')[0]!.trim().toLowerCase()
+}
+
+export const ReqHost = createParamDecorator((_: unknown, ctx: ExecutionContext) => requestHost(ctx.switchToHttp().getRequest<Request>()))

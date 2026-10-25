@@ -10,7 +10,7 @@ import { convertCustom, type CustomFieldShape } from '../leads/mapeamento'
 import { PrismaService } from '../prisma/prisma.service'
 import { classifyDevice, classifyTouch, CLIENT_ID, domainAllowed, hasCampaign, type Touch } from '../rastreamento/origem'
 import { RastreamentoService } from '../rastreamento/rastreamento.service'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { SettingsService } from '../settings/settings.service'
 import { BASE_FIELDS, type FormField, safeRedirect, validateSubmission, waLink, whatsappText, whatsappFields, withCustomerTypes } from './regras'
 
@@ -126,6 +126,7 @@ export class CapturaService {
     private readonly leads: LeadsService,
     private readonly config: LeadConfigService,
     private readonly audit: AuditService,
+    private readonly tenants: TenantService,
   ) {}
 
   settingsOf(tenantId: string) {
@@ -152,7 +153,7 @@ export class CapturaService {
     if (!site?.s.enabled || !UUID.test(formId)) return '/* Formulário do CRM indisponível (rastreamento desligado ou código inválido). */\n'
     const form = await this.prisma.captureForm.findFirst({ where: { id: formId, tenantId: site.tenantId, active: true }, select: { id: true } })
     if (!form) return '/* Formulário do CRM inativo ou excluído. */\n'
-    const cfg = JSON.stringify({ f: form.id, s: `${env.appUrl}/api/public/rastreamento/script.js?k=${key}` })
+    const cfg = JSON.stringify({ f: form.id, s: `${await this.tenants.url(site.tenantId)}/api/public/rastreamento/script.js?k=${key}` })
     return `/* CRM - formulário */
 (function (d, w) {
   var C = ${cfg};

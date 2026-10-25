@@ -78,7 +78,7 @@ export class MarketplacesController {
   @RequirePermission('marketplaces', 'view')
   async config(@CurrentUser() user: AuthUser) {
     const [c, sync] = await Promise.all([this.ml.config(user.tenantId), this.ml.syncState(user.tenantId)])
-    return { ...mlView(c), redirectUri: this.ml.redirectUri(), sync }
+    return { ...mlView(c), redirectUri: await this.ml.redirectUri(user.tenantId), sync }
   }
 
   @Put('mercado-livre/credenciais')

@@ -17,7 +17,7 @@ import { Type } from 'class-transformer'
 import { IsBoolean, IsEmail, IsIn, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min, ValidateIf } from 'class-validator'
 import { AuditService } from '../audit/audit.service'
 import { encrypt } from '../common/crypto'
-import { CurrentUser, Public, ReqContext, type RequestCtx, RequirePermission } from '../common/decorators'
+import { CurrentUser, Public, ReqContext, type RequestCtx, RequirePermission, ReqHost } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import { FilesService, IMAGE_UPLOAD_LIMIT } from '../files/files.service'
 import { TenantService } from '../prisma/prisma.module'
@@ -99,8 +99,8 @@ export class SettingsController {
   /** Identidade visual usada na tela de login, antes de existir sessão. */
   @Public()
   @Get('public/branding')
-  async publicBranding() {
-    return publicBranding(await this.settings.branding(await this.tenants.defaultId()))
+  async publicBranding(@ReqHost() host: string) {
+    return publicBranding(await this.settings.branding(await this.tenants.requireFromHost(host)))
   }
 
   @Get('settings/branding')

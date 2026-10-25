@@ -1,5 +1,5 @@
 /**
- * Seed idempotente: cria o tenant, os perfis padrão e o primeiro administrador.
+ * Seed idempotente: cria a empresa dona da plataforma (sgmulticonecta), os perfis padrão e o primeiro administrador.
  * Pode rodar várias vezes sem duplicar nada. A senha do admin só é gerada (e exibida) na primeira vez.
  *
  *   SEED_ADMIN_EMAIL=voce@empresa.com.br SEED_ADMIN_NAME="Seu Nome" npm run db:seed
@@ -9,60 +9,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import * as argon2 from 'argon2'
 import { randomBytes } from 'node:crypto'
 import { PrismaClient } from '../src/generated/prisma/client'
-
-const MODULES = [
-  'dashboard', 'leads', 'carrinhos', 'pre_vendas', 'pos_vendas', 'cadastros', 'chat', 'captura', 'email_marketing',
-  'whatsapp', 'automacoes', 'catalogo', 'relatorios', 'google_ads', 'usuarios', 'perfis', 'configuracoes', 'auditoria',
-] as const
-type Mod = (typeof MODULES)[number]
-type P = { v?: 1; c?: 1; e?: 1; d?: 1; x?: 1; own?: 1 }
-
-const ALL: P = { v: 1, c: 1, e: 1, d: 1, x: 1 }
-const WORK: P = { v: 1, c: 1, e: 1, x: 1 }
-const VIEW: P = { v: 1 }
-const VIEW_EXPORT: P = { v: 1, x: 1 }
-
-const ROLES: { name: string; description: string; require2fa: boolean; isSystem?: boolean; perms: Partial<Record<Mod, P>> }[] = [
-  { name: 'Administrador', description: 'Acesso total ao sistema.', require2fa: true, isSystem: true, perms: {} },
-  {
-    name: 'Marketing',
-    description: 'Leads, captura, email marketing, automações e relatórios.',
-    require2fa: false,
-    perms: { dashboard: VIEW, leads: ALL, captura: ALL, email_marketing: ALL, automacoes: ALL, catalogo: WORK, relatorios: VIEW_EXPORT, carrinhos: WORK, google_ads: { v: 1, e: 1, x: 1 } },
-  },
-  {
-    name: 'Pré-Vendas',
-    description: 'Atendimento de pré-vendas e chat.',
-    require2fa: false,
-    perms: { dashboard: VIEW, leads: WORK, carrinhos: WORK, pre_vendas: WORK, chat: WORK, relatorios: VIEW },
-  },
-  {
-    name: 'Pós-Vendas',
-    description: 'Atendimento de pós-vendas e chat.',
-    require2fa: false,
-    perms: { dashboard: VIEW, leads: WORK, pos_vendas: WORK, chat: WORK, relatorios: VIEW },
-  },
-  {
-    name: 'Vendedor',
-    description: 'Vê e atualiza somente os próprios leads e atendimentos.',
-    require2fa: false,
-    perms: {
-      dashboard: VIEW,
-      leads: { v: 1, e: 1, own: 1 },
-      pre_vendas: { v: 1, e: 1, own: 1 },
-      pos_vendas: { v: 1, e: 1, own: 1 },
-      chat: { v: 1, c: 1, e: 1, own: 1 },
-    },
-  },
-  {
-    name: 'Diretoria',
-    description: 'Somente leitura de todos os módulos, com exportação.',
-    require2fa: true,
-    perms: Object.fromEntries(
-      MODULES.filter((m) => !['usuarios', 'perfis', 'configuracoes'].includes(m)).map((m) => [m, VIEW_EXPORT]),
-    ),
-  },
-]
+import { createDefaultRoles } from '../src/plataforma/perfis-padrao'
 
 async function main() {
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) })
@@ -70,35 +17,12 @@ async function main() {
 
   const tenant = await prisma.tenant.upsert({
     where: { slug },
-    create: { slug, name: process.env.SEED_TENANT_NAME || 'Usaparts' },
-    update: {},
+    // A primeira empresa é a dona da plataforma (painel de empresas, planos e cobranças): não paga e não é bloqueada.
+    create: { slug, name: process.env.SEED_TENANT_NAME || 'sgmulticonecta', isPlatform: true, status: 'ATIVA' },
+    update: { isPlatform: true, status: 'ATIVA' },
   })
 
-  for (const r of ROLES) {
-    const existing = await prisma.role.findUnique({ where: { tenantId_name: { tenantId: tenant.id, name: r.name } } })
-    if (existing) continue
-    await prisma.role.create({
-      data: {
-        tenantId: tenant.id,
-        name: r.name,
-        description: r.description,
-        require2fa: r.require2fa,
-        isSystem: r.isSystem ?? false,
-        permissions: {
-          create: Object.entries(r.perms).map(([module, p]) => ({
-            module,
-            canView: !!p.v,
-            canCreate: !!p.c,
-            canEdit: !!p.e,
-            canDelete: !!p.d,
-            canExport: !!p.x,
-            scope: p.own ? ('OWN' as const) : ('ALL' as const),
-          })),
-        },
-      },
-    })
-    console.log(`Perfil criado: ${r.name}`)
-  }
+  await createDefaultRoles(prisma, tenant.id)
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase()
   if (!adminEmail) {

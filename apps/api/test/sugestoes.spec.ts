@@ -22,7 +22,7 @@ function setup() {
     user: { findUnique: async () => ({ email: 'autor@exemplo.com', name: 'Autor', active: true }) },
   }
   const mail = { send: async (_t: string, m: { to: string }) => void mails.push(m.to), simpleTemplate: () => '' }
-  const svc = new SugestoesService(prisma as never, {} as never, { byUser: async () => undefined } as never, mail as never, { branding: async () => ({ appName: 'CRM' }) } as never)
+  const svc = new SugestoesService(prisma as never, {} as never, { byUser: async () => undefined } as never, mail as never, { branding: async () => ({ appName: 'CRM' }) } as never, { url: async () => 'https://crm.exemplo.com.br' } as never)
   return { svc, rows, mails }
 }
 

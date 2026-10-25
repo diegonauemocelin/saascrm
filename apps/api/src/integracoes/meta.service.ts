@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { AuditService } from '../audit/audit.service'
 import { decrypt, randomToken, safeEqual } from '../common/crypto'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { Prisma } from '../generated/prisma/client'
 import { LeadCaptureService } from '../leads/lead-capture.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -44,6 +44,7 @@ export class MetaLeadAdsService {
     private readonly settings: SettingsService,
     private readonly capture: LeadCaptureService,
     private readonly audit: AuditService,
+    private readonly tenants: TenantService,
   ) {}
 
   async config(tenantId: string): Promise<MetaSettings> {
@@ -60,8 +61,9 @@ export class MetaLeadAdsService {
     return this.settings.set(tenantId, 'meta_lead_ads', s)
   }
 
-  webhookUrl(s: MetaSettings) {
-    return `${env.appUrl}/api/webhooks/meta/${s.webhookKey}`
+  /** Endereço que a empresa cadastra no app da Meta (no endereço da própria empresa). */
+  async webhookUrl(tenantId: string, s: MetaSettings) {
+    return `${await this.tenants.url(tenantId)}/api/webhooks/meta/${s.webhookKey}`
   }
 
   private async byWebhookKey(key: string) {

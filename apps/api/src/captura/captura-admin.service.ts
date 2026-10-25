@@ -9,7 +9,7 @@ import { EMAIL_IMAGE_LIMIT, FilesService } from '../files/files.service'
 import { LeadConfigService } from '../leads/lead-config.service'
 import { normalizeTags } from '../leads/mapeamento'
 import { PrismaService } from '../prisma/prisma.service'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { RastreamentoService } from '../rastreamento/rastreamento.service'
 import { SettingsService } from '../settings/settings.service'
 import { type AdsTag, type CaptureSettings, CapturaService, cleanAdsTag, DEFAULT_ADS_TAG } from './captura.service'
@@ -91,6 +91,7 @@ export class CapturaAdminService {
     private readonly audit: AuditService,
     private readonly tracking: RastreamentoService,
     private readonly files: FilesService,
+    private readonly tenants: TenantService,
   ) {}
 
   assertCan(user: AuthUser, action: Action) {
@@ -133,11 +134,12 @@ export class CapturaAdminService {
       this.prisma.captureForm.findMany({ where: { tenantId: user.tenantId }, orderBy: { createdAt: 'desc' }, include: { _count: { select: { popups: true } } } }),
       this.tracking.config(user.tenantId),
     ])
+    const base = await this.tenants.url(user.tenantId)
     return forms.map(({ tenantId: _t, _count, ...f }) => ({
       ...f,
       popups: _count.popups,
       // Dois jeitos de colocar o formulário numa página: o código com script (funciona em qualquer editor) e o marcador.
-      embedScript: `<script async src="${env.appUrl}/api/public/captura/form.js?k=${tracking.siteKey}&f=${f.id}"></script>`,
+      embedScript: `<script async src="${base}/api/public/captura/form.js?k=${tracking.siteKey}&f=${f.id}"></script>`,
       embedDiv: `<div data-usacrm-form="${f.id}"></div>`,
       trackingEnabled: tracking.enabled,
     }))
@@ -262,7 +264,7 @@ export class CapturaAdminService {
     this.assertCan(user, 'edit')
     let design: Prisma.InputJsonValue | typeof Prisma.DbNull = Prisma.DbNull
     if (raw !== null) {
-      const r = cleanDesign(raw, kind, new URL(env.appUrl).origin)
+      const r = cleanDesign(raw, kind, new URL(await this.tenants.url(user.tenantId)).origin)
       if ('error' in r) throw new BadRequestException(r.error)
       design = r.design as unknown as Prisma.InputJsonValue
     }
@@ -280,13 +282,14 @@ export class CapturaAdminService {
     this.assertCan(user, 'edit')
     const asset = await this.files.saveImage(user.tenantId, 'captura-image', file, true, { maxBytes: EMAIL_IMAGE_LIMIT, types: ['png', 'jpg', 'gif', 'webp'] })
     await this.audit.byUser(user, ctx, 'captura.image_uploaded', 'file', asset.id, { tamanho: asset.size })
-    return { id: asset.id, url: `${env.appUrl}/api/files/public/${asset.id}` }
+    return { id: asset.id, url: `${await this.tenants.url(user.tenantId)}/api/files/public/${asset.id}` }
   }
 
   async listImages(user: AuthUser) {
     this.assertCan(user, 'view')
     const rows = await this.prisma.fileAsset.findMany({ where: { tenantId: user.tenantId, kind: { in: ['captura-image', 'email-image'] } }, orderBy: { createdAt: 'desc' }, take: 60, select: { id: true, createdAt: true } })
-    return rows.map((r) => ({ id: r.id, url: `${env.appUrl}/api/files/public/${r.id}` }))
+    const base = await this.tenants.url(user.tenantId)
+    return rows.map((r) => ({ id: r.id, url: `${base}/api/files/public/${r.id}` }))
   }
 
   async removePopup(user: AuthUser, id: string, ctx: RequestCtx) {

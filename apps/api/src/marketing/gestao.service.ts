@@ -4,7 +4,7 @@ import { AuditService } from '../audit/audit.service'
 import { MarketplacesService } from '../marketplaces/marketplaces.service'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { EmailAiService } from '../email/ia.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { MailService } from '../settings/mail.service'
@@ -56,6 +56,7 @@ export class MarketingManagementService implements OnApplicationBootstrap, OnMod
     private readonly mkt: MarketingService,
     private readonly files: FilesService,
     private readonly marketplaces: MarketplacesService,
+    private readonly tenants: TenantService,
   ) {}
 
   /** Logo da empresa (Configurações › Marca) preparado para o PDF; sem logo ou formato que não abre: null. */
@@ -248,6 +249,7 @@ export class MarketingManagementService implements OnApplicationBootstrap, OnMod
     }
     if (!fired.length) return []
     const branding = await this.settings.branding(tenantId)
+    const base = await this.tenants.url(tenantId)
     for (const f of fired) {
       const label = ALERT_TYPES.find((t) => t.key === f.rule.type)?.label ?? f.rule.type
       for (const to of f.rule.emails) {
@@ -255,8 +257,8 @@ export class MarketingManagementService implements OnApplicationBootstrap, OnMod
           .send(tenantId, {
             to,
             subject: `Alerta de marketing: ${label}`,
-            text: `${f.message}${f.limitation ? `\n${f.limitation}` : ''}\n\nVer no sistema: ${env.appUrl}/marketing`,
-            html: this.mail.simpleTemplate(branding, { title: `Alerta: ${label}`, greeting: 'Olá,', body: `${f.message}${f.limitation ? ` (${f.limitation})` : ''}`, buttonLabel: 'Abrir o Marketing Inteligente', buttonUrl: `${env.appUrl}/marketing`, footnote: `Período avaliado: últimos ${f.rule.windowDays} dia(s), comparado com o anterior.` }),
+            text: `${f.message}${f.limitation ? `\n${f.limitation}` : ''}\n\nVer no sistema: ${base}/marketing`,
+            html: this.mail.simpleTemplate(branding, { title: `Alerta: ${label}`, greeting: 'Olá,', body: `${f.message}${f.limitation ? ` (${f.limitation})` : ''}`, buttonLabel: 'Abrir o Marketing Inteligente', buttonUrl: `${base}/marketing`, footnote: `Período avaliado: últimos ${f.rule.windowDays} dia(s), comparado com o anterior.` }),
           })
           .catch((err: unknown) => this.logger.warn(`Alerta para ${to}: ${(err as Error).message}`))
       }

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, type OnApplicationBootstrap, t
 import { createHash, randomBytes } from 'node:crypto'
 import { decrypt, encrypt, safeEqual } from '../common/crypto'
 import type { AuthUser } from '../common/types'
-import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
 import {
@@ -57,6 +57,7 @@ export class MercadoLivreService implements OnApplicationBootstrap, OnModuleDest
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
+    private readonly tenants: TenantService,
   ) {}
 
   onApplicationBootstrap() {
@@ -68,8 +69,9 @@ export class MercadoLivreService implements OnApplicationBootstrap, OnModuleDest
     if (this.timer) clearInterval(this.timer)
   }
 
-  redirectUri() {
-    return `${env.appUrl}${ML_CALLBACK_PATH}`
+  /** Endereço de retorno da autorização (no endereço da própria empresa). */
+  async redirectUri(tenantId: string) {
+    return `${await this.tenants.url(tenantId)}${ML_CALLBACK_PATH}`
   }
 
   async config(tenantId: string): Promise<MlConfig> {
@@ -111,7 +113,7 @@ export class MercadoLivreService implements OnApplicationBootstrap, OnModuleDest
     url.search = new URLSearchParams({
       response_type: 'code',
       client_id: c.clientId,
-      redirect_uri: this.redirectUri(),
+      redirect_uri: await this.redirectUri(user.tenantId),
       state,
       code_challenge: createHash('sha256').update(verifier).digest('base64url'),
       code_challenge_method: 'S256',
@@ -132,7 +134,7 @@ export class MercadoLivreService implements OnApplicationBootstrap, OnModuleDest
       client_id: c.clientId,
       client_secret: decrypt(c.clientSecretEnc!),
       code,
-      redirect_uri: this.redirectUri(),
+      redirect_uri: await this.redirectUri(user.tenantId),
       code_verifier: decrypt(pending.verifierEnc!),
     })
     const me = (await this.fetcher(`${ML_API}/users/me`, { headers: { Authorization: `Bearer ${token.access_token}` }, signal: AbortSignal.timeout(30_000) })

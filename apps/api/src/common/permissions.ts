@@ -37,6 +37,7 @@ export const MODULES = [
   { key: 'configuracoes', label: 'Configurações', group: 'Administração', help: 'Marca, e-mail, rastreamento, loja, Meta, GA4 e Google Ads (chaves e conversões).' },
   { key: 'sugestoes', label: 'Sugestões de melhoria (analisar)', group: 'Administração', help: 'Todos enviam e acompanham as próprias sugestões. Ver: ler as sugestões de todos. Editar: mudar a situação e responder (quem enviou é avisado).' },
   { key: 'auditoria', label: 'Auditoria', group: 'Administração', help: 'Ver o registro de quem fez o quê.' },
+  { key: 'plataforma', label: 'Plataforma: empresas, planos e cobranças', group: 'Plataforma', help: 'Só na empresa dona da plataforma. Ver: empresas, planos e cobranças. Criar/Editar: cadastrar empresas e planos, mudar plano, suspender e reativar.' },
 ] as const
 
 export type ModuleKey = (typeof MODULES)[number]['key']
@@ -61,6 +62,8 @@ export function fullPermissions(): PermissionSet {
 }
 
 export function can(perms: PermissionSet, isSystemRole: boolean, module: string, action: Action): boolean {
-  if (isSystemRole) return true
+  // Administrador: tudo nos módulos que a empresa tem (o guarda entrega as permissões já filtradas pelo plano; lista
+  // vazia = sem plano aplicado, acesso total).
+  if (isSystemRole) return Object.keys(perms).length === 0 || !!perms[module]
   return perms[module]?.[action] === true
 }

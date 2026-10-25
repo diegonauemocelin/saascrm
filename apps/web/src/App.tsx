@@ -1,3 +1,4 @@
+import { SubscriptionBanner, SubscriptionBlocked } from '@/components/plataforma/assinatura'
 import { Loader2Icon } from 'lucide-react'
 import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from 'react'
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router'
@@ -85,6 +86,7 @@ const pages = {
   landingPages: () => page(() => import('@/pages/landing-pages-page'), 'LandingPagesPage'),
   seoEcommerce: () => page(() => import('@/pages/seo-ecommerce-page'), 'SeoEcommercePage'),
   postagens: () => page(() => import('@/pages/postagens-page'), 'PostagensPage'),
+  plataforma: () => page(() => import('@/pages/plataforma-page'), 'PlataformaPage'),
   landingEditor: () => page(() => import('@/pages/landing-editor-page'), 'LandingEditorPage'),
   sugestoes: () => page(() => import('@/pages/sugestoes-page'), 'SugestoesPage'),
   sugestoesAnalisar: () => page(() => import('@/pages/sugestoes-page'), 'SugestoesAnalisarPage'),
@@ -177,8 +179,10 @@ function Protected() {
   if (loading) return <Loader fullscreen />
   if (!me) return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
   if (me.mustChangePassword || me.pending2faSetup) return <Navigate to="/configurar-conta" replace />
+  if (me.company?.blocked) return <SubscriptionBlocked />
   return (
     <>
+      <SubscriptionBanner />
       <Outlet />
       <ReauthDialog />
     </>
@@ -233,6 +237,7 @@ const router = createBrowserRouter([
           { path: 'landing-pages/:id', element: <Lazy>{pages.landingEditor()}</Lazy> },
           { path: 'seo-ecommerce', element: <Lazy>{pages.seoEcommerce()}</Lazy> },
           { path: 'postagens', element: <Lazy>{pages.postagens()}</Lazy> },
+          { path: 'plataforma', element: <Lazy>{pages.plataforma()}</Lazy> },
           { path: 'automacoes', element: <Lazy>{pages.automacoes()}</Lazy> },
           { path: 'automacoes/:id', element: <Lazy>{pages.automacao()}</Lazy> },
           { path: 'relatorios', element: <Lazy>{pages.relatorios()}</Lazy> },

@@ -103,7 +103,7 @@ export class GoogleAdsController {
   @Get()
   @RequirePermission('configuracoes', 'view')
   async get(@CurrentUser() user: AuthUser) {
-    return { ...this.ads.view(await this.ads.configWithToken(user.tenantId)), script: await this.ads.scriptState(user.tenantId) }
+    return { ...(await this.ads.view(user.tenantId, await this.ads.configWithToken(user.tenantId))), script: await this.ads.scriptState(user.tenantId) }
   }
 
   @Put()

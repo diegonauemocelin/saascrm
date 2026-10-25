@@ -64,7 +64,7 @@ describe('catálogo da Magazord: cópia e aviso de falha', () => {
       user: { findMany: async () => [{ email: 'admin@exemplo.com', name: 'Admin' }] },
     }
     const mail = { send: async (_t: string, m: { to: string }) => void calls.mails.push(m.to), simpleTemplate: () => '<p></p>' }
-    const svc = new MagazordService(prisma as never, settings as never, {} as never, {} as never, {} as never, {} as never, mail as never)
+    const svc = new MagazordService(prisma as never, settings as never, {} as never, {} as never, {} as never, {} as never, mail as never, { url: async () => 'https://crm.exemplo.com.br' } as never)
     ;(svc as unknown as { get: () => Promise<unknown> }).get = async () => pages()
     const s = { ...DEFAULT_MAGAZORD, siteUrl: 'https://www.usaparts.com.br', imageBaseUrl: 'https://img.exemplo.com' }
     const run = (force = false) => (svc as unknown as { syncProducts: (t: string, s: unknown, f: boolean) => Promise<void> }).syncProducts('t', s, force)

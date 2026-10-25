@@ -4,6 +4,7 @@ import { randomToken, safeEqual } from '../common/crypto'
 import type { RequestCtx } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import { env } from '../config/env'
+import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { ChatService } from './chat.service'
 import type { Prisma } from '../generated/prisma/client'
@@ -47,6 +48,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly chat: ChatService,
+    private readonly tenants: TenantService,
   ) {
     this.chat.clientOf = () => this.client
     if (this.client) this.client.onSessionDead = (instanceName) => void this.markDead(instanceName)
@@ -129,12 +131,13 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
         service = { ...service, error: (err as Error).message }
       }
     }
+    const plan = await this.tenants.limits(user.tenantId)
     // Para escolher quem usa cada número (só nome; quem vê esta tela é o administrador dos números).
     const users = await this.prisma.user.findMany({ where: { tenantId: user.tenantId, active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } })
     return {
       users,
       numbers: numbers.map((n) => this.view(n)),
-      limits: { ...this.limits(), connected: numbers.filter((n) => n.status !== 'DESCONECTADO').length, registered: numbers.length },
+      limits: { ...this.limits(), ...(plan ? { maxNumbers: Math.min(env.whatsappMaxNumbers, plan.whatsapp) } : {}), connected: numbers.filter((n) => n.status !== 'DESCONECTADO').length, registered: numbers.length },
       service,
     }
   }
@@ -157,10 +160,12 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     if (name.length < 2) throw new BadRequestException('Dê um nome ao número (ex.: Vendas Paraná).')
     const sellerIds = await this.assertRefs(user.tenantId, d)
     const userIds = await this.assertUsers(user.tenantId, d)
+    const plan = await this.tenants.limits(user.tenantId)
     const n = await this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`wa-numbers:${user.tenantId}`}))`
       const count = await tx.whatsappNumber.count({ where: { tenantId: user.tenantId, deletedAt: null } })
       if (count >= env.whatsappMaxNumbers) throw new BadRequestException(`Limite de ${env.whatsappMaxNumbers} números cadastrados. Exclua um para cadastrar outro.`)
+      if (plan && count >= plan.whatsapp) throw new BadRequestException(`O plano${plan.plan ? ` ${plan.plan}` : ''} permite ${plan.whatsapp} número(s) de WhatsApp. Exclua um ou contrate números adicionais com a sgmulticonecta.`)
       return tx.whatsappNumber.create({
         data: { tenantId: user.tenantId, name, instanceName: `crm-${randomToken(9).toLowerCase().replace(/[^a-z0-9]/g, 'x')}`, unitId: d.unitId ?? null, sellerIds, userIds, splitAttendance: d.splitAttendance ?? false, defaultUserId: d.defaultUserId && userIds.includes(d.defaultUserId) ? d.defaultUserId : null, createRecords: d.createRecords ?? true, signMessages: d.signMessages ?? true },
       })
