@@ -139,6 +139,12 @@ Funcionamento:
 
 Detalhes e como refazer os vídeos: [docs/SITE.md](SITE.md).
 
+## Empresas de demonstração
+
+Para apresentar o sistema a possíveis clientes: `sudo bash deploy/demo.sh`. Cria três empresas fictícias
+(`autopecas`, `vitrinemoda` e `smashpadel` no domínio da plataforma), mostra a senha gerada para os usuários e emite
+os certificados. Elas não entram na receita, não são cobradas, não publicam e não conectam WhatsApp.
+
 ## 8. Atualizar para uma nova versão
 
 ```bash

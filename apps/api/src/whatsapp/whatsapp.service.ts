@@ -83,9 +83,14 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
     setTimeout(() => void this.syncWebhooks(), 20_000).unref()
   }
 
+  /** Empresas de demonstração: os números delas são fictícios e não existem no serviço de WhatsApp. */
+  private async demoTenants() {
+    return (await this.prisma.tenant.findMany({ where: { isDemo: true }, select: { id: true } })).map((t) => t.id)
+  }
+
   private async syncWebhooks() {
     if (!this.client || !env.evolutionWebhookSecret) return
-    const numbers = await this.prisma.whatsappNumber.findMany({ where: { deletedAt: null, status: { not: 'DESCONECTADO' } }, select: { instanceName: true, name: true } })
+    const numbers = await this.prisma.whatsappNumber.findMany({ where: { deletedAt: null, status: { not: 'DESCONECTADO' }, tenantId: { notIn: await this.demoTenants() } }, select: { instanceName: true, name: true } })
     for (const n of numbers) {
       await this.client.setWebhook(n.instanceName, this.webhookUrl()).catch((err: unknown) => this.logger.warn(`Eventos do número ${n.name} não atualizados: ${(err as Error).message}`))
       await this.client.setSettings(n.instanceName).catch((err: unknown) => this.logger.warn(`Ajustes do número ${n.name} não atualizados: ${(err as Error).message}`))
@@ -358,7 +363,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       }
       if (Date.now() - this.lastFullCheck >= CHECK_CONNECTED_MS) {
         this.lastFullCheck = Date.now()
-        const connected = await this.prisma.whatsappNumber.findMany({ where: { deletedAt: null, status: 'CONECTADO' } })
+        const connected = await this.prisma.whatsappNumber.findMany({ where: { deletedAt: null, status: 'CONECTADO', tenantId: { notIn: await this.demoTenants() } } })
         for (const n of connected) {
           const state = await this.client.state(n.instanceName).catch(() => undefined)
           // Sem resposta do serviço: não muda nada (não é o número que caiu).

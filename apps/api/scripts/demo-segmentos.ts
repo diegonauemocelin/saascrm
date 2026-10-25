@@ -2,9 +2,13 @@
  * Empresas de DEMONSTRAÇÃO, com dados fictícios, para as telas e os vídeos do site de apresentação
  * (apps/site). Uma por segmento: autopeças, loja de roupas e fábrica de roupas para padel.
  *
- *   cd apps/api && npx tsx scripts/demo-segmentos.ts          (usa o DATABASE_URL do .env)
+ * Também servem para apresentar o sistema a possíveis clientes: ficam marcadas como demonstração (isDemo), não entram
+ * na receita, não são cobradas, não publicam no Instagram/Facebook e não conectam WhatsApp.
  *
- * Só para um banco de desenvolvimento: nunca rode em produção. Senha de todos os usuários: Demo-Segmentos-2026!
+ *   Desenvolvimento:  cd apps/api && DEMO=sim npx tsx scripts/demo-segmentos.ts
+ *   Na VPS:           sudo bash deploy/demo.sh
+ *
+ * A senha dos usuários é gerada na hora e mostrada no fim (ou a de DEMO_PASSWORD). Empresa que já existe não muda.
  */
 import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
@@ -14,7 +18,7 @@ import { PrismaClient } from '../src/generated/prisma/client'
 import { createDefaultRoles } from '../src/plataforma/perfis-padrao'
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) })
-const PASSWORD = 'Demo-Segmentos-2026!'
+const PASSWORD = process.env.DEMO_PASSWORD || `Demo-${randomBytes(9).toString('base64url')}`
 const DAY = 86_400_000
 const now = Date.now()
 let seed = 7
@@ -152,10 +156,9 @@ const SEGMENTS: Segment[] = [
 ]
 
 async function create(s: Segment) {
-  const plan = await prisma.plan.findFirst({ where: { name: 'Profissional' } })
   if (await prisma.tenant.findUnique({ where: { slug: s.slug } })) return console.log(`${s.slug}: já existe, nada alterado.`)
   const tenant = await prisma.tenant.create({
-    data: { slug: s.slug, name: s.name, status: 'ATIVA', planId: plan?.id ?? null, paidUntil: new Date(now + 365 * DAY), extraSystems: ['atendimento', 'whatsapp', 'captura', 'email_marketing', 'postagens', 'relatorios', 'marketing_inteligente'], extraUsers: 20, extraWhatsapp: 5 },
+    data: { slug: s.slug, name: s.name, isDemo: true, notes: 'Empresa fictícia para apresentação a clientes.', status: 'ATIVA', planId: null, paidUntil: new Date(now + 365 * DAY), extraSystems: ['atendimento', 'whatsapp', 'captura', 'email_marketing', 'postagens', 'relatorios', 'marketing_inteligente'], extraUsers: 20, extraWhatsapp: 5 },
   })
   const t = tenant.id
   await prisma.tenantSetting.create({ data: { tenantId: t, key: 'branding', value: { appName: s.name, shortName: s.short, primaryColor: s.colors.primary, brandColor: s.colors.primary, sidebarColor: s.colors.sidebar } } })
@@ -237,8 +240,9 @@ async function create(s: Segment) {
 }
 
 async function main() {
+  if (process.env.DEMO !== 'sim') throw new Error('Confirme com DEMO=sim (cria empresas fictícias neste banco).')
   for (const s of SEGMENTS) await create(s)
-  console.log(`Senha de todos os usuários: ${PASSWORD}`)
+  console.log(`Senha dos usuários das empresas criadas agora: ${PASSWORD}`)
 }
 
 main().finally(() => prisma.$disconnect())

@@ -439,7 +439,9 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     if (this.running) return
     this.running = true
     try {
-      const due = await this.prisma.socialPost.findMany({ where: { status: 'APROVADO', OR: [{ scheduledAt: null }, { scheduledAt: { lte: new Date() } }] }, orderBy: { scheduledAt: 'asc' }, take: 10, select: { id: true } })
+      // Empresas de demonstração não publicam (as contas delas são fictícias).
+      const demo = (await this.prisma.tenant.findMany({ where: { isDemo: true }, select: { id: true } })).map((t) => t.id)
+      const due = await this.prisma.socialPost.findMany({ where: { status: 'APROVADO', tenantId: { notIn: demo }, OR: [{ scheduledAt: null }, { scheduledAt: { lte: new Date() } }] }, orderBy: { scheduledAt: 'asc' }, take: 10, select: { id: true } })
       for (const d of due) {
         const claimed = await this.prisma.socialPost.updateMany({ where: { id: d.id, status: 'APROVADO' }, data: { status: 'PUBLICANDO' } })
         if (claimed.count) await this.publish(d.id)

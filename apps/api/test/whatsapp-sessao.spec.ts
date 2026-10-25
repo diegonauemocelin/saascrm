@@ -12,7 +12,7 @@ function fakePrisma(start: Record<string, unknown>) {
     count: async () => 0,
     update: async ({ data }: { data: Record<string, unknown> }) => Object.assign(row, data) && { ...row },
   }
-  return { row, prisma: { whatsappNumber: wn, $transaction: async (fn: (tx: unknown) => unknown) => fn({ $executeRaw: async () => 0, whatsappNumber: wn }) } }
+  return { row, prisma: { whatsappNumber: wn, tenant: { findMany: async () => [] }, $transaction: async (fn: (tx: unknown) => unknown) => fn({ $executeRaw: async () => 0, whatsappNumber: wn }) } }
 }
 
 type Route = (method: string, path: string) => Response

@@ -190,6 +190,7 @@ export class CobrancaService {
     if (!asaas) throw new BadRequestException('Cobrança não configurada: informe ASAAS_API_KEY no servidor.')
     const t = await this.prisma.tenant.findUniqueOrThrow({ where: { id: tenantId }, include: { plan: true } })
     if (t.isPlatform) throw new BadRequestException('A empresa dona da plataforma não paga mensalidade.')
+    if (t.isDemo) throw new BadRequestException('Empresa de demonstração não tem cobrança.')
     const m = await this.monthly(t)
     if (m.cents <= 0) throw new BadRequestException('A empresa precisa de um plano ou de sistemas com valor para gerar a cobrança.')
     if (!t.document || !validDocument(t.document)) throw new BadRequestException('Informe o CPF ou CNPJ da empresa (obrigatório para cobrar no Asaas).')

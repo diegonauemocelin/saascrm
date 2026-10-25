@@ -132,7 +132,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
   /** A cada hora: mensalidade vencida vira "atrasada" e, depois da tolerância, "suspensa" (o pagamento reativa). */
   async reviewStatuses() {
     try {
-      const list = await this.prisma.tenant.findMany({ where: { isPlatform: false, status: { in: ['ATIVA', 'ATRASADA'] } }, select: { id: true, name: true, status: true, paidUntil: true, isPlatform: true } })
+      const list = await this.prisma.tenant.findMany({ where: { isPlatform: false, isDemo: false, status: { in: ['ATIVA', 'ATRASADA'] } }, select: { id: true, name: true, status: true, paidUntil: true, isPlatform: true } })
       for (const t of list) {
         const next = nextStatus(t)
         if (next === t.status) continue
@@ -150,7 +150,8 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
 
   async summary(user: AuthUser) {
     await this.assertCan(user, 'view')
-    const companies = await this.prisma.tenant.findMany({ where: { isPlatform: false }, select: { status: true, extraSystems: true, plan: { select: { priceCents: true } } } })
+    // Empresas de demonstração não contam (nem na receita).
+    const companies = await this.prisma.tenant.findMany({ where: { isPlatform: false, isDemo: false }, select: { status: true, extraSystems: true, plan: { select: { priceCents: true } } } })
     const sale = await this.sale()
     const byStatus = Object.fromEntries(TENANT_STATUSES.map((s) => [s, companies.filter((c) => c.status === s).length]))
     const mrrCents = companies.filter((c) => c.status === 'ATIVA' || c.status === 'ATRASADA').reduce((s, c) => s + (c.plan ? c.plan.priceCents : avulsoTotal(c.extraSystems, sale)), 0)
@@ -245,6 +246,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
       extraUsers: r.extraUsers,
       extraWhatsapp: r.extraWhatsapp,
       extraSystems: r.extraSystems,
+      isDemo: r.isDemo,
       document: r.document,
       contactName: r.contactName,
       contactEmail: r.contactEmail,

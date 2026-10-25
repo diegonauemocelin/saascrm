@@ -50,6 +50,7 @@ interface Company {
   extraUsers: number
   extraWhatsapp: number
   extraSystems: string[]
+  isDemo?: boolean
   document: string | null
   contactName: string | null
   contactEmail: string | null
@@ -202,7 +203,9 @@ function Companies({ plans, systems }: { plans: Plan[]; systems: System[] }) {
               {q.data.map((c) => (
                 <TableRow key={c.id} className="cursor-pointer" onClick={() => setOpen(c)}>
                   <TableCell className="pl-4">
-                    <span className="block font-medium">{c.name}</span>
+                    <span className="block font-medium">
+                      {c.name} {c.isDemo && <Badge variant="outline">Demonstração</Badge>}
+                    </span>
                     <span className="text-xs text-muted-foreground">{c.url.replace(/^https:\/\//, '')}</span>
                   </TableCell>
                   <TableCell>{c.plan ? `${c.plan.name} · ${brl(c.plan.priceCents)}` : c.extraSystems.length ? <span>Sistemas avulsos ({c.extraSystems.length})</span> : <span className="text-muted-foreground">Sem plano</span>}</TableCell>

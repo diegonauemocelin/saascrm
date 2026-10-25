@@ -77,8 +77,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    token do `.env`; contato em Plataforma → Site (se ainda não gravado).
 3. Revisão independente da generalização (workflow de 25/10/2026) ainda em andamento quando a 1.0.4 foi fechada: o
    que ela apontar entra numa 1.0.5.
-4. Empresas de demonstração (Rota Autopeças, Vitrine Moda, Smash Padel Wear) existem só no banco de desenvolvimento
-   usado para gravar os vídeos; não estão na VPS.
+4. Empresas de demonstração (Rota Autopeças, Vitrine Moda, Smash Padel Wear): na VPS, `sudo bash deploy/demo.sh`
+   (a partir da 1.0.7; marcadas com isDemo, fora da receita, da cobrança, das publicações e do WhatsApp).
 5. O CRM da Usaparts (outro repositório) usa as mesmas bibliotecas: o CI dele deve acusar os mesmos alertas de
    segurança corrigidos aqui em `b401df3`.
 

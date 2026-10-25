@@ -96,6 +96,8 @@ model Tenant {
   // ---------- Assinatura (SaaS) ----------
   /// A empresa dona da plataforma (painel da sgmulticonecta): não paga e não é bloqueada.
   isPlatform          Boolean   @default(false)
+  /// Empresa fictícia para apresentar o sistema (scripts/demo-segmentos.ts): não cobra, não publica e não conecta WhatsApp.
+  isDemo              Boolean   @default(false)
   /// TESTE, AGUARDANDO_PAGAMENTO, ATIVA, ATRASADA, SUSPENSA ou CANCELADA
   status              String    @default("AGUARDANDO_PAGAMENTO")
   planId              String?   @db.Uuid
