@@ -53,6 +53,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 9. **1.0.4**: o Diego pediu "no SG Multiconecta deixa tudo genérico": saiu o ramo de peças para máquinas pesadas
    (rótulos, listas padrão, modelos de landing page, assistente do Mercado Livre, prompts de IA, chatbot, trilha).
    Nomes internos (enums, colunas, chaves) não mudaram. Planos sob consulta também na página de cadastro.
+10. **1.0.5 a 1.0.7**: site com marketplaces/Ads/"em breve"; venda por sistema avulso, kits ou completo (sob
+   consulta, teste de 3 dias, implantação e acompanhamento grátis, consultoria à parte); empresas de demonstração.
+11. **1.0.8**: mapa de vendas no Dashboard executivo (`/marketing/mapa`, `src/marketing/mapa.ts`, desenho
+   `@svg-maps/brazil` CC BY 4.0) e Vendas em tempo real (`/vendas-ao-vivo`, `/marketing/ao-vivo`,
+   `src/marketing/ao-vivo.ts`). O Diego pediu os dois também no CRM da Usaparts.
 
 ## Como está no ar
 
@@ -71,7 +76,7 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 
 ## Pendências
 
-1. **Publicar a 1.0.4**: tag `v1.0.4` (o Diego cria no PC), Action verde, `sudo bash deploy/deploy.sh` na VPS.
+1. **Publicar a 1.0.8**: tag `v1.0.8` (o Diego cria no PC), Action verde, `sudo bash deploy/deploy.sh` na VPS.
 2. **Configurar a plataforma**: SMTP com o Gmail (senha de app) em Configurações; planos de verdade; Asaas (sandbox
    para testar, depois `ASAAS_ENV=producao`) com o webhook `https://crm.sgmulticonecta.com.br/api/webhooks/asaas` e o
    token do `.env`; contato em Plataforma → Site (se ainda não gravado).
