@@ -106,9 +106,11 @@ export class ImportService {
     const csv = source.csv ?? (source.url ? await download(sheetCsvUrl(source.url)) : null)
     if (!csv) throw new BadRequestException('Informe o link da planilha ou envie o arquivo CSV.')
 
+    // Na coluna de produto, o que bater com os tipos de produto da empresa entra como tipo; o resto, como marca.
+    const knownTypes = (await this.prisma.lookupItem.findMany({ where: { tenantId: user.tenantId, type: 'TIPO_PECA' }, select: { name: true } })).map((l) => l.name)
     let mapped: ReturnType<typeof mapSheet>
     try {
-      mapped = mapSheet(csv)
+      mapped = mapSheet(csv, knownTypes)
     } catch (err) {
       throw new BadRequestException((err as Error).message)
     }

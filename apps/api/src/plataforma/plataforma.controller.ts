@@ -219,7 +219,7 @@ export class SiteController {
       contact,
       signupUrl: base ? `https://${base}/cadastro` : null,
       loginUrl: base ? `https://${base}/login` : null,
-      plans: plans.map(({ priceCents: _price, ...p }) => p),
+      plans,
     }
   }
 }

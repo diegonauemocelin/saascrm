@@ -39,7 +39,7 @@ export function FieldsTab() {
       </CardHeader>
       <CardContent className="px-0">
         {q.data?.length === 0 ? (
-          <p className="px-6 py-6 text-sm text-muted-foreground">Nenhum campo ainda. Exemplos: “Segmento” (lista), “Tamanho da frota” (número), “Data da próxima revisão” (data).</p>
+          <p className="px-6 py-6 text-sm text-muted-foreground">Nenhum campo ainda. Exemplos: “Segmento” (lista), “Número de funcionários” (número), “Data do último pedido” (data).</p>
         ) : (
           <Table>
             <TableHeader>

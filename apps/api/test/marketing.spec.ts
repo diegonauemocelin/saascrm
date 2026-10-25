@@ -162,7 +162,7 @@ describe('Marketing Inteligente: configurações e relatórios agendados', () =>
   it('agendamento pelo WhatsApp: celulares com DDD, sem e-mail obrigatório, pausa sorteada', () => {
     const s = cleanSchedule({ name: 'Diretoria', emails: [], whatsapp: ['(49) 98863-2548', '49988632548', '+55 49 99999-0000'], sections: ['kpis'] }, null, 'x', 'u') as ReportSchedule
     expect(s).toMatchObject({ emails: [], whatsapp: ['+5549988632548', '+5549999990000'], whatsappNumberId: null })
-    expect(cleanSchedule({ name: 'D', whatsapp: ['1234'], sections: ['kpis'] }, null, 'x', null)).toEqual({ error: 'Celular inválido para WhatsApp: 1234 (use DDD + número, ex.: (49) 98863-2548).' })
+    expect(cleanSchedule({ name: 'D', whatsapp: ['1234'], sections: ['kpis'] }, null, 'x', null)).toEqual({ error: 'Celular inválido para WhatsApp: 1234 (use DDD + número, ex.: (49) 99999-0000).' })
     expect(cleanSchedule({ name: 'D', whatsapp: Array.from({ length: 21 }, (_, i) => `4999999${String(i).padStart(4, '0')}`), sections: ['kpis'] }, null, 'x', null)).toEqual({ error: 'No máximo 20 celulares por relatório.' })
     // Edição sem mandar os celulares mantém os de antes.
     expect((cleanSchedule({ name: 'Outro nome' }, s, 'x', 'u') as ReportSchedule).whatsapp).toEqual(s.whatsapp)

@@ -139,6 +139,9 @@ export function ImportDialog({ kind, onClose }: { kind: Kind; onClose: () => voi
               )}
             </div>
             {!url.trim() && !csv && <p className="text-xs text-muted-foreground">Cole o link da planilha ou envie um arquivo CSV para analisar.</p>}
+            <p className="text-xs text-muted-foreground">
+              Colunas reconhecidas: Data e Nome (obrigatórias), Código do cliente, Telefone, E-mail, Vendedor, Origem, Tipo de cliente, Estado, Cidade, Produto/Serviço, Repassou, Retornou, Venda realizada, Venda perdida, Motivo de perda, Contatos, NF, Valor e Observações.
+            </p>
           </form>
         )}
 
@@ -177,11 +180,11 @@ export function ImportDialog({ kind, onClose }: { kind: Kind; onClose: () => voi
               <Top title="Vendedores" items={summary.sellers} />
               <Top title="Origens" items={summary.origins} />
               <Top title="Motivos de perda" items={summary.lostReasons} />
-              <Top title="Marcas da máquina" items={summary.brands} />
-              <Top title="Tipos de peça" items={summary.partTypes} />
+              <Top title="Marcas" items={summary.brands} />
+              <Top title="Tipos de produto" items={summary.partTypes} />
             </div>
             <p className="text-xs text-muted-foreground">
-              Itens novos (vendedores, origens, marcas…) são criados automaticamente nos cadastros. Ajustes aplicados: “~” removido dos nomes, “s/c” vira código vazio, telefones padronizados, “Vendeu” vira venda realizada e “Aguardando vendedor” vira retorno pendente.
+              Itens novos (vendedores, origens, marcas…) são criados automaticamente nos cadastros. Na coluna Produto/Serviço, o que já está na lista Tipos de produto entra como tipo de produto; o resto, como marca. Ajustes aplicados: “~” removido dos nomes, “s/c” vira código vazio, telefones padronizados, “Vendeu” vira venda realizada e “Aguardando vendedor” vira retorno pendente.
             </p>
             {summary.issuesTotal > 0 && (
               <details className="rounded-md border p-3 text-sm" open={summary.issuesTotal <= 5}>

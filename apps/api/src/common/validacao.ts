@@ -13,7 +13,7 @@ const FIELD: Record<string, string> = {
   state: 'estado', estado: 'estado', country: 'país', company: 'empresa', jobTitle: 'cargo', subject: 'assunto', preheader: 'pré-cabeçalho', fromName: 'nome do remetente',
   replyTo: 'responder para', color: 'cor', url: 'endereço (URL)', link: 'link', tags: 'etiquetas', tag: 'etiqueta', status: 'situação', stage: 'etapa', unitId: 'filial',
   ownerId: 'responsável', sellerId: 'vendedor', sellerIds: 'vendedores', userId: 'usuário', userIds: 'usuários', roleId: 'perfil de acesso', originId: 'origem', customerTypeId: 'tipo de cliente',
-  brandIds: 'marcas', partTypeIds: 'tipos de peça', lostReasonId: 'motivo da perda', saleValue: 'valor da venda', value: 'valor', amount: 'valor', date: 'data', from: 'data inicial',
+  brandIds: 'marcas', partTypeIds: 'tipos de produto', lostReasonId: 'motivo da perda', saleValue: 'valor da venda', value: 'valor', amount: 'valor', date: 'data', from: 'data inicial',
   to: 'data final', de: 'data inicial', ate: 'data final', month: 'mês', label: 'nome', key: 'chave', token: 'token', code: 'código', username: 'usuário', message: 'mensagem',
   caption: 'legenda', legenda: 'legenda', file: 'arquivo', category: 'categoria', kind: 'tipo', tipo: 'tipo', type: 'tipo', search: 'busca', busca: 'busca', q: 'busca', list: 'lista',
   emails: 'e-mails', time: 'horário', hour: 'hora', minute: 'minuto', weekday: 'dia da semana', threshold: 'limite', windowDays: 'período (dias)', budget: 'orçamento', goals: 'metas',

@@ -27,8 +27,8 @@ import { FormError } from './auth/auth-layout'
 const LISTS = [
   { type: 'origem', title: 'Origens', single: 'origem' },
   { type: 'tipo-cliente', title: 'Tipos de cliente', single: 'tipo de cliente' },
-  { type: 'marca', title: 'Marcas da máquina', single: 'marca' },
-  { type: 'tipo-peca', title: 'Tipos de peça', single: 'tipo de peça' },
+  { type: 'marca', title: 'Marcas', single: 'marca' },
+  { type: 'tipo-peca', title: 'Tipos de produto', single: 'tipo de produto' },
   { type: 'motivo-perda', title: 'Motivos de perda', single: 'motivo' },
 ] as const
 
@@ -528,7 +528,7 @@ function UnitDialog({ unit, onClose }: { unit: UnitRow | null; onClose: () => vo
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="u-name" required>Nome</Label>
-            <Input id="u-name" required minLength={2} maxLength={80} placeholder="Ex.: Filial Cascavel" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            <Input id="u-name" required minLength={2} maxLength={80} placeholder="Ex.: Filial Centro" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
             <div className="space-y-2">
@@ -639,7 +639,7 @@ export function AlertsTab({ only }: { only?: 'prazos' | 'mensagens' }) {
   )
 }
 
-/** Listas auxiliares do atendimento (origens, tipos de cliente, marcas, tipos de peça, motivos de perda). */
+/** Listas auxiliares do atendimento (origens, tipos de cliente, marcas, tipos de produto, motivos de perda). */
 export function ListsTab() {
   return (
     <Tabs defaultValue={LISTS[0].type}>

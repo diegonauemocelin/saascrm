@@ -100,7 +100,7 @@ function RulesCard({ initial, defaultWords }: { initial: MktConfig; defaultWords
           <div className="space-y-1.5">
             <Label htmlFor="mkt-margin">Margem de contribuição média (%)</Label>
             <Input id="mkt-margin" type="number" min={0} max={100} step="0.5" value={c.marginPct} onChange={(e) => setC({ ...c, marginPct: Number(e.target.value) })} disabled={!canEdit} />
-            <p className="text-xs text-muted-foreground">Usada no ROI estimado: faturamento atribuído × margem − custos de marketing. O custo real das peças não é lido do ERP.</p>
+            <p className="text-xs text-muted-foreground">Usada no ROI estimado: faturamento atribuído × margem − custos de marketing. O custo real dos produtos não é lido do ERP.</p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="mkt-fixed">Custos fixos de marketing por mês (R$)</Label>

@@ -64,7 +64,7 @@ const BREAK: [ReportSection, string, keyof Analysis, string, boolean][] = [
   ['regioes', 'Regiões', 'byRegion', 'Região', false],
   ['regioes', 'Estados', 'byState', 'Estado', false],
   ['marcas', 'Marcas', 'byBrand', 'Marca', false],
-  ['categorias', 'Tipos de peça', 'byPartType', 'Tipo de peça', false],
+  ['categorias', 'Tipos de produto', 'byPartType', 'Tipo de produto', false],
   ['origens', 'Origens', 'byOrigin', 'Origem', false],
 ]
 

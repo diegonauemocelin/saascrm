@@ -42,7 +42,6 @@ export const DEFAULT_RULES: (Omit<ScoreRuleShape, 'active'> & { name: string })[
   { dimension: 'PERFIL', name: 'É lead qualificado', field: 'stage', operator: 'eq', value: 'QUALIFICADO', points: 10 },
   { dimension: 'PERFIL', name: 'Revenda', field: 'tag', operator: 'eq', value: 'revenda', points: 20 },
   { dimension: 'PERFIL', name: 'Tem telefone', field: 'has_phone', operator: 'eq', value: true, points: 10 },
-  { dimension: 'PERFIL', name: 'Região Sul (unidades)', field: 'state', operator: 'in', value: ['SC', 'PR', 'RS'], points: 10 },
   { dimension: 'INTERESSE', name: 'Converteu (formulário, LP, WhatsApp)', field: 'conversao', operator: 'each', value: null, points: 10 },
   { dimension: 'INTERESSE', name: 'Atendimento de Pré/Pós-Vendas', field: 'atendimento', operator: 'each', value: null, points: 15 },
   { dimension: 'INTERESSE', name: 'Comprou', field: 'venda', operator: 'each', value: null, points: 25 },

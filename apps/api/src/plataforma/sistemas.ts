@@ -36,7 +36,7 @@ export function allowedModules(t: { isPlatform: boolean; systems: readonly strin
 
 /**
  * Sistemas sob consulta (integrações com e-commerce e ERP): ficam no menu de todas as empresas; quem não tem vê a tela
- * para falar com a sgmulticonecta. Devolve os módulos desses sistemas que a empresa ainda não tem.
+ * para falar com a SG Multiconecta. Devolve os módulos desses sistemas que a empresa ainda não tem.
  */
 export function onRequestModules(allowed: Set<string>): string[] {
   return SYSTEMS.filter((s) => 'onRequest' in s && s.onRequest).flatMap((s) => s.modules).filter((m) => !allowed.has(m))
@@ -79,7 +79,7 @@ const fmt = (d: Date) => d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_
 /** A empresa pode usar o sistema agora? Sem pagamento confirmado, não libera; no teste, até o fim do teste. */
 export function accessOf(t: { isPlatform: boolean; status: string; trialEndsAt: Date | null; paidUntil: Date | null }, now = Date.now(), graceDays = GRACE_DAYS): Access {
   if (t.isPlatform) return { blocked: false, reason: null, warning: null }
-  if (t.status === 'CANCELADA') return { blocked: true, reason: 'A assinatura foi cancelada. Fale com a sgmulticonecta para reativar.', warning: null }
+  if (t.status === 'CANCELADA') return { blocked: true, reason: 'A assinatura foi cancelada. Fale com a SG Multiconecta para reativar.', warning: null }
   if (t.status === 'SUSPENSA') return { blocked: true, reason: 'O acesso está suspenso por falta de pagamento. Pague a mensalidade para liberar na hora.', warning: null }
   if (t.status === 'AGUARDANDO_PAGAMENTO') return { blocked: true, reason: 'Aguardando a confirmação do pagamento da primeira mensalidade. Assim que o pagamento for confirmado, o acesso é liberado.', warning: null }
   if (t.status === 'TESTE') {

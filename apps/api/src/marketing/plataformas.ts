@@ -228,7 +228,7 @@ export function byFormat(posts: ReturnType<typeof rankPosts<PostRow>>) {
     .sort((a, b) => b.engagement - a.engagement)
 }
 
-/** Tema da publicação: marcas e tipos de peça citados no texto (para ver quais temas engajam mais). */
+/** Tema da publicação: marcas e tipos de produto citados no texto (para ver quais temas engajam mais). */
 export function themesOf(caption: string, names: string[]) {
   const t = ` ${norm(caption)} `
   return names.filter((n) => {

@@ -28,7 +28,7 @@ export interface FlowStep {
   options?: MenuOption[]
   /** Mensagem e pergunta: para onde segue. Transferir: setor ou pessoa. */
   go?: Go
-  /** Pergunta: nome curto do que foi perguntado (ex.: "Modelo da máquina"), para a nota da conversa. */
+  /** Pergunta: nome curto do que foi perguntado (ex.: "Produto procurado"), para a nota da conversa. */
   label?: string
 }
 

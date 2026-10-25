@@ -20,8 +20,8 @@ está pendente.
 ## Versões e publicação
 
 1. Nova entrada no topo de `releases.json` (JSON formatado, 2 espaços; edite com Python `json.dumps(indent=2,
-   ensure_ascii=False)`), versão igual em `package.json`, `apps/api/package.json`, `apps/web/package.json` e nas
-   linhas 3, 9, 24 e 73 do `package-lock.json`.
+   ensure_ascii=False)`), versão igual em `package.json`, `apps/api/package.json`, `apps/web/package.json` e no
+   `package-lock.json` (raiz, `""`, `apps/api` e `apps/web`; confira com `grep -n '"name": "@crm/' -A1 package-lock.json`).
 2. `node scripts/check-release.mjs`, `npx tsc --noEmit` (api e web), `npx vitest run` (api), `npm run lint`.
 3. Commit na `main`, push (com permissão), e o Diego cria a tag `vX.Y.Z` no commit da versão.
 4. A Action "Publicar versão" gera as imagens `ghcr.io/diegonauemocelin/saascrm-{api,web,backup}:X.Y.Z`.

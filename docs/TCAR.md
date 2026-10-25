@@ -12,7 +12,8 @@ O CRM copia os produtos da Tcar (códigos, título, marca, aplicação, estoque 
 ## 1. No CRM (administrador)
 
 1. Configurações → **Tcar (ERP)** → **Gerar chave**. Copie a chave na hora (ela não aparece de novo).
-2. Copie o trecho de configuração mostrado na tela (já vem com os endereços do CRM).
+2. Copie o trecho de configuração mostrado na tela (já vem com os endereços do CRM da empresa; no exemplo abaixo,
+   `suaempresa.crm.sgmulticonecta.com.br`).
 
 ## 2. No servidor da Tcar (TI ou suporte Tcar)
 
@@ -32,8 +33,8 @@ Enabled=1
 
 [PingAliveServer_1]
 Enabled=1
-ServerURL=https://crm.usaparts.com.br/api/webhooks/tcar/ping
-ReportURL=https://crm.usaparts.com.br/api/webhooks/tcar/report
+ServerURL=https://suaempresa.crm.sgmulticonecta.com.br/api/webhooks/tcar/ping
+ReportURL=https://suaempresa.crm.sgmulticonecta.com.br/api/webhooks/tcar/report
 IntervalSeconds=10
 APIKey=<chave gerada no CRM>
 ```
@@ -55,11 +56,11 @@ Depois disso:
 - os produtos alterados vêm a cada 10 minutos;
 - a cópia completa (para atualizar estoque e preço) roda a cada 6 horas. Os dois intervalos podem ser ajustados.
 
-Na consulta, o botão de atualizar de cada peça pede o estoque e o preço na hora (resposta em alguns segundos).
+Na consulta, o botão de atualizar de cada produto pede o estoque e o preço na hora (resposta em alguns segundos).
 
 ## "Utilizado em"
 
-A API atual da Tcar não envia em quais máquinas a peça serve. Quando o suporte da Tcar incluir esse dado na
+A API atual da Tcar não envia onde o produto é utilizado (em quais modelos ele serve). Quando o suporte da Tcar incluir esse dado na
 resposta de `GET /produtos`:
 
 1. informe o nome do campo em Configurações → Tcar (ERP) → **Campo do "utilizado em"** (ex.: `epctb_utilizadoem`);

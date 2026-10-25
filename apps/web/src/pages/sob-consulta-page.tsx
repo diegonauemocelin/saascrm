@@ -40,12 +40,12 @@ export function SobConsultaPage() {
           <li key={i}>{i}</li>
         ))}
       </ul>
-      <p className="text-sm">Cada integração é feita para o sistema que a sua empresa usa. Fale com a sgmulticonecta para ver se o seu sistema é compatível e receber a proposta.</p>
+      <p className="text-sm">Cada integração é feita para o sistema que a sua empresa usa. Fale com a SG Multiconecta para ver se o seu sistema é compatível e receber a proposta.</p>
       <div className="flex flex-wrap gap-2">
         {contact && (
           <Button asChild>
             <a href={`mailto:${contact}?subject=${encodeURIComponent(info.title)}&body=${text}`}>
-              <MessageCircleIcon /> Falar com a sgmulticonecta
+              <MessageCircleIcon /> Falar com a SG Multiconecta
             </a>
           </Button>
         )}

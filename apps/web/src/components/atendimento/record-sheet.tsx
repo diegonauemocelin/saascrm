@@ -199,7 +199,7 @@ export interface RecordPrefill {
   name?: string | null
   phone?: string | null
   email?: string | null
-  /** Pré-venda rápida do chat: marca, tipo de peça e observação tirados das mensagens do cliente. */
+  /** Pré-venda rápida do chat: marca, tipo de produto e observação tirados das mensagens do cliente. */
   brandIds?: string[]
   partTypeIds?: string[]
   notes?: string
@@ -462,7 +462,7 @@ export function RecordSheet({ kind, record, onClose, prefill }: { kind: Kind; re
                       {...invalidProps('r-follow-note')}
                       rows={2}
                       maxLength={2000}
-                      placeholder="Ex.: liguei, o cliente recebeu a peça e está satisfeito."
+                      placeholder="Ex.: liguei, o cliente recebeu o pedido e está satisfeito."
                       value={form.followNote}
                       onChange={(e) => set('followNote', e.target.value)}
                       disabled={!canEdit}
@@ -549,10 +549,10 @@ export function RecordSheet({ kind, record, onClose, prefill }: { kind: Kind; re
                     <Field label="Tipo de cliente" htmlFor="r-type">
                       <OptionSelect id="r-type" value={form.customerTypeId} onChange={(v) => set('customerTypeId', v)} items={o?.customerTypes ?? []} />
                     </Field>
-                    <Field label="Marca da máquina" htmlFor="r-brand">
+                    <Field label="Marca" htmlFor="r-brand">
                       <MultiSelect id="r-brand" items={o?.brands ?? []} value={form.brandIds} onChange={(v) => set('brandIds', v)} />
                     </Field>
-                    <Field label="Tipo de peça" htmlFor="r-part">
+                    <Field label="Tipo de produto" htmlFor="r-part">
                       <MultiSelect id="r-part" items={o?.partTypes ?? []} value={form.partTypeIds} onChange={(v) => set('partTypeIds', v)} />
                     </Field>
                   </div>

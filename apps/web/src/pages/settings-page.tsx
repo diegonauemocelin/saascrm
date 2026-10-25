@@ -215,7 +215,7 @@ function BrandingEditor({ data }: { data: Branding }) {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="b-info">Dados da empresa nos relatórios (opcional)</Label>
-              <Input id="b-info" maxLength={200} placeholder="Ex.: suaempresa.com.br · (49) 3664-0888 · Maravilha/SC" value={form.companyInfo ?? ''} onChange={(e) => set('companyInfo', e.target.value)} disabled={!canEdit} />
+              <Input id="b-info" maxLength={200} placeholder="Ex.: suaempresa.com.br · (11) 99999-0000 · Sua cidade/UF" value={form.companyInfo ?? ''} onChange={(e) => set('companyInfo', e.target.value)} disabled={!canEdit} />
               <p className="text-xs text-muted-foreground">Vai no rodapé do PDF e do e-mail dos relatórios, junto com o logo e a cor da marca.</p>
             </div>
             <div className="sm:col-span-2">

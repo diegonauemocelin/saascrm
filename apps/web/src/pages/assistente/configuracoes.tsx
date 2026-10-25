@@ -388,7 +388,7 @@ function SettingsForm({ part }: { part: 'respostas' | 'motor' }) {
             <Textarea rows={3} value={s.forward_when} onChange={(e) => set('forward_when', e.target.value)} disabled={!edit} />
           </Field>
           <Field label="Sobre a empresa (ramo, produtos, diferenciais)">
-            <Textarea rows={3} maxLength={1000} placeholder="Ex.: distribuidora de peças para máquinas agrícolas, com entrega para todo o Brasil." value={s.company_profile ?? ''} onChange={(e) => set('company_profile', e.target.value)} disabled={!edit} />
+            <Textarea rows={3} maxLength={1000} placeholder="Ex.: loja de utilidades domésticas, com marcas próprias e entrega para todo o Brasil." value={s.company_profile ?? ''} onChange={(e) => set('company_profile', e.target.value)} disabled={!edit} />
           </Field>
           <Field label="Instruções extras para a IA">
             <Textarea rows={3} value={s.custom_instructions} onChange={(e) => set('custom_instructions', e.target.value)} disabled={!edit} />
@@ -398,7 +398,7 @@ function SettingsForm({ part }: { part: 'respostas' | 'motor' }) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Venda adicional</CardTitle>
-          <CardDescription>Sugere peças com aplicação confirmada para a mesma máquina, de forma breve e opcional.</CardDescription>
+          <CardDescription>Sugere produtos com compatibilidade confirmada para o mesmo modelo, de forma breve e opcional.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {toggle('upsell_enabled', 'Sugerir itens complementares')}
@@ -521,7 +521,7 @@ function Testar() {
           <CardDescription>Gera a resposta como numa pergunta real, com a base, a IA e o frete. Nada é enviado ao Mercado Livre.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Textarea rows={4} placeholder="Ex.: Serve na retro JCB 3C? Qual o frete para 01310-100?" value={question} onChange={(e) => setQuestion(e.target.value)} />
+          <Textarea rows={4} placeholder="Ex.: Serve no modelo X200? Qual o frete para 01310-100?" value={question} onChange={(e) => setQuestion(e.target.value)} />
           <Field label="Anúncio (opcional)" hint="O MLB do anúncio em que o cliente perguntou.">
             <Input placeholder="MLB1234567890" value={itemId} onChange={(e) => setItemId(e.target.value)} />
           </Field>
@@ -563,7 +563,7 @@ function Testar() {
 
 const STATUS_TEXT: Record<Integration['status'], [string, 'default' | 'secondary' | 'outline' | 'destructive']> = {
   desconectada: ['Mercado Livre não conectado no CRM', 'outline'],
-  painel_antigo: ['O painel antigo responde', 'outline'],
+  painel_antigo: ['O CRM ainda não responde', 'outline'],
   aguardando_teste: ['Assumido, aguardando teste da conexão', 'destructive'],
   ativa: ['O CRM responde', 'secondary'],
 }
@@ -610,7 +610,7 @@ function IntegracaoTab() {
           <CardDescription>
             {d.taken
               ? `O CRM assumiu${d.settings.activatedBy ? ` (${d.settings.activatedBy}` : ''}${d.settings.activatedAt ? ` em ${formatDateTime(d.settings.activatedAt)})` : d.settings.activatedBy ? ')' : ''}: lê as perguntas, responde conforme as configurações e liga as vendas.`
-              : 'Enquanto o CRM não assume, o painel antigo continua lendo e respondendo as perguntas. O CRM só mostra os dados importados e permite testar.'}
+              : 'Enquanto o CRM não assume, ele não lê nem responde as perguntas: só mostra os dados e permite testar.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
@@ -652,7 +652,7 @@ function IntegracaoTab() {
                     <Button
                       disabled={!!busy}
                       onClick={async () => {
-                        if (await confirm({ title: 'Assumir o atendimento do Mercado Livre?', description: 'O CRM passa a ler as perguntas e responder conforme as configurações. Pare o painel antigo logo depois, para os dois não responderem a mesma pergunta.', confirmLabel: 'Assumir o atendimento', destructive: false }))
+                        if (await confirm({ title: 'Assumir o atendimento do Mercado Livre?', description: 'O CRM passa a ler as perguntas e responder conforme as configurações. Se outra ferramenta responde as perguntas desta conta, desligue-a logo depois, para as duas não responderem a mesma pergunta.', confirmLabel: 'Assumir o atendimento', destructive: false }))
                           await run('assumir', () => api.post('/assistente/integracao/assumir', { usePainelAccess: usePainel && !!d.painel?.hasTokens }), () => 'O CRM assumiu o atendimento.')
                       }}
                     >
@@ -680,7 +680,7 @@ function IntegracaoTab() {
                     variant="ghost"
                     disabled={!!busy}
                     onClick={async () => {
-                      if (await confirm({ title: 'Devolver o atendimento ao painel antigo?', description: 'O CRM para de ler e responder as perguntas. Ligue o painel antigo de novo no servidor.', confirmLabel: 'Liberar o atendimento' })) await run('liberar', () => api.post('/assistente/integracao/liberar'), () => 'O CRM parou de atender.')
+                      if (await confirm({ title: 'Parar o atendimento pelo CRM?', description: 'O CRM para de ler e responder as perguntas do Mercado Livre.', confirmLabel: 'Liberar o atendimento' })) await run('liberar', () => api.post('/assistente/integracao/liberar'), () => 'O CRM parou de atender.')
                     }}
                   >
                     Liberar o atendimento
@@ -727,7 +727,7 @@ function IntegracaoTab() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Loja oficial e anúncios</CardTitle>
-          <CardDescription>A IA só põe link de anúncio da loja oficial. Os anúncios sincronizados alimentam a busca por código, OEM e título.</CardDescription>
+          <CardDescription>A IA só põe link de anúncio da loja oficial. Os anúncios sincronizados alimentam a busca por código (de referência ou do fabricante) e título.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {d.store.seller_id ? (

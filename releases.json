@@ -2,6 +2,48 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.4",
+      "date": "2026-10-25",
+      "title": "Sistema genérico para qualquer ramo e planos sob consulta no cadastro",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Geral",
+          "text": "O sistema deixou de pressupor o ramo de peças para máquinas: rótulos, dicas, exemplos, mensagens e a trilha de conhecimento agora servem para qualquer empresa (lojas, indústrias, distribuidoras e serviços)."
+        },
+        {
+          "type": "melhoria",
+          "area": "Atendimento",
+          "text": "\"Tipo de peça\" virou \"Tipo de produto\" e \"Marca da máquina\" virou \"Marca\" em pré-vendas, pós-vendas, relatórios, exportações e resumo semanal. Empresas novas começam com as listas de marcas e tipos de produto vazias, para cadastrar as suas."
+        },
+        {
+          "type": "melhoria",
+          "area": "Importação",
+          "text": "Na importação de planilha, o que vier na coluna de produto é separado em marca ou tipo de produto conforme a lista da própria empresa."
+        },
+        {
+          "type": "melhoria",
+          "area": "Landing pages",
+          "text": "Modelos prontos genéricos: pedido de orçamento, categoria em destaque, promoção com prazo, produtos por marca, lançamento, feira ou evento, página de obrigado e versão em espanhol."
+        },
+        {
+          "type": "melhoria",
+          "area": "Marketplaces",
+          "text": "Assistente de perguntas do Mercado Livre genérico: compatibilidade do produto com marca e modelo (no lugar de peça x máquina), código do produto e do fabricante, e a descrição da empresa em \"Sobre a empresa\"."
+        },
+        {
+          "type": "melhoria",
+          "area": "Marketing",
+          "text": "Prompts de IA (resumo de marketing, SEO, e-mail, postagens), modelos de pop-up e formulário, chatbot pronto e sugestões de palavras negativas do Google Ads sem referências ao ramo de máquinas."
+        },
+        {
+          "type": "novo",
+          "area": "Cadastro",
+          "text": "Planos sob consulta também na página de cadastro: o valor não aparece, e o link \"Consultar valores\" abre o WhatsApp comercial com a mensagem pronta. O valor continua no painel e na fatura do Asaas."
+        }
+      ]
+    },
+    {
       "version": "1.0.3",
       "date": "2026-10-25",
       "title": "Site de apresentação sgmulticonecta.com.br com demonstrações por segmento",

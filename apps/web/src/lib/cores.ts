@@ -14,7 +14,7 @@ export interface BrandColors {
 export const PALETTES: ({ name: string } & BrandColors)[] = [
   { name: 'Azul clássico', brand: '#1d4ed8', action: '#1d4ed8', nav: '#0f1e3d' },
   { name: 'Grafite + azul', brand: '#1f2937', action: '#2563eb', nav: '#111827' },
-  { name: 'Grafite + amarelo (linha amarela)', brand: '#1f2937', action: '#a16207', nav: '#111827' },
+  { name: 'Grafite + amarelo', brand: '#1f2937', action: '#a16207', nav: '#111827' },
   { name: 'Grafite + laranja', brand: '#1f2937', action: '#ea580c', nav: '#111827' },
   { name: 'Verde', brand: '#14532d', action: '#16a34a', nav: '#052e16' },
   { name: 'Vermelho', brand: '#7f1d1d', action: '#dc2626', nav: '#1c1917' },

@@ -178,7 +178,7 @@ function SectorDialog({ sector, data, onClose }: { sector: Sector | null; data: 
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="sec-desc">Descrição (opcional)</Label>
-            <Input id="sec-desc" maxLength={200} placeholder="Ex.: orçamentos e pedidos de peças" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+            <Input id="sec-desc" maxLength={200} placeholder="Ex.: orçamentos e pedidos" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="sec-numbers">Números em que atende</Label>

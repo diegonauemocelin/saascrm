@@ -677,17 +677,17 @@ function TriggerEditor({ trigger: t, ctx, disabled, onChange }: { trigger: Trigg
           </>
         )}
         {t.type === 'formulario' && (
-          <Field label="Nome do formulário, pop-up ou botão contém (opcional)" htmlFor="t-text" hint="Vazio = qualquer captura. Ex.: JCB pega só a LP da JCB.">
+          <Field label="Nome do formulário, pop-up ou botão contém (opcional)" htmlFor="t-text" hint="Vazio = qualquer captura. Ex.: promoção pega só a LP da promoção.">
             <Input id="t-text" maxLength={120} value={t.text ?? ''} onChange={(e) => onChange({ ...t, text: e.target.value })} disabled={disabled} />
           </Field>
         )}
         {t.type === 'produto_visto' && (
-          <Field label="Nome do produto contém (opcional)" htmlFor="t-product" hint="Ex.: filtro ou 320D. Vazio = qualquer produto do catálogo. Precisa do catálogo da Magazord copiado e do rastreamento na loja.">
+          <Field label="Nome do produto contém (opcional)" htmlFor="t-product" hint="Ex.: kit ou o código do produto. Vazio = qualquer produto do catálogo. Precisa do catálogo da Magazord copiado e do rastreamento na loja.">
             <Input id="t-product" maxLength={120} value={t.text ?? ''} onChange={(e) => onChange({ ...t, text: e.target.value })} disabled={disabled} />
           </Field>
         )}
         {t.type === 'visita' && (
-          <Field label="Endereço da página contém (opcional)" htmlFor="t-page" hint="Ex.: /jcb ou /ofertas. Vazio = qualquer página.">
+          <Field label="Endereço da página contém (opcional)" htmlFor="t-page" hint="Ex.: /promocao ou /ofertas. Vazio = qualquer página.">
             <Input id="t-page" maxLength={120} value={t.text ?? ''} onChange={(e) => onChange({ ...t, text: e.target.value })} disabled={disabled} />
           </Field>
         )}

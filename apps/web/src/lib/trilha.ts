@@ -53,16 +53,16 @@ export const TRAIL: TrailModule[] = [
     module: 'dashboard',
     routes: ['/sob-consulta'],
     purpose: 'Conhecer as integrações com e-commerce e com ERP, que são contratadas sob consulta.',
-    howItWorks: 'Os itens com o selo “Sob consulta” no menu são integrações feitas para o sistema que a empresa usa. A tela explica o que cada uma faz e leva ao contato com a sgmulticonecta.',
+    howItWorks: 'Os itens com o selo “Sob consulta” no menu são integrações feitas para o sistema que a empresa usa. A tela explica o que cada uma faz e leva ao contato com a SG Multiconecta.',
     media: { src: '/trilha/sob-consulta.jpg', alt: 'Integrações sob consulta' },
-    lessons: [{ id: 'sob-consulta.contratar', title: 'Contratar uma integração', steps: ['Clique no item com o selo Sob consulta.', 'Veja o que a integração faz e clique em Falar com a sgmulticonecta.'] }],
+    lessons: [{ id: 'sob-consulta.contratar', title: 'Contratar uma integração', steps: ['Clique no item com o selo Sob consulta.', 'Veja o que a integração faz e clique em Falar com a SG Multiconecta.'] }],
   },
   {
     key: 'plataforma',
     title: 'Plataforma',
     module: 'plataforma',
     routes: ['/plataforma'],
-    purpose: 'Administrar a plataforma da sgmulticonecta: empresas clientes, planos, domínios próprios e cobranças.',
+    purpose: 'Administrar a plataforma da SG Multiconecta: empresas clientes, planos, domínios próprios e cobranças.',
     howItWorks: 'Cada empresa cliente usa o sistema no endereço dela (empresa.crm.sgmulticonecta.com.br ou o domínio próprio), só com os sistemas do plano contratado e dentro dos limites de usuários e números de WhatsApp. A situação da assinatura libera ou bloqueia o acesso: em teste até o fim do teste, ativa enquanto paga, e bloqueada depois da tolerância sem pagamento.',
     media: { src: '/trilha/plataforma.jpg', alt: 'Painel da plataforma' },
     lessons: [
@@ -170,7 +170,7 @@ export const TRAIL: TrailModule[] = [
         title: 'Registrar um atendimento',
         steps: [
           'Abra Atendimento Comercial → Pré-Vendas e clique em Novo atendimento.',
-          'Preencha nome, telefone, origem do lead, marca da máquina e tipo de peça.',
+          'Preencha nome, telefone, origem do lead, marca e tipo de produto.',
           'Escolha a unidade e o vendedor e salve.',
           'Contatos que chegam por formulário, botão de WhatsApp ou chat já entram sozinhos: confira e complete.',
         ],
@@ -387,17 +387,17 @@ export const TRAIL: TrailModule[] = [
     title: 'Consulta de produtos',
     module: 'consulta_produtos',
     routes: ['/consulta-produtos'],
-    purpose: 'Achar a peça na Tcar por código, referência ou título, com estoque e preço.',
-    howItWorks: 'A busca consulta o cadastro de peças da Tcar (o sistema da empresa) e atualiza o estoque na hora das primeiras peças encontradas, por filial.',
+    purpose: 'Achar o produto na Tcar por código, referência ou título, com estoque e preço.',
+    howItWorks: 'A busca consulta o cadastro de produtos da Tcar (o sistema da empresa) e atualiza o estoque na hora dos primeiros produtos encontrados, por filial.',
     lessons: [
       {
         id: 'produtos.buscar',
-        title: 'Buscar uma peça',
+        title: 'Buscar um produto',
         steps: [
           'Abra Atendimento Comercial → Consulta de produtos.',
           'Digite o código, a referência, o código de fábrica ou parte do título.',
           'Para buscar só num campo, escolha em “Buscar em” (ex.: Código de fábrica).',
-          'As 10 primeiras peças têm o estoque atualizado na Tcar na hora; nas outras, use o botão de atualizar.',
+          'Os 10 primeiros produtos têm o estoque atualizado na Tcar na hora; nos outros, use o botão de atualizar.',
         ],
         tip: 'Clique no número do estoque para ver por filial.',
       },
@@ -408,7 +408,7 @@ export const TRAIL: TrailModule[] = [
     title: 'Ajustes do atendimento',
     module: 'cadastros',
     routes: ['/configuracoes?secao=listas', '/configuracoes?secao=vendedores', '/configuracoes?secao=unidades', '/configuracoes?secao=prazos', '/configuracoes?secao=mensagens-automaticas', '/configuracoes?secao=importar'],
-    purpose: 'Em Configurações: unidades, vendedores, listas (origens, marcas, tipos de peça, motivos de perda), prazos e mensagens automáticas.',
+    purpose: 'Em Configurações: unidades, vendedores, listas (origens, marcas, tipos de produto, motivos de perda), prazos e mensagens automáticas.',
     howItWorks: 'As listas e os prazos daqui alimentam as fichas de Pré e Pós-Vendas. As mensagens automáticas mandam WhatsApp sozinhas no horário escolhido (pós-venda do dia seguinte e resumo do dia para os vendedores), sempre com intervalo entre os envios para não bloquear o número.',
     media: { src: '/trilha/cadastros.jpg', alt: 'Configurações de mensagens automáticas' },
     lessons: [
@@ -487,7 +487,7 @@ export const TRAIL: TrailModule[] = [
         id: 'leads.configurar',
         title: 'Campos, pontuação e tags',
         steps: [
-          'Em Configurações → Campos personalizados, crie os campos que a empresa usa (ex.: tipo de frota).',
+          'Em Configurações → Campos personalizados, crie os campos que a empresa usa (ex.: segmento do cliente).',
           'Em Pontuação dos leads, defina quanto vale cada perfil e cada interesse para a nota A, B, C.',
           'Em Tags dos leads, organize as tags usadas nos filtros e nas automações.',
         ],
@@ -819,7 +819,7 @@ export const TRAIL: TrailModule[] = [
     routes: ['/marketing'],
     purpose: 'Investimento, leads, atendimento, vendas e retorno de todos os canais num lugar só, para decidir com números.',
     howItWorks:
-      'O módulo lê o Pré-Vendas (fonte da verdade: leads, atendimento, vendas e o valor da venda) e o investimento das plataformas (hoje o Google Ads, pelo script). Um lead conta uma vez, mesmo com vários atendimentos; conversões das plataformas não são somadas às vendas do CRM. Cada tela tem os mesmos filtros (período, plataforma, campanha, marca, tipo de peça, estado, região, filial, vendedor, origem, tipo de cliente e cliente novo/recorrente) e compara com o período anterior do mesmo tamanho. Cada parte do menu só aparece para quem tem a permissão no perfil.',
+      'O módulo lê o Pré-Vendas (fonte da verdade: leads, atendimento, vendas e o valor da venda) e o investimento das plataformas (hoje o Google Ads, pelo script). Um lead conta uma vez, mesmo com vários atendimentos; conversões das plataformas não são somadas às vendas do CRM. Cada tela tem os mesmos filtros (período, plataforma, campanha, marca, tipo de produto, estado, região, filial, vendedor, origem, tipo de cliente e cliente novo/recorrente) e compara com o período anterior do mesmo tamanho. Cada parte do menu só aparece para quem tem a permissão no perfil.',
     lessons: [
       {
         id: 'mkt.ler',
@@ -857,7 +857,7 @@ export const TRAIL: TrailModule[] = [
         title: 'Resumo semanal de cada vendedor no WhatsApp',
         steps: [
           'Em Relatórios e alertas → Relatórios agendados, veja o cartão Resumo do vendedor (semanal, WhatsApp).',
-          'Ligue o envio, escolha o horário da sexta, o número que envia, para quem vai e o que vai no resumo (leads repassados, vendas, conversão, valor, perdas e motivos, retorno ao cliente, clientes sem contato, comparação com o ciclo anterior e com a equipe, marcas, peças, origem e sugestões).',
+          'Ligue o envio, escolha o horário da sexta, o número que envia, para quem vai e o que vai no resumo (leads repassados, vendas, conversão, valor, perdas e motivos, retorno ao cliente, clientes sem contato, comparação com o ciclo anterior e com a equipe, marcas, tipos de produto, origem e sugestões).',
           'O ciclo é de sexta a quinta (ex.: 16/10 a 22/10) e sai na sexta seguinte (23/10), só para quem teve cliente repassado. Confira a mensagem de cada vendedor na Prévia antes de ligar.',
         ],
         tip: 'O resumo vai para o telefone do cadastro do vendedor (Configurações › Vendedores): sem telefone, ele não recebe. Para o gestor receber o resumo da equipe, informe o WhatsApp dele no campo Também para o gestor. As mensagens saem uma por vez, com 2 a 10 minutos entre elas.',
@@ -975,7 +975,7 @@ export const TRAIL: TrailModule[] = [
     routes: ['/marketplaces/assistente', '/configuracoes?secao=assistente-ml', '/configuracoes?secao=assistente-respostas', '/configuracoes?secao=assistente-ia', '/configuracoes?secao=assistente-testar'],
     purpose: 'Responder as perguntas dos clientes no Mercado Livre com a base de conhecimento, a IA e o frete calculado na Magazord, e acompanhar quais perguntas viraram venda.',
     howItWorks:
-      'Cada pergunta nova é analisada: o assistente procura respostas aprovadas, aplicações peça × máquina confirmadas e os anúncios da loja (por título, código e OEM). Pergunta de frete com CEP é respondida com as opções da Magazord; sem CEP, o assistente pede o CEP. Com confiança alta e a resposta automática ligada, a resposta vai sozinha; senão, fica como sugestão ou entra na fila de pendentes com o motivo (A a G). Compatibilidade só é afirmada quando a aplicação está confirmada.',
+      'Cada pergunta nova é analisada: o assistente procura respostas aprovadas, compatibilidades confirmadas (produto × modelo) e os anúncios da loja (por título, código e código de fábrica). Pergunta de frete com CEP é respondida com as opções da Magazord; sem CEP, o assistente pede o CEP. Com confiança alta e a resposta automática ligada, a resposta vai sozinha; senão, fica como sugestão ou entra na fila de pendentes com o motivo (A a G). Compatibilidade só é afirmada quando está confirmada.',
     lessons: [
       {
         id: 'assist.pendentes',
@@ -993,7 +993,7 @@ export const TRAIL: TrailModule[] = [
         title: 'Ensinar o assistente (base de conhecimento)',
         steps: [
           'Na pergunta, clique em Cadastrar conhecimento: a pergunta e a resposta já vêm preenchidas.',
-          'Preencha marca, modelo, código e a aplicação confirmada. Marque "Cadastrar também a aplicação" para a IA poder afirmar a compatibilidade.',
+          'Preencha marca, modelo, código e a aplicação confirmada (onde o produto serve). Marque "Cadastrar também a compatibilidade produto × modelo" para a IA poder afirmá-la.',
           'Quem pode aprovar salva como Ativo; os demais salvam Em revisão e alguém aprova em Base de conhecimento.',
           'Para muitos de uma vez: Base de conhecimento → Importar planilha. Baixe o modelo, preencha e envie. Confira a prévia (novo, atualização, duplicado, erro), decida as atualizações e confirme.',
         ],
@@ -1005,9 +1005,9 @@ export const TRAIL: TrailModule[] = [
           'Abra Configurações → Marketplaces → Assistente ML: motor de IA. Escolha Sem IA, Gemini ou Claude e salve a chave do provedor escolhido.',
           'Na aba Respostas, ajuste a resposta automática e a confiança mínima, os textos de frete e quando pedir informação ou encaminhar.',
           'Use a aba Testar o assistente com perguntas reais: nada é enviado ao cliente.',
-          'Na aba Integração, informe a loja oficial, sincronize os anúncios e clique em Assumir o atendimento. Depois, peça para parar o painel antigo no servidor.',
+          'Na aba Integração, informe a loja oficial, sincronize os anúncios e clique em Assumir o atendimento. Se outra ferramenta respondia as perguntas, desligue-a.',
         ],
-        tip: 'Enquanto o CRM não assume, o painel antigo continua respondendo e o CRM só mostra os dados e testa.',
+        tip: 'Enquanto o CRM não assume, ele só mostra os dados e permite testar: nenhuma pergunta é respondida pelo CRM.',
       },
     ],
   },

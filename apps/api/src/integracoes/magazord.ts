@@ -105,7 +105,7 @@ export interface CartItem {
   url: string | null
 }
 
-/** Nome legível a partir do endereço da página do produto ("filtro-de-combustivel-re539465"). */
+/** Nome legível a partir do endereço da página do produto ("camiseta-basica-algodao-azul"). */
 export function nameFromUrl(url: string | null | undefined, code: string) {
   if (!url) return code
   try {

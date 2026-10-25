@@ -471,7 +471,7 @@ export function Editor({ campaign }: { campaign: Campaign }) {
           </Field>
           )}
           <Field label="Assunto" htmlFor="c-subject" required={!isModel} hint="Use {primeiro_nome} para personalizar.">
-            <Input id="c-subject" maxLength={200} placeholder="Ex.: {primeiro_nome}, peças JCB com frete grátis" value={c.subject} onChange={(e) => set('subject', e.target.value)} disabled={!canEdit} />
+            <Input id="c-subject" maxLength={200} placeholder="Ex.: {primeiro_nome}, novidades com frete grátis" value={c.subject} onChange={(e) => set('subject', e.target.value)} disabled={!canEdit} />
             <AiSuggest action="assunto" content={contentHtml} onPick={(v) => set('subject', v)} disabled={!canEdit} />
           </Field>
           <Field label="Pré-cabeçalho" htmlFor="c-pre" hint="Aparece ao lado do assunto na caixa de entrada.">

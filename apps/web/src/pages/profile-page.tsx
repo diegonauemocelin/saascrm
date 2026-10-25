@@ -75,7 +75,7 @@ function ChatNameCard({ me }: { me: Me }) {
             <p className="text-sm font-medium">Como o cliente vê</p>
             <div className="w-fit max-w-full rounded-lg bg-[#d9fdd3] px-3 py-2 text-sm text-[#111b21] shadow-xs dark:bg-[#005c4b] dark:text-[#e9edef]">
               <p className="font-bold break-words">{label}:</p>
-              <p>Olá! Temos o filtro em estoque.</p>
+              <p>Olá! Temos o produto em estoque.</p>
             </div>
           </div>
         </CardContent>

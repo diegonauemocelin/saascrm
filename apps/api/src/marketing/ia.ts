@@ -1,6 +1,6 @@
 /**
  * Resumo do Marketing Inteligente escrito pela IA (Gemini). A IA recebe só números agregados (plataformas, campanhas,
- * regiões, marcas, tipos de peça e os diagnósticos já calculados), nunca nomes de clientes, telefones, e-mails ou
+ * regiões, marcas, tipos de produto e os diagnósticos já calculados), nunca nomes de clientes, telefones, e-mails ou
  * vendedores. Os números vêm prontos: a IA só redige. Funções puras, testadas.
  */
 import type { MarketingService } from './marketing.service'
@@ -8,7 +8,7 @@ import type { MarketingService } from './marketing.service'
 type Analysis = Awaited<ReturnType<MarketingService['analyze']>>
 
 export const AI_SYSTEM = [
-  'Você é analista de marketing de uma distribuidora de peças para máquinas pesadas (linha amarela) no Brasil.',
+  'Você é analista de marketing e vendas de uma empresa no Brasil.',
   'Escreva em português do Brasil, direto e profissional, para a diretoria.',
   'Use SOMENTE os números do JSON recebido; não invente valores, percentuais nem causas.',
   'Diga "correlação" quando dois números andarem juntos; nunca afirme causa sem evidência.',
@@ -48,7 +48,7 @@ export function aiPayload(d: Analysis) {
     campanhas: top(d.byCampaign, 10, row),
     regioes: top(d.byRegion, 6, row),
     marcas: top(d.byBrand, 8, row),
-    tipos_de_peca: top(d.byPartType, 8, row),
+    tipos_de_produto: top(d.byPartType, 8, row),
     funil: d.funnel.steps.map((s) => ({ etapa: s.label, volume: s.value, passagem_pct: s.rate })),
     diagnosticos: d.recommendations.map((r) => ({ problema: r.problem, evidencia: r.evidence, prioridade: r.priority, confianca: r.confidence })),
     qualidade: { leads_google_com_campanha: d.quality.googleWithCampaign, leads_google: d.quality.googleLeads },

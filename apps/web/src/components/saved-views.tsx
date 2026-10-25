@@ -111,7 +111,7 @@ export function SavedViews({ screen, builtIn = [] }: { screen: 'leads' | 'pre-ve
               <Label htmlFor={`visao-${screen}`} required>
                 Nome da visão
               </Label>
-              <Input id={`visao-${screen}`} value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="ex.: Paraná · Hyundai" autoFocus />
+              <Input id={`visao-${screen}`} value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="ex.: Paraná · Revenda" autoFocus />
               <p className="text-xs text-muted-foreground">Guarda os filtros que estão aplicados agora. Só você vê.</p>
               <Button type="submit" size="sm" className="w-full" disabled={!name.trim() || save.isPending}>
                 {save.isPending && <Loader2Icon className="animate-spin" />} Salvar visão

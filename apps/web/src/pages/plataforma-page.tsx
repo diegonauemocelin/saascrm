@@ -105,7 +105,7 @@ export function PlataformaPage() {
   const s = summary.data
   return (
     <RequirePermission module="plataforma">
-      <PageHeader title="Plataforma" description="Empresas clientes, planos e cobranças da sgmulticonecta. Cada empresa usa o sistema no endereço dela, com os sistemas do plano." />
+      <PageHeader title="Plataforma" description="Empresas clientes, planos e cobranças da SG Multiconecta. Cada empresa usa o sistema no endereço dela, com os sistemas do plano." />
       {s && (
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
           {[

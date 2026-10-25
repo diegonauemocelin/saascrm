@@ -236,7 +236,7 @@ export class AtendimentoController {
     const n = (id: string | null) => (id ? (names.get(id) ?? '') : '')
     const header = [
       'Data do lead', 'Nome', 'Código do cliente', 'Telefone', 'E-mail', 'Unidade', 'Vendedor', 'Origem', 'Tipo de cliente', 'País', 'Estado', 'Cidade',
-      'Marca da máquina', 'Tipo de peça', 'Repassou ao vendedor', 'Vendedor retornou', 'Venda realizada', 'Motivo da perda', 'Nota fiscal', 'Valor da venda', 'Observações', 'Google Ads (campanha)', 'Página de entrada (LP / site)', 'Entrou por (formulário / botão)',
+      'Marca', 'Tipo de produto', 'Repassou ao vendedor', 'Vendedor retornou', 'Venda realizada', 'Motivo da perda', 'Nota fiscal', 'Valor da venda', 'Observações', 'Google Ads (campanha)', 'Página de entrada (LP / site)', 'Entrou por (formulário / botão)',
     ]
     const lines = rows.map((r) =>
       [

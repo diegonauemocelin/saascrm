@@ -53,7 +53,7 @@ export const ICONS: Record<string, { label: string; svg: string }> = {
   raio: { label: 'Desempenho', svg: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>' },
   cartao: { label: 'Pagamento', svg: '<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>' },
   conversa: { label: 'Atendimento', svg: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>' },
-  mundo: { label: 'Brasil e América Latina', svg: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>' },
+  mundo: { label: 'Abrangência', svg: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>' },
 }
 const ICON_OPTIONS = Object.entries(ICONS).map(([value, i]) => ({ value, label: i.label }))
 
@@ -79,7 +79,7 @@ export const BLOCKS: BlockDef[] = [
       { value: 'imagem-fundo', label: 'Imagem de fundo' },
     ],
     fields: [
-      { key: 'eyebrow', label: 'Selo acima do título', type: 'text', max: 60, placeholder: 'Ex.: Importação direta desde 1997' },
+      { key: 'eyebrow', label: 'Selo acima do título', type: 'text', max: 60, placeholder: 'Ex.: Há mais de 10 anos no mercado' },
       { key: 'title', label: 'Título', type: 'text', max: 140 },
       { key: 'subtitle', label: 'Subtítulo', type: 'textarea', max: 400 },
       { key: 'image', label: 'Imagem', type: 'image' },
@@ -90,7 +90,7 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'numeros',
     label: 'Números',
-    description: 'Até 4 números que dão confiança (anos de mercado, marcas atendidas, estados).',
+    description: 'Até 4 números que dão confiança (anos de mercado, clientes atendidos, cidades ou estados).',
     fields: [{ key: 'items', label: 'Números', type: 'list', maxItems: 4, item: [{ key: 'value', label: 'Número', type: 'text', max: 14 }, { key: 'label', label: 'Descrição', type: 'text', max: 60 }] }],
   },
   {
@@ -125,7 +125,7 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'produtos',
     label: 'Produtos',
-    description: 'Vitrine de peças com imagem, nome e botão. Preço só se alguém informar (a IA nunca preenche).',
+    description: 'Vitrine de produtos com imagem, nome e botão. Preço só se alguém informar (a IA nunca preenche).',
     fields: [
       { key: 'title', label: 'Título', type: 'text', max: 120 },
       { key: 'subtitle', label: 'Subtítulo', type: 'textarea', max: 300 },
@@ -138,7 +138,7 @@ export const BLOCKS: BlockDef[] = [
           { key: 'image', label: 'Imagem', type: 'image' },
           { key: 'name', label: 'Nome', type: 'text', max: 100 },
           { key: 'text', label: 'Descrição curta', type: 'textarea', max: 200 },
-          { key: 'price', label: 'Preço (opcional)', type: 'text', max: 30, hint: 'Confira com o Comercial antes de publicar.' },
+          { key: 'price', label: 'Preço (opcional)', type: 'text', max: 30, hint: 'Confira o valor antes de publicar.' },
           { key: 'ctaText', label: 'Texto do botão', type: 'text', max: 30 },
           { key: 'url', label: 'Endereço do botão (vazio = formulário)', type: 'url' },
         ],
@@ -147,8 +147,8 @@ export const BLOCKS: BlockDef[] = [
   },
   {
     type: 'marcas',
-    label: 'Marcas atendidas',
-    description: 'Faixa com as marcas de máquina (nome ou logo).',
+    label: 'Marcas',
+    description: 'Faixa com as marcas que a empresa vende ou atende (nome ou logo).',
     fields: [
       { key: 'title', label: 'Título', type: 'text', max: 120 },
       { key: 'items', label: 'Marcas', type: 'list', maxItems: 24, item: [{ key: 'name', label: 'Marca', type: 'text', max: 40 }, { key: 'image', label: 'Logo (opcional)', type: 'image' }] },
@@ -177,7 +177,7 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'galeria',
     label: 'Galeria de fotos',
-    description: 'Fotos de peças, estoque, lojas ou máquinas.',
+    description: 'Fotos de produtos, loja, equipe ou trabalhos realizados.',
     fields: [
       { key: 'title', label: 'Título', type: 'text', max: 120 },
       { key: 'items', label: 'Fotos', type: 'list', maxItems: 12, item: [{ key: 'image', label: 'Foto', type: 'image' }, { key: 'caption', label: 'Legenda', type: 'text', max: 80 }] },

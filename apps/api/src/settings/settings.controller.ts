@@ -64,7 +64,7 @@ class TestEmailDto extends SmtpDto {
 }
 
 class RenameDto {
-  @ApiProperty({ example: 'USA Parts' }) @IsString() @MaxLength(80) de!: string
+  @ApiProperty({ example: 'Loja Exemplo' }) @IsString() @MaxLength(80) de!: string
   @ApiProperty({ example: 'Nome novo' }) @IsString() @MaxLength(80) para!: string
   @ApiProperty() @IsBoolean() aplicar!: boolean
 }

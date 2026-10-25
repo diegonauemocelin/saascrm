@@ -393,7 +393,7 @@ function BlockPanel({ block, def, options, disabled, onChange, onDuplicate, onRe
           <Label htmlFor="ia-instr" className="text-xs">
             <SparklesIcon className="size-3.5" /> Melhorar os textos com IA
           </Label>
-          <Input id="ia-instr" value={instruction} maxLength={300} onChange={(e) => setInstruction(e.target.value)} placeholder="Opcional: ex.: mais curto, foco em frotistas" />
+          <Input id="ia-instr" value={instruction} maxLength={300} onChange={(e) => setInstruction(e.target.value)} placeholder="Opcional: ex.: mais curto, foco em quem compra pelo site" />
           <Button size="sm" variant="outline" className="w-full" onClick={() => improve.mutate()} disabled={improve.isPending}>
             {improve.isPending ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />} Reescrever este bloco
           </Button>
@@ -495,7 +495,7 @@ function ThemePanel({ theme, fonts, disabled, onChange }: { theme: Theme; fonts:
         <Label htmlFor="t-wa" className="text-xs">
           WhatsApp dos botões (com DDD)
         </Label>
-        <Input id="t-wa" value={theme.whatsapp} inputMode="tel" placeholder="55 49 98863-2548" onChange={(e) => set({ whatsapp: e.target.value.replace(/\D/g, '') })} disabled={disabled} />
+        <Input id="t-wa" value={theme.whatsapp} inputMode="tel" placeholder="55 11 99999-0000" onChange={(e) => set({ whatsapp: e.target.value.replace(/\D/g, '') })} disabled={disabled} />
         <p className="text-xs text-muted-foreground">Usado nos botões "Abrir o WhatsApp". Clique no WhatsApp não vira lead; é contado nas métricas.</p>
       </div>
       <div className="space-y-1">

@@ -130,10 +130,10 @@ export const valueLabel = (v: string) => VALUE_LABEL[v] ?? v
 // ---------- Sugestão de palavras negativas (para revisão humana) ----------
 
 /**
- * Palavras que costumam trazer quem não compra peças (procura emprego, curso, material grátis...). A lista é
+ * Palavras que costumam trazer quem não vai comprar (procura emprego, curso, material grátis...). A lista é
  * editável em Configurações › Marketing Inteligente; o CRM só sugere, quem decide é a pessoa.
  */
-export const DEFAULT_ALERT_WORDS = ['grátis', 'gratis', 'emprego', 'vaga', 'vagas', 'curso', 'apostila', 'download', 'baixar', 'pdf', 'manual', 'o que é', 'como funciona', 'salário', 'salario', 'aluguel', 'alugar', 'locação', 'miniatura', 'brinquedo', 'desenho', 'simulador', 'jogo']
+export const DEFAULT_ALERT_WORDS = ['grátis', 'gratis', 'emprego', 'vaga', 'vagas', 'curso', 'apostila', 'download', 'baixar', 'pdf', 'o que é', 'como funciona', 'salário', 'salario']
 
 export interface TermSummary {
   term: string
@@ -165,7 +165,7 @@ export function negativeSuggestions(terms: TermSummary[], words: string[], opts:
     if (t.conversions > 0 || t.cost <= 0) continue
     const n = ` ${norm(t.term)} `
     const word = list.find((w) => n.includes(` ${w} `) || (w.includes(' ') && n.includes(w)))
-    if (word) out.push({ ...t, reason: 'palavra', word, detail: `Contém “${word}”, palavra que costuma trazer quem não compra peças.` })
+    if (word) out.push({ ...t, reason: 'palavra', word, detail: `Contém “${word}”, palavra que costuma trazer quem não vai comprar.` })
     else if (t.cost >= opts.minCost && t.clicks >= opts.minClicks) out.push({ ...t, reason: 'sem_conversao', detail: `${t.clicks} cliques e nenhuma conversão no período.` })
   }
   return out.sort((a, b) => b.cost - a.cost)

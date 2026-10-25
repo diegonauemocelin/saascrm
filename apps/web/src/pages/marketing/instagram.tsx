@@ -620,7 +620,7 @@ function ProfilesDialog({ d, onClose }: { d: ProfilesData; onClose: () => void }
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Nome na tela</Label>
-                <Input value={x.label} onChange={(e) => set(i, { label: e.target.value })} placeholder="Ex.: João · Cascavel" maxLength={80} />
+                <Input value={x.label} onChange={(e) => set(i, { label: e.target.value })} placeholder="Ex.: João · Filial Centro" maxLength={80} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">De quem</Label>
@@ -990,7 +990,7 @@ function NoteDialog({ username, onClose }: { username: string; onClose: () => vo
           </div>
           <div className="space-y-1">
             <Label htmlFor="note-text">Observação</Label>
-            <Textarea id="note-text" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Ex.: promoção de filtros JCB, sorteio, vídeo de oficina..." />
+            <Textarea id="note-text" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Ex.: promoção de fim de mês, sorteio, vídeo dos bastidores..." />
           </div>
           {empty && <p className="text-xs text-muted-foreground">Preencha ao menos um campo para salvar.</p>}
         </div>

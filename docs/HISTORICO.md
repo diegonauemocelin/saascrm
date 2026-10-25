@@ -25,6 +25,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 | Domínio | Plataforma em `crm.sgmulticonecta.com.br` (painel e cadastro no próprio domínio); empresas em `<empresa>.crm.sgmulticonecta.com.br`; domínio próprio da empresa por CNAME |
 | Site | `sgmulticonecta.com.br` com apresentação, vídeos por segmento (autopeças, loja de roupas, fábrica de roupas para padel) e **planos sob consulta** |
 | Marca | SG Multiconecta (logo enviada pelo Diego, redesenhada em SVG): roxo `#5b3fd0`, azul `#2a9be3`, amarelo `#ffc21a`, frase "Atendimento omnichannel com IA" |
+| Ramo | Tudo genérico: nada do ramo de peças de máquinas da Usaparts (decisão de 25/10/2026) |
+| Preço dos planos | Sob consulta no site e no cadastro; o valor fica no painel e na fatura do Asaas |
+| E-mail do sistema (SMTP) | Gmail `sgmulticonecta@gmail.com` com senha de app; os registros MX `.` e SPF `-all` do domínio ficam |
+| Contato comercial | WhatsApp (49) 99993-1041 e `sgmulticonecta@gmail.com` (Plataforma → Site) |
 | Contador "aguardando retorno" no chat | Vale a regra do CRM 0.91.0: para quando o atendente responde (decisão de 25/10/2026) |
 
 ## Cronologia (25/10/2026)
@@ -42,7 +46,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 7. **1.0.2** (`df816b1`, `cef3fa3`): tela de entrada da plataforma (já sou cliente → endereço da empresa; não lembro
    o endereço → link por e-mail; criar conta → cadastro com plano; acesso da administração) e a marca SG Multiconecta.
 8. **1.0.3** (`2a322c6`): site de apresentação, aba Site no painel (contato comercial), exemplos dos campos sem
-   referências a peças de máquinas.
+   referências a peças de máquinas. Depois: correções de segurança das dependências (`b401df3`) e CI com o domínio
+   de teste da plataforma (`7a293cf`). Site no ar em sgmulticonecta.com.br (DNS `@` e `www`, `SITE_DOMAIN`).
+9. **1.0.4**: o Diego pediu "no SG Multiconecta deixa tudo genérico": saiu o ramo de peças para máquinas pesadas
+   (rótulos, listas padrão, modelos de landing page, assistente do Mercado Livre, prompts de IA, chatbot, trilha).
+   Nomes internos (enums, colunas, chaves) não mudaram. Planos sob consulta também na página de cadastro.
 
 ## Como está no ar
 
@@ -61,23 +69,16 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 
 ## Pendências
 
-1. **Publicar a 1.0.3**: tag `v1.0.3` no commit da versão (o Diego cria), Action verde, `sudo bash deploy/deploy.sh`.
-2. **Site no ar**: DNS `@` e `www` → 91.108.125.234; `SITE_DOMAIN=sgmulticonecta.com.br` no `/opt/saascrm/.env`;
-   deploy; preencher **Plataforma → Site** (WhatsApp, e-mail e Instagram). O Diego ainda não passou esses contatos.
-3. **Configurar a plataforma**: SMTP em Configurações (sem ele, convites, recuperação de senha e "não lembro o
-   endereço" não enviam e-mail); planos de verdade; Asaas (sandbox para testar, depois `ASAAS_ENV=producao`) com o
-   webhook `https://crm.sgmulticonecta.com.br/api/webhooks/asaas` e o token do `.env`.
-4. **Decidir com o Diego**: o site mostra os planos sob consulta, mas a página de cadastro mostra o preço. Esconder o
-   preço no cadastro? Ou só liberar o cadastro após a consulta?
-5. **Conteúdo do ramo de peças que veio do CRM da Usaparts** (decidir antes de mexer, muda o produto):
-   - modelos de landing page (`apps/api/src/landing/modelos.ts`) falam de peças para máquinas pesadas;
-   - listas padrão de marcas e tipos de peça (`apps/api/src/atendimento/cadastros.service.ts`, `planilha.ts`) e os
-     filtros "Marca" e "Tipo de peça" do Pré-Vendas;
-   - assistente de perguntas do Mercado Livre com "aplicações peça x máquina";
-   - tema de cores "Grafite + amarelo (linha amarela)" (`apps/web/src/lib/cores.ts`);
-   - documento da integração TCAR (ERP usado pela Usaparts) em `docs/TCAR.md`.
-6. As empresas de demonstração (Rota Autopeças, Vitrine Moda, Smash Padel Wear) existem só no banco de
-   desenvolvimento usado para gravar os vídeos; não estão na VPS.
+1. **Publicar a 1.0.4**: tag `v1.0.4` (o Diego cria no PC), Action verde, `sudo bash deploy/deploy.sh` na VPS.
+2. **Configurar a plataforma**: SMTP com o Gmail (senha de app) em Configurações; planos de verdade; Asaas (sandbox
+   para testar, depois `ASAAS_ENV=producao`) com o webhook `https://crm.sgmulticonecta.com.br/api/webhooks/asaas` e o
+   token do `.env`; contato em Plataforma → Site (se ainda não gravado).
+3. Revisão independente da generalização (workflow de 25/10/2026) ainda em andamento quando a 1.0.4 foi fechada: o
+   que ela apontar entra numa 1.0.5.
+4. Empresas de demonstração (Rota Autopeças, Vitrine Moda, Smash Padel Wear) existem só no banco de desenvolvimento
+   usado para gravar os vídeos; não estão na VPS.
+5. O CRM da Usaparts (outro repositório) usa as mesmas bibliotecas: o CI dele deve acusar os mesmos alertas de
+   segurança corrigidos aqui em `b401df3`.
 
 ## Credenciais e dados sensíveis
 

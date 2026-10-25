@@ -117,7 +117,7 @@ export function insights(i: {
   if (r.bounce !== null && r.bounce > 0.02) out.push({ tone: 'atencao', text: `${pct(r.bounce)} dos envios voltaram com e-mail inexistente. Acima de 2% os provedores começam a desconfiar do domínio: limpe a base ou confirme os e-mails antes de enviar.` })
   if (r.unsubscribe !== null && r.unsubscribe > 0.005) out.push({ tone: 'atencao', text: `Descadastros em ${pct(r.unsubscribe)} dos entregues (o saudável é abaixo de 0,5%). Revise a frequência e se o público do segmento combina com o assunto.` })
   if (r.open !== null && i.funnel.sent >= 100) {
-    if (r.open < 0.15) out.push({ tone: 'atencao', text: `Abertura de ${pct(r.open)}, baixa. Teste assuntos mais diretos (com o nome da peça ou da marca) e confira se os e-mails não estão caindo no spam.` })
+    if (r.open < 0.15) out.push({ tone: 'atencao', text: `Abertura de ${pct(r.open)}, baixa. Teste assuntos mais diretos (com o nome do produto ou da marca) e confira se os e-mails não estão caindo no spam.` })
     else if (r.open >= 0.3) out.push({ tone: 'bom', text: `Abertura de ${pct(r.open)}: acima da média do setor (20 a 25%).` })
   }
   if (i.previousOpen !== null && r.open !== null && i.funnel.sent >= 100) {

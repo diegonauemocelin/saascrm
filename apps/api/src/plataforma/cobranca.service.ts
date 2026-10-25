@@ -88,13 +88,13 @@ export class CobrancaService {
   }
 
   /** Planos que aparecem na página de cadastro. */
+  /** Planos do cadastro e do site: sem o preço (planos sob consulta; o valor aparece na fatura do Asaas). */
   async publicPlans() {
     const rows = await this.prisma.plan.findMany({ where: { active: true, public: true }, orderBy: [{ sortOrder: 'asc' }, { priceCents: 'asc' }] })
     return rows.map((p) => ({
       id: p.id,
       name: p.name,
       description: p.description,
-      priceCents: p.priceCents,
       maxUsers: p.maxUsers,
       maxWhatsapp: p.maxWhatsapp,
       trialDays: p.trialDays,
@@ -119,7 +119,7 @@ export class CobrancaService {
     if (!validDocument(d.document)) throw new BadRequestException('CPF ou CNPJ inválido.')
     const problem = passwordProblems(d.password, d.email)
     if (problem) throw new BadRequestException(problem)
-    if (plan.priceCents > 0 && !this.client()) throw new ServiceUnavailableException('O cadastro está temporariamente indisponível (cobrança não configurada). Fale com a sgmulticonecta.')
+    if (plan.priceCents > 0 && !this.client()) throw new ServiceUnavailableException('O cadastro está temporariamente indisponível (cobrança não configurada). Fale com a SG Multiconecta.')
     const r = await this.plataforma.createCompany(
       null,
       { name: d.company, slug: d.slug, planId: plan.id, start: plan.trialDays ? 'TESTE' : 'AGUARDANDO_PAGAMENTO', trialDays: plan.trialDays || undefined, adminName: d.adminName, adminEmail: d.email, document: d.document, contactName: d.adminName, contactEmail: d.email, contactPhone: d.phone ?? null, password: d.password },
@@ -140,7 +140,7 @@ export class CobrancaService {
       message: plan.trialDays
         ? `Pronto! Seu teste grátis de ${plan.trialDays} dias começou. Entre em ${r.url} com o seu e-mail e a senha que você criou.`
         : billingError
-          ? `Empresa cadastrada. A cobrança da primeira mensalidade não foi gerada agora (${billingError}); a sgmulticonecta vai entrar em contato.`
+          ? `Empresa cadastrada. A cobrança da primeira mensalidade não foi gerada agora (${billingError}); a SG Multiconecta vai entrar em contato.`
           : 'Empresa cadastrada. Pague a primeira mensalidade para liberar o acesso: assim que o pagamento for confirmado, você já pode entrar.',
     }
   }

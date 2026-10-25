@@ -72,7 +72,7 @@ export function ClientPanel({ id, monitor }: { id: string; monitor: boolean }) {
   const quick = () => {
     const p = quickPrefill({ name: d.lead?.name ?? d.conversation.name, phone: d.conversation.phone, email: d.lead?.email }, d.messages, options.data)
     setOpen({ kind: 'PRE_VENDAS', record: null, prefill: p })
-    if (p.found) toast.info(`Marca e peça preenchidas pelas mensagens do cliente (${p.found}). Confira antes de salvar.`)
+    if (p.found) toast.info(`Marca e tipo de produto preenchidos pelas mensagens do cliente (${p.found}). Confira antes de salvar.`)
   }
   const close = () => {
     setOpen(null)
@@ -125,7 +125,7 @@ export function ClientPanel({ id, monitor }: { id: string; monitor: boolean }) {
             <p className="text-sm text-muted-foreground">Nenhuma pré-venda para este contato.</p>
           )}
           {can('pre_vendas', 'create') && !monitor && (!pre || pre.saleStatus !== 'NEGOCIACAO') && (
-            <Button size="sm" className="w-full" onClick={quick} title="Abre a pré-venda já com nome, telefone, marca, peça e as últimas mensagens do cliente">
+            <Button size="sm" className="w-full" onClick={quick} title="Abre a pré-venda já com nome, telefone, marca, tipo de produto e as últimas mensagens do cliente">
               <SparklesIcon /> Pré-venda rápida
             </Button>
           )}

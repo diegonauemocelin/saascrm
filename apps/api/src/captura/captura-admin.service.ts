@@ -122,7 +122,7 @@ export class CapturaAdminService {
   private async assertLookups(tenantId: string, customerTypeId: string | null | undefined, brandIds: string[] | undefined) {
     if (customerTypeId && !(await this.prisma.lookupItem.count({ where: { id: customerTypeId, tenantId, type: 'TIPO_CLIENTE' } }))) throw new BadRequestException('Tipo de cliente inválido.')
     const brands = [...new Set(brandIds ?? [])]
-    if (brands.length && (await this.prisma.lookupItem.count({ where: { id: { in: brands }, tenantId, type: 'MARCA' } })) !== brands.length) throw new BadRequestException('Marca da máquina inválida.')
+    if (brands.length && (await this.prisma.lookupItem.count({ where: { id: { in: brands }, tenantId, type: 'MARCA' } })) !== brands.length) throw new BadRequestException('Marca inválida.')
     return brands
   }
 

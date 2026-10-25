@@ -166,7 +166,7 @@ function Conhecimento() {
               <TableRow>
                 <TableHead className="pl-4">Título</TableHead>
                 <TableHead>Categoria</TableHead>
-                <TableHead>Máquina</TableHead>
+                <TableHead>Marca e modelo</TableHead>
                 <TableHead>Código</TableHead>
                 <TableHead>Situação</TableHead>
                 <TableHead>Atualizado</TableHead>
@@ -387,20 +387,20 @@ function KnowledgeForm({ meta, initial, fromQuestion, onClose }: { meta?: KMeta;
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Marca da máquina">
+            <Field label="Marca">
               <Input value={f.brand} onChange={up('brand')} />
             </Field>
-            <Field label="Modelo da máquina">
+            <Field label="Modelo">
               <Input value={f.model} onChange={up('model')} />
             </Field>
-            <Field label="Código da peça">
+            <Field label="Código do produto">
               <Input value={f.partCode} onChange={up('partCode')} />
             </Field>
             <Field label="Produto">
               <Input value={f.product} onChange={up('product')} />
             </Field>
           </div>
-          <Field label="Aplicação confirmada" hint="Ex.: Retroescavadeira JCB 3C, motor Perkins 1104.">
+          <Field label="Aplicação confirmada" hint="Ex.: Marca X X200, anos 2020 a 2023.">
             <Input value={f.application} onChange={up('application')} />
           </Field>
           <Field label="Pergunta do cliente">
@@ -432,7 +432,7 @@ function KnowledgeForm({ meta, initial, fromQuestion, onClose }: { meta?: KMeta;
           </div>
           {!initial && f.partCode && f.model && (
             <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={createApp} onCheckedChange={(v) => setCreateApp(v === true)} /> Cadastrar também a aplicação peça × máquina
+              <Checkbox checked={createApp} onCheckedChange={(v) => setCreateApp(v === true)} /> Cadastrar também a compatibilidade produto × modelo
             </label>
           )}
           <DialogFooter>

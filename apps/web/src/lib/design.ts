@@ -144,15 +144,15 @@ const onlyPopup = (kind: EditorKind, blocks: Block[]) => (kind === 'popup' ? blo
 export const TEMPLATES: Template[] = [
   {
     id: 'orcamento',
-    name: 'Orçamento de peças',
+    name: 'Pedido de orçamento',
     description: 'Chamada direta para pedir orçamento, campos em duas colunas.',
     build: (kind) => ({
       v: 1,
       box: { ...DEFAULT_BOX, width: 520 },
       mobile: { ...DEFAULT_MOBILE },
       blocks: onlyPopup(kind, [
-        title('Peça seu orçamento de peças', { size: 24 }),
-        para('Diga qual peça você procura e para qual máquina. Um especialista responde rapidinho.'),
+        title('Peça seu orçamento', { size: 24 }),
+        para('Diga o que você procura e nossa equipe responde com o orçamento.'),
         form({ columns: 2, buttonText: 'Quero meu orçamento', buttonBg: '#1d4ed8' }),
         decline('Agora não'),
       ]),
@@ -162,7 +162,7 @@ export const TEMPLATES: Template[] = [
     id: 'cupom',
     name: 'Cupom de desconto',
     description: 'Fundo escuro, cupom revelado depois do cadastro.',
-    tip: 'Troque o código pelo cupom criado na loja virtual.',
+    tip: 'Troque o percentual do título e o código pelos do cupom criado na loja virtual.',
     build: (kind) => ({
       v: 1,
       box: { ...DEFAULT_BOX, width: 420, bg: '#0f172a', text: '#ffffff', closeColor: '#ffffff', radius: 18 },
@@ -186,7 +186,7 @@ export const TEMPLATES: Template[] = [
       mobile: { ...DEFAULT_MOBILE, position: 'inferior' },
       blocks: onlyPopup(kind, [
         title('Receba ofertas e novidades', { size: 18 }),
-        para('Promoções de peças e dicas de manutenção, no máximo uma vez por semana.', { size: 13 }),
+        para('Promoções, lançamentos e dicas, no máximo uma vez por semana.', { size: 13 }),
         form({ showLabels: false, buttonText: 'Quero receber' }),
       ]),
     }),
@@ -202,8 +202,8 @@ export const TEMPLATES: Template[] = [
       mobile: { ...DEFAULT_MOBILE, position: 'centro' },
       blocks: onlyPopup(kind, [
         title('Espere! Antes de sair…', { size: 26, align: 'centro' }),
-        para('Não achou a peça? Deixe seu contato que um especialista encontra para você.', { align: 'centro' }),
-        form({ buttonText: 'Falar com um especialista', buttonBg: '#16a34a' }),
+        para('Não achou o que procurava? Deixe seu contato que nossa equipe ajuda você a encontrar.', { align: 'centro' }),
+        form({ buttonText: 'Falar com a equipe', buttonBg: '#16a34a' }),
         decline('Não, obrigado. Vou continuar procurando.'),
       ]),
     }),

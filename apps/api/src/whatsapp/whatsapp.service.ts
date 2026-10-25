@@ -165,7 +165,7 @@ export class WhatsappService implements OnApplicationBootstrap, OnModuleDestroy 
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`wa-numbers:${user.tenantId}`}))`
       const count = await tx.whatsappNumber.count({ where: { tenantId: user.tenantId, deletedAt: null } })
       if (count >= env.whatsappMaxNumbers) throw new BadRequestException(`Limite de ${env.whatsappMaxNumbers} números cadastrados. Exclua um para cadastrar outro.`)
-      if (plan && count >= plan.whatsapp) throw new BadRequestException(`O plano${plan.plan ? ` ${plan.plan}` : ''} permite ${plan.whatsapp} número(s) de WhatsApp. Exclua um ou contrate números adicionais com a sgmulticonecta.`)
+      if (plan && count >= plan.whatsapp) throw new BadRequestException(`O plano${plan.plan ? ` ${plan.plan}` : ''} permite ${plan.whatsapp} número(s) de WhatsApp. Exclua um ou contrate números adicionais com a SG Multiconecta.`)
       return tx.whatsappNumber.create({
         data: { tenantId: user.tenantId, name, instanceName: `crm-${randomToken(9).toLowerCase().replace(/[^a-z0-9]/g, 'x')}`, unitId: d.unitId ?? null, sellerIds, userIds, splitAttendance: d.splitAttendance ?? false, defaultUserId: d.defaultUserId && userIds.includes(d.defaultUserId) ? d.defaultUserId : null, createRecords: d.createRecords ?? true, signMessages: d.signMessages ?? true },
       })

@@ -163,7 +163,7 @@ export const NAVIGATION: NavGroup[] = [
       { title: 'Perguntas e respostas', to: '/marketplaces/assistente/perguntas', icon: MessagesSquareIcon, module: 'assist_atendimento' },
       { title: 'Respostas enviadas', to: '/marketplaces/assistente/respostas', icon: SendIcon, module: 'assist_atendimento' },
       { title: 'Base de conhecimento', to: '/marketplaces/assistente/conhecimento', icon: BookOpenIcon, module: 'assist_conhecimento' },
-      { title: 'Produtos e aplicações', to: '/marketplaces/assistente/aplicacoes', icon: PackageSearchIcon, module: 'assist_aplicacoes' },
+      { title: 'Produtos e compatibilidade', to: '/marketplaces/assistente/aplicacoes', icon: PackageSearchIcon, module: 'assist_aplicacoes' },
     ],
   },
   {

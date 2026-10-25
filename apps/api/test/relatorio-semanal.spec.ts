@@ -98,7 +98,7 @@ describe('relatório semanal do vendedor: números e sugestões', () => {
     const msg = weeklyMessage({ seller: 'Ana', label: 'x', stats: s, prev: null, team: { conversion: null }, closedInWeek: 0, suggestions: [], sections: ['retorno', 'marcas', 'pecas', 'origens'] })
     expect(msg).toContain('Retorno ao cliente: 50% · em média 3 h depois do repasse')
     expect(msg).toContain('Marcas mais pedidas: CAT (2), JCB (2)')
-    expect(msg).toContain('Peças mais pedidas: Filtro (1)')
+    expect(msg).toContain('Tipos de produto mais pedidos: Filtro (1)')
     expect(msg).toContain('Origem dos leads: Google Ads (2), Site (1)')
   })
 })

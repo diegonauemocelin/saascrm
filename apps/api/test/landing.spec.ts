@@ -50,13 +50,14 @@ describe('landing pages: blocos e limpeza', () => {
     expect(onColor('#1f2937')).toBe('#ffffff')
   })
 
-  it('todos os modelos prontos passam pela limpeza, têm topo e formulário ou WhatsApp e não trazem preço', () => {
+  it('todos os modelos prontos passam pela limpeza, têm topo e formulário ou WhatsApp e não trazem preço nem ramo específico', () => {
     expect(TEMPLATES.length).toBeGreaterThanOrEqual(8)
     for (const t of TEMPLATES) {
       const bs = blocks(t.blocks)
       expect(bs[0]!.type, t.key).toBe('hero')
       expect(bs.some((b) => b.type === 'formulario' || b.type === 'whatsapp' || b.action === 'whatsapp'), t.key).toBe(true)
       expect(JSON.stringify(bs), t.key).not.toMatch(/R\$\s?\d/)
+      expect(JSON.stringify(t), t.key).not.toMatch(/m[aá]quina|maquinaria|linha amarela|repuesto|Caterpillar|Komatsu|Usaparts/i)
     }
   })
 })

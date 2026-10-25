@@ -120,7 +120,7 @@ function SellerPick({ id, value, onChange, disabled }: { id: string; value: stri
 }
 
 /**
- * Tipo de cliente e marcas da máquina (opcionais). Vão para o atendimento de Pré-Vendas e dizem de qual LP,
+ * Tipo de cliente e marcas (opcionais). Vão para o atendimento de Pré-Vendas e dizem de qual LP,
  * pop-up ou botão o contato veio. No pop-up, vazio = usa os do formulário.
  */
 function TypeAndBrands({
@@ -156,7 +156,7 @@ function TypeAndBrands({
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Marca da máquina (opcional)" htmlFor={`${idPrefix}-brands`}>
+      <Field label="Marca (opcional)" htmlFor={`${idPrefix}-brands`}>
         <MultiSelect
           id={`${idPrefix}-brands`}
           items={options.data?.brands ?? []}
@@ -339,7 +339,7 @@ function FormEditor({ form, onClose }: { form: CaptureForm | null; onClose: () =
           }}
         >
           <Field label="Nome interno" htmlFor="cf-name" required>
-            <Input id="cf-name" autoFocus required maxLength={80} placeholder="Ex.: Orçamento de peças" value={f.name} onChange={(e) => set('name', e.target.value)} />
+            <Input id="cf-name" autoFocus required maxLength={80} placeholder="Ex.: Pedido de orçamento" value={f.name} onChange={(e) => set('name', e.target.value)} />
           </Field>
 
           <section className="space-y-2">
@@ -561,8 +561,8 @@ function PopupEditor({ popup, forms, onClose }: { popup: CapturePopup | null; fo
       : {
           name: '',
           formId: forms.find((f) => f.active)?.id ?? forms[0]!.id,
-          title: 'Precisa de peças para sua máquina?',
-          text: 'Deixe seu contato que nossa equipe envia o orçamento.',
+          title: 'Precisa de ajuda para escolher?',
+          text: 'Deixe seu contato que nossa equipe fala com você.',
           imageUrl: '',
           trigger: 'delay' as Trigger,
           delaySec: 15,
@@ -1050,7 +1050,7 @@ function WhatsappEditor({ button, onClose }: { button: WhatsappButton | null; on
             <Field label="Mensagem que abre no WhatsApp" htmlFor="wa-msg" hint="Variáveis: {nome} e {pagina}." className="space-y-1.5 sm:col-span-2">
               <Textarea id="wa-msg" rows={2} maxLength={500} value={w.message} onChange={(e) => set('message', e.target.value)} />
             </Field>
-            <Field label="Origem do lead" htmlFor="wa-origin" hint="Use um nome por LP para separar nos relatórios. Ex.: WhatsApp - LP Hyundai">
+            <Field label="Origem do lead" htmlFor="wa-origin" hint="Use um nome por LP para separar nos relatórios. Ex.: WhatsApp - LP Promoção">
               <Input id="wa-origin" list="wa-origins" maxLength={80} value={w.originName} onChange={(e) => set('originName', e.target.value)} />
               <datalist id="wa-origins">{options.data?.origins.map((o) => <option key={o.id} value={o.name} />)}</datalist>
             </Field>

@@ -10,7 +10,7 @@ export function norm(s: unknown): string {
     .trim()
 }
 
-/** Normaliza códigos de peça: sem espaços, hífens, pontos e barras. */
+/** Normaliza códigos de produto: sem espaços, hífens, pontos e barras. */
 export const normCode = (s: unknown) => norm(s).replace(/[\s\-./]/g, '').toUpperCase()
 
 /** Texto aparado e limitado. */
@@ -48,7 +48,7 @@ export function localDate(d: string | undefined | null, end = false) {
 // ---------- Conhecimento ----------
 
 const STOP = new Set(
-  'a o e de da do das dos em no na nos nas um uma para por com sem que qual quais se sim nao voce voces tem ter ser esta este essa esse isso serve servem peca pecas produto maquina favor bom dia boa tarde noite ola obrigado ate mais meu minha'.split(' '),
+  'a o e de da do das dos em no na nos nas um uma para por com sem que qual quais se sim nao voce voces tem ter ser esta este essa esse isso serve servem peca pecas produto item maquina favor bom dia boa tarde noite ola obrigado ate mais meu minha'.split(' '),
 )
 
 export function tokenize(text: unknown) {
@@ -78,7 +78,7 @@ export function matchKey(partCode: unknown, application: unknown, model: unknown
   return `${code}|${norm(application || model)}`
 }
 
-/** Chave da aplicação peça × máquina. */
+/** Chave da aplicação (compatibilidade produto × marca e modelo). */
 export const appKey = (a: { partCode?: string | null; machineBrand?: string | null; machineModel?: string | null }) => `${normCode(a.partCode)}|${norm(a.machineBrand)}|${norm(a.machineModel)}`
 
 // ---------- Busca nos anúncios da loja ----------
@@ -87,9 +87,9 @@ const SEARCH_STOP = new Set(
   ('a o e de da do das dos em no na nos nas um uma uns umas para pra pro por pela pelo com sem que qual quais se sim nao ' +
     'voce voces vcs tem ter tenho ser esta este essa esse isso serve servem servir boa bom dia tarde noite ola oi obrigado ' +
     'obrigada favor gostaria saber preciso quero queria meu minha meus minhas ai la aqui ja mas ou tambem como onde quanto ' +
-    'quando peca pecas produto produtos maquina ainda vende vendem vocês disponivel algum alguma').split(' '),
+    'quando peca pecas produto produtos item itens maquina ainda vende vendem vocês disponivel algum alguma').split(' '),
 )
-// plural simples: "filtros" = "filtro"
+// plural simples: "capas" = "capa"
 const singular = (w: string) => (w.length > 4 && w.endsWith('s') && !/\d/.test(w) ? w.slice(0, -1) : w)
 export const searchTokens = (t: unknown) => [...new Set(norm(t).replace(/[^a-z0-9]+/g, ' ').split(' ').filter((w) => w.length >= 2 && !SEARCH_STOP.has(w)).map(singular))]
 
@@ -104,7 +104,7 @@ export interface ItemAttr {
   value?: string | null
 }
 
-/** Códigos de referência e OEM de um anúncio (ficha técnica sincronizada do Mercado Livre). */
+/** Códigos de referência e do fabricante (atributo OEM) de um anúncio (ficha técnica sincronizada do Mercado Livre). */
 export function itemCodes(r: { sellerSku?: string | null; partNumber?: string | null; attributes?: unknown }) {
   const attrs = (Array.isArray(r.attributes) ? r.attributes : []) as ItemAttr[]
   const ref = new Set([...splitCodes(r.sellerSku), ...splitCodes(r.partNumber)])

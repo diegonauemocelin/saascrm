@@ -142,8 +142,8 @@ export function reportHtml(x: ReportInput) {
   }
   if (has('vendedores')) parts.push(h2('Por vendedor', color), breakdownTable(d.bySeller, 'Vendedor', false))
   if (has('regioes')) parts.push(h2('Por região', color), breakdownTable(d.byRegion, 'Região', false), h2('Por estado', color), breakdownTable(d.byState, 'Estado', false, 10))
-  if (has('marcas')) parts.push(h2('Por marca da máquina', color), breakdownTable(d.byBrand, 'Marca', false))
-  if (has('categorias')) parts.push(h2('Por tipo de peça', color), breakdownTable(d.byPartType, 'Tipo de peça', false))
+  if (has('marcas')) parts.push(h2('Por marca', color), breakdownTable(d.byBrand, 'Marca', false))
+  if (has('categorias')) parts.push(h2('Por tipo de produto', color), breakdownTable(d.byPartType, 'Tipo de produto', false))
   if (has('origens')) parts.push(h2('Por origem do lead', color), breakdownTable(d.byOrigin, 'Origem', false))
   if (has('email') && x.email) {
     const e = x.email.totals

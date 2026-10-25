@@ -41,7 +41,7 @@ export function SubscriptionBlocked() {
         )}
         {admin ? <div className="flex justify-center">{billing.data && <PayButton billing={billing.data} size="lg" />}</div> : <p className="text-sm">Peça ao administrador da empresa para regularizar a assinatura.</p>}
         {admin && billing.data?.payUrl && <p className="text-xs text-muted-foreground">Depois de pagar, o acesso é liberado assim que o pagamento for confirmado (Pix e cartão: na hora; boleto: até 3 dias úteis). Atualize esta página.</p>}
-        <p className="text-xs text-muted-foreground">Seus dados continuam guardados. Dúvidas: {branding.supportEmail || 'fale com a sgmulticonecta'}.</p>
+        <p className="text-xs text-muted-foreground">Seus dados continuam guardados. Dúvidas: {branding.supportEmail || 'fale com a SG Multiconecta'}.</p>
         <Button variant="outline" onClick={() => void logout()}>
           <LogOutIcon /> Sair
         </Button>

@@ -33,20 +33,20 @@ export const RENAME_TARGETS: RenameTarget[] = [
 ]
 
 /**
- * Padrão do nome antigo: sem diferenciar maiúsculas, com espaço ou hífen valendo como separador ("USA Parts",
- * "USA-Parts", "usa  parts"), e só como palavra inteira (não pega "suaempresa.com.br" ao procurar "USA Parts").
+ * Padrão do nome antigo: sem diferenciar maiúsculas, com espaço ou hífen valendo como separador ("Loja Exemplo",
+ * "Loja-Exemplo", "loja  exemplo"), e só como palavra inteira (não pega "exemplo.com.br" ao procurar "Exemplo").
  */
 export function namePattern(from: string) {
   const words = from.trim().split(/[\s-]+/).filter(Boolean).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
   if (!words.length) return null
   const body = words.join('[\\s-]+')
-  // Nunca dentro de endereço: site (suaempresa.com.br), e-mail (@usaparts), caminho (/usaparts) ou nome com hífen.
+  // Nunca dentro de endereço: site (suaempresa.com.br), e-mail (@exemplo), caminho (/exemplo) ou nome com hífen.
   const start = '(?<![\\p{L}\\p{N}_.@/-])'
   const end = '(?![\\p{L}\\p{N}_@/-]|\\.[\\p{L}\\p{N}])'
   return new RegExp(`${start}${body}${end}`, 'giu')
 }
 
-/** Troca no texto; o nome escrito todo em maiúsculas ("USA PARTS") vira o novo em maiúsculas ("USAPARTS"). */
+/** Troca no texto; o nome escrito todo em maiúsculas ("LOJA EXEMPLO") vira o novo em maiúsculas ("NOVO NOME"). */
 export function renameText(text: string, re: RegExp, to: string) {
   return text.replace(re, (m) => (m === m.toUpperCase() && m !== m.toLowerCase() && to !== to.toUpperCase() ? to.toUpperCase() : to))
 }

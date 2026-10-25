@@ -409,7 +409,7 @@ export function phoneVariants(e164: string | null): string[] {
   return m ? [e164, `+55${m[1]}${m[2]}`] : [e164]
 }
 
-/** +5549988632548 → (49) 98863-2548; número estrangeiro fica como está. */
+/** +5549912345678 → (49) 91234-5678; número estrangeiro fica como está. */
 export function phoneLabel(e164: string) {
   const m = /^\+55(\d{2})(\d{4,5})(\d{4})$/.exec(e164)
   return m ? `(${m[1]}) ${m[2]}-${m[3]}` : e164

@@ -127,7 +127,7 @@ Denominador zero, ou sem custo, vira `null` e a tela mostra "—".
 | Variação | (atual − anterior) ÷ anterior × 100, contra o período anterior do mesmo tamanho |
 
 - **Conversões das plataformas** ("Conversões no Google") ficam separadas: nunca são somadas às vendas do CRM.
-- **Filtros só do CRM** (marca, tipo de peça, estado, região, filial, vendedor, origem, tipo de cliente, situação, cliente novo/recorrente): as plataformas não informam custo por esses recortes. Com eles, o investimento fica fora das contas e a tela avisa.
+- **Filtros só do CRM** (marca, tipo de produto, estado, região, filial, vendedor, origem, tipo de cliente, situação, cliente novo/recorrente): as plataformas não informam custo por esses recortes. Com eles, o investimento fica fora das contas e a tela avisa.
 - **Recortes com vários itens** (um atendimento com duas marcas): o atendimento entra em cada item, e a tabela avisa que a soma das linhas pode passar do total.
 
 ## Atribuição
@@ -195,7 +195,7 @@ Orçamento do mês (total, por plataforma e por campanha) e metas (leads, CPL, v
 
 ## IA (Gemini)
 
-Resumo em Recomendações e, se marcado, no relatório por e-mail. A IA recebe só números agregados (plataformas, campanhas, regiões, marcas, tipos de peça, funil e diagnósticos), nunca nomes, telefones, e-mails ou vendedores. Usa a chave do Gemini já cadastrada no E-mail marketing; sem chave, a tela avisa. Nada é aplicado automaticamente.
+Resumo em Recomendações e, se marcado, no relatório por e-mail. A IA recebe só números agregados (plataformas, campanhas, regiões, marcas, tipos de produto, funil e diagnósticos), nunca nomes, telefones, e-mails ou vendedores. Usa a chave do Gemini já cadastrada no E-mail marketing; sem chave, a tela avisa. Nada é aplicado automaticamente.
 
 ## Plano de reversão
 

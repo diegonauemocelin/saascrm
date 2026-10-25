@@ -46,7 +46,7 @@ export function generateRules({ settings, context, question, greeting }: { setti
   const item = context.anuncio_da_pergunta
   const det = context.dados_detectados ?? { codigos: [], marcas: [], modelos: [] }
   const links = new Set(context.anuncios_com_link_permitido ?? [])
-  const itemCodes = [item?.codigo_peca, item?.sku].flatMap((c) => String(c ?? '').split(/[,;]/)).map(normCode).filter(Boolean)
+  const itemCodes = [item?.codigo_produto, item?.sku].flatMap((c) => String(c ?? '').split(/[,;]/)).map(normCode).filter(Boolean)
   const hello = settings.greeting_by_time ? greeting : 'Olá!'
   const max = Number(settings.max_answer_chars) || 1200
   const linkLine = item && links.has(item.id) ? `\nConfira os detalhes e realize a compra pelo anúncio: {{LINK:${item.id}}}` : ''
@@ -59,7 +59,7 @@ export function generateRules({ settings, context, question, greeting }: { setti
   // não repete o link do anúncio se a resposta aprovada já o contém
   const finish = (text: string) => `${hello}\n${text}${item && String(text).includes(`{{LINK:${item.id}}}`) ? '' : linkLine}`.slice(0, max)
 
-  // modelos/códigos escritos na pergunta (ex.: 416E, 320D, 1R-0750)
+  // modelos/códigos escritos na pergunta (ex.: X200, G20, AB-1234)
   const modelTokens = (t: string) => new Set((String(t).toUpperCase().match(/\b[A-Z0-9-]*\d[A-Z0-9-]*\b/g) ?? []).map(normCode).filter((c) => c.length >= 2))
   const qTokens = modelTokens(question)
 
@@ -69,7 +69,7 @@ export function generateRules({ settings, context, question, greeting }: { setti
     for (const k of context.conhecimentos_aprovados ?? []) {
       if (!k.pergunta || !k.resposta_aprovada) continue
       if (k.anuncio_id && k.anuncio_id !== item?.id) continue
-      // a resposta aprovada só vale se os modelos/códigos citados forem os mesmos (416E ≠ 320D)
+      // a resposta aprovada só vale se os modelos/códigos citados forem os mesmos (X200 ≠ X300)
       const kTokens = modelTokens(k.pergunta)
       if ((qTokens.size || kTokens.size) && (qTokens.size !== kTokens.size || [...qTokens].some((x) => !kTokens.has(x)))) continue
       const kCodes = String(k.codigo ?? '').split(/[,;]/).map(normCode).filter(Boolean)
@@ -81,7 +81,7 @@ export function generateRules({ settings, context, question, greeting }: { setti
     return best
   }
 
-  // Anúncios da loja que correspondem a TODOS os termos pedidos (título) ou ao código de referência/OEM
+  // Anúncios da loja que correspondem a TODOS os termos pedidos (título) ou ao código de referência/do fabricante
   const offers = (context.anuncios_da_loja_encontrados ?? []).filter((o) => o.corresponde_a_todos_os_termos && links.has(o.id)).slice(0, 4)
   const offerFound = () => {
     if (!offers.length) return null
@@ -97,9 +97,9 @@ export function generateRules({ settings, context, question, greeting }: { setti
       confidence: 0.8,
       answer:
         `${hello}\n${many ? 'Temos estas opções' : 'Temos esta opção'} em nossa loja para o que você procura:\n${lines.join('\n')}\n` +
-        `A aplicação indicada está descrita no título de ${many ? 'cada anúncio' : 'anúncio'}. ` +
-        `${many ? 'Se tiver dúvida sobre qual escolher, informe o ano da máquina ou o código da peça original que indicamos a opção correta.' : 'Qualquer dúvida, estamos à disposição.'}`,
-      reason_explanation: `Sem IA: ${offers.length} anúncio(s) da loja encontrado(s) por título/código de referência/código OEM.`,
+        `Os detalhes e a compatibilidade indicada estão descritos ${many ? 'em cada anúncio' : 'no anúncio'}. ` +
+        `${many ? 'Se tiver dúvida sobre qual escolher, nos informe mais detalhes (modelo, ano, medida ou código do fabricante) que indicamos a opção correta.' : 'Qualquer dúvida, estamos à disposição.'}`,
+      reason_explanation: `Sem IA: ${offers.length} anúncio(s) da loja encontrado(s) por título/código de referência/código do fabricante.`,
       found_info: offers.map((o) => `${o.id}: ${o.titulo} (${o.encontrado_por})`),
     })
   }
@@ -119,10 +119,10 @@ export function generateRules({ settings, context, question, greeting }: { setti
     })
   }
 
-  // 1) Compatibilidade com um modelo de máquina
+  // 1) Compatibilidade com um modelo
   if (COMPAT.test(q)) {
     const asked = det.modelos.map(modelKey)
-    // cliente citou algo com cara de modelo (ex.: D6T, 320D) que não está cadastrado na base
+    // cliente citou algo com cara de modelo (ex.: X200, G20) que não está cadastrado na base
     const modelLike = (String(question).toUpperCase().match(/\b(?=[A-Z0-9-]*\d)(?=[A-Z0-9-]*[A-Z])[A-Z0-9-]{2,10}\b/g) ?? []).map(normCode).filter((t) => t && !itemCodes.includes(t))
     if (!asked.length) {
       const offered = offerFound()
@@ -146,9 +146,9 @@ export function generateRules({ settings, context, question, greeting }: { setti
         decision: 'solicitar_info',
         pending_reason: 'B',
         confidence: 0.85,
-        answer: `${hello}\nPara confirmar a compatibilidade com segurança, poderia nos informar o modelo completo da máquina, o ano e, se possível, o código da peça original?\nAssim verificamos a aplicação correta e evitamos que você adquira um item incompatível.`,
-        reason_explanation: 'Sem IA: pergunta de compatibilidade sem modelo de máquina identificado.',
-        missing_info: ['Modelo da máquina'],
+        answer: `${hello}\nPara confirmar a compatibilidade com segurança, poderia nos informar o modelo completo (marca, modelo e ano) e, se possível, o código do fabricante do produto?\nAssim verificamos a aplicação correta e evitamos que você adquira um item incompatível.`,
+        reason_explanation: 'Sem IA: pergunta de compatibilidade sem modelo identificado.',
+        missing_info: ['Modelo completo'],
         suggested_routing: 'Aguardar dados do cliente.',
       })
     }
@@ -163,9 +163,9 @@ export function generateRules({ settings, context, question, greeting }: { setti
         decision: 'responder',
         pending_reason: 'nenhum',
         confidence: 0.92,
-        answer: `${hello}\nSim. Conforme nossa base técnica, ${ok.produto || item?.titulo || 'esta peça'}${ok.codigo ? ` (código ${ok.codigo})` : ''} tem aplicação confirmada para ${[ok.marca_maquina, ok.modelo].filter(Boolean).join(' ')}.${detail}${linkLine}${more}`.slice(0, max),
+        answer: `${hello}\nSim. Conforme nossa base técnica, ${ok.produto || item?.titulo || 'este produto'}${ok.codigo ? ` (código ${ok.codigo})` : ''} tem compatibilidade confirmada com ${[ok.marca_compativel, ok.modelo].filter(Boolean).join(' ')}.${detail}${linkLine}${more}`.slice(0, max),
         reason_explanation: 'Sem IA: aplicação confirmada encontrada para o modelo citado.',
-        found_info: [`Aplicação confirmada: ${ok.codigo} → ${ok.marca_maquina ?? ''} ${ok.modelo}`],
+        found_info: [`Aplicação confirmada: ${ok.codigo} → ${ok.marca_compativel ?? ''} ${ok.modelo}`],
       })
     }
     const offered = offerFound()
@@ -196,7 +196,7 @@ export function generateRules({ settings, context, question, greeting }: { setti
     })
   }
 
-  // 3) Procura de peça sem resposta aprovada: mostra o que a loja tem
+  // 3) Procura de produto sem resposta aprovada: mostra o que a loja tem
   const commercial = COMMERCIAL.test(q)
   if (!commercial) {
     const offered = offerFound()

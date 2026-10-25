@@ -36,7 +36,7 @@ export interface ChatService {
 const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 /**
- * Pré-venda rápida (telas novas): nome e telefone do contato, mais as marcas e os tipos de peça citados nas mensagens
+ * Pré-venda rápida (telas novas): nome e telefone do contato, mais as marcas e os tipos de produto citados nas mensagens
  * do cliente (pelos nomes cadastrados em Cadastros) e as últimas mensagens dele como observação. Quem atende confere.
  */
 export function quickPrefill(

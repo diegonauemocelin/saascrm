@@ -275,7 +275,7 @@ export function adsFirstLast(touches: { t: TouchLike | null | undefined; at: Dat
   return { first: touchAdsInfo(first.t!, first.at, names), last: touchAdsInfo(last.t!, last.at, names) }
 }
 
-/** Página de entrada para mostrar: domínio + caminho, sem "www", sem parâmetros. Ex.: lp.suaempresa.com.br/hyundai */
+/** Página de entrada para mostrar: domínio + caminho, sem "www", sem parâmetros. Ex.: lp.suaempresa.com.br/promocao */
 export function pageLabel(url: unknown): string | null {
   if (typeof url !== 'string' || !url) return null
   try {

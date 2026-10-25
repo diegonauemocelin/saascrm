@@ -97,7 +97,7 @@ export function MktFilters({ show = 'all' }: { show?: 'all' | 'period' }) {
           {select('plataforma', 'Plataforma', o.platforms.map((p) => ({ id: p.key, name: p.label })))}
           {select('campanha', 'Campanha', [{ id: '-', name: 'Sem campanha identificada' }, ...o.campaigns])}
           {select('marca', 'Marca', o.brands)}
-          {select('tipoPeca', 'Tipo de peça', o.partTypes)}
+          {select('tipoPeca', 'Tipo de produto', o.partTypes)}
           {select('regiao', 'Região', o.regions.map((r) => ({ id: r, name: r })))}
           {select('estado', 'Estado', o.states.map((s) => ({ id: s, name: s })))}
           {select('filial', 'Filial', o.units)}

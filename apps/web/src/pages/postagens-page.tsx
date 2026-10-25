@@ -400,7 +400,7 @@ function PostSheet({ id, date, config, onClose, onChanged }: { id: string | null
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="p-title">Título interno</Label>
-                <Input id="p-title" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} disabled={locked} placeholder="Ex.: Promoção de filtros de novembro" />
+                <Input id="p-title" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} disabled={locked} placeholder="Ex.: Promoção de novembro" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="p-date">Data e hora</Label>

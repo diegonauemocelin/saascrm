@@ -218,7 +218,7 @@ function AiCreator({ options, busy, onCreate }: { options: LandingOptions; busy:
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="ia-aud">Público</Label>
-          <Input id="ia-aud" maxLength={300} value={brief.audience} onChange={(e) => setBrief({ ...brief, audience: e.target.value })} placeholder="Ex.: frotistas e oficinas do Sul" />
+          <Input id="ia-aud" maxLength={300} value={brief.audience} onChange={(e) => setBrief({ ...brief, audience: e.target.value })} placeholder="Ex.: lojistas e consumidores da região Sul" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="ia-offer">Oferta ou condição (confirmada)</Label>

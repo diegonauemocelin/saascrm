@@ -25,7 +25,7 @@ export const formatCep = (cep: string) => `${cep.slice(0, 5)}-${cep.slice(5)}`
 export function classifyQuestion(text: string): { kind: QuestionKind; cep: string | null } | null {
   const t = text.normalize('NFC')
   const freightWords = FREIGHT.test(t)
-  // Oito números soltos podem ser código de peça ("tem o 32925682?"): só é CEP com hífen/ponto ou falando de frete.
+  // Oito números soltos podem ser código de produto ("tem o 32925682?"): só é CEP com hífen/ponto ou falando de frete.
   const cep = freightWords || /\b\d{2}\.?\d{3}-\d{3}\b/.test(t) ? extractCep(t) : null
   if (!freightWords && !cep) return null
   // Um CEP sozinho ("01310-100?") também é pedido de frete.

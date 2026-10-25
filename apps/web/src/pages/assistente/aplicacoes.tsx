@@ -71,10 +71,10 @@ function Aplicacoes() {
   const tab = params.get('aba') === 'anuncios' ? 'anuncios' : 'aplicacoes'
   return (
     <div>
-      <PageHeader title="Produtos e aplicações" description="Quais peças servem em quais máquinas. A IA só afirma compatibilidade quando a aplicação está confirmada; a pendente vira pergunta para a equipe." />
+      <PageHeader title="Produtos e compatibilidade" description="Quais produtos servem em quais modelos (marca e modelo compatíveis). A IA só afirma compatibilidade quando a aplicação está confirmada; a pendente vira pergunta para a equipe." />
       <Tabs value={tab} onValueChange={(v) => setParams(v === 'anuncios' ? { aba: 'anuncios' } : {}, { replace: true })} className="mb-4">
         <TabsList>
-          <TabsTrigger value="aplicacoes">Aplicações peça × máquina</TabsTrigger>
+          <TabsTrigger value="aplicacoes">Compatibilidade produto × modelo</TabsTrigger>
           <TabsTrigger value="anuncios">Anúncios da loja</TabsTrigger>
         </TabsList>
       </Tabs>
@@ -149,7 +149,7 @@ function ListaAplicacoes() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="todas">Todo sistema</SelectItem>
+            <SelectItem value="todas">Todos os grupos</SelectItem>
             {(meta.data?.systems ?? []).map((b) => (
               <SelectItem key={b} value={b}>
                 {b}
@@ -184,7 +184,7 @@ function ListaAplicacoes() {
               <TableRow>
                 <TableHead className="pl-4">Código</TableHead>
                 <TableHead>Produto</TableHead>
-                <TableHead>Máquina</TableHead>
+                <TableHead>Compatível com</TableHead>
                 <TableHead>Aplicação</TableHead>
                 <TableHead>Anúncio</TableHead>
                 <TableHead>Validação</TableHead>
@@ -289,32 +289,32 @@ function AppForm({ initial, meta, onClose }: { initial: AppRow | null; meta?: Ap
         <form onSubmit={submit} className="space-y-3">
           <DialogHeader>
             <DialogTitle>{initial ? `Editar aplicação ${initial.partCode}` : 'Nova aplicação'}</DialogTitle>
-            <DialogDescription>Código e máquina identificam a aplicação; o mesmo par cadastrado de novo atualiza o existente.</DialogDescription>
+            <DialogDescription>Código e modelo compatível (marca e modelo) identificam a aplicação; o mesmo par cadastrado de novo atualiza o existente.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Código da peça">
+            <Field label="Código do produto">
               <Input value={f.partCode} onChange={up('partCode')} required disabled={!!initial} />
             </Field>
             <Field label="Produto">
               <Input value={f.productName} onChange={up('productName')} />
             </Field>
-            <Field label="Marca da máquina">
+            <Field label="Marca compatível">
               <Input value={f.machineBrand} onChange={up('machineBrand')} disabled={!!initial} list="assist-brands" />
             </Field>
-            <Field label="Modelo da máquina">
+            <Field label="Modelo compatível">
               <Input value={f.machineModel} onChange={up('machineModel')} required disabled={!!initial} list="assist-models" />
             </Field>
-            <Field label="Sistema">
+            <Field label="Grupo" hint="Opcional. Ex.: acessórios, reposição">
               <Input value={f.system} onChange={up('system')} list="assist-systems" />
             </Field>
-            <Field label="Marca da peça">
+            <Field label="Marca do produto">
               <Input value={f.partBrand} onChange={up('partBrand')} />
             </Field>
           </div>
           <datalist id="assist-brands">{meta?.machineBrands.map((b) => <option key={b} value={b} />)}</datalist>
           <datalist id="assist-models">{meta?.models.map((b) => <option key={b} value={b} />)}</datalist>
           <datalist id="assist-systems">{meta?.systems.map((b) => <option key={b} value={b} />)}</datalist>
-          <Field label="Aplicação" hint="Obrigatória para confirmar a compatibilidade. Ex.: Retroescavadeira JCB 3C, motor Perkins.">
+          <Field label="Aplicação" hint="Obrigatória para confirmar a compatibilidade. Ex.: Marca X X200, anos 2020 a 2023.">
             <Textarea rows={2} value={f.application} onChange={up('application')} />
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">

@@ -111,7 +111,7 @@ describe('lead scoring', () => {
       { type: 'venda', occurredAt: new Date('2026-09-21T12:00:00Z') },
     ]
     const s = computeScore(lead, events, rules, DEFAULT_SCORE_SETTINGS, now)
-    expect(s.profile).toBe(60) // 25 + 20 + 10 + 10 = 65, limitado a 60
+    expect(s.profile).toBe(55) // 25 + 20 + 10
     expect(s.interest).toBe(40)
     expect(s.grade).toBe('A')
   })

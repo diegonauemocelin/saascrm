@@ -194,13 +194,13 @@ export const SOURCES: Source[] = [
       { key: 'regiao', label: 'Região', sql: `CASE WHEN t.country <> 'BR' THEN 'Exterior' ELSE ${region('t.state')} END` },
       {
         key: 'marca',
-        label: 'Marca da máquina',
+        label: 'Marca',
         sql: 'bri.name',
         array: { join: 'brand', filterSql: `EXISTS (SELECT 1 FROM lookup_items x WHERE x.id = ANY(t."brandIds") AND x.name = {v})`, emptySql: 'cardinality(t."brandIds") = 0' },
       },
       {
         key: 'tipo_peca',
-        label: 'Tipo de peça',
+        label: 'Tipo de produto',
         sql: 'pti.name',
         array: { join: 'part', filterSql: `EXISTS (SELECT 1 FROM lookup_items x WHERE x.id = ANY(t."partTypeIds") AND x.name = {v})`, emptySql: 'cardinality(t."partTypeIds") = 0' },
       },
@@ -443,7 +443,7 @@ export function cleanConfig(raw: unknown): { config: ReportConfig } | { error: s
   if (dimensions.length > 2) return { error: 'Use no máximo 2 campos para agrupar.' }
   if (dimensions.some((d) => !dimKeys.has(d))) return { error: 'Campo de agrupamento inválido para esta fonte.' }
   const arrays = dimensions.filter((d) => source.dimensions.find((x) => x.key === d)?.array)
-  if (arrays.length > 1) return { error: 'Só um campo de lista (tags, marcas, peças) por relatório.' }
+  if (arrays.length > 1) return { error: 'Só um campo de lista (tags, marcas, tipos de produto) por relatório.' }
 
   const metrics = Array.isArray(r.metrics) ? [...new Set(r.metrics.map(String))] : []
   if (metrics.length < 1) return { error: 'Escolha ao menos uma métrica.' }

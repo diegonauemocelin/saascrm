@@ -52,6 +52,8 @@ describe('importação da planilha', () => {
     ',,,,,,,,,FALSE,FALSE,FALSE,FALSE,,,,',
     '04/08/0206,1,Erro,55 11 99999-9999,Davi,,,,,FALSE,FALSE,FALSE,FALSE,,,,',
   ].join('\n')
+  /** Tipos de produto cadastrados na empresa: na coluna de produto, o que não estiver aqui vira marca. */
+  const tipos = ['Filtro', 'Motor', 'FPS']
 
   it('encontra o cabeçalho depois das linhas de título', () => {
     const h = findHeader(parseCsv(csv))
@@ -60,12 +62,12 @@ describe('importação da planilha', () => {
   })
 
   it('converte as linhas aplicando as regras combinadas com a empresa', () => {
-    const { records, issues } = mapSheet(csv)
+    const { records, issues } = mapSheet(csv, tipos)
     expect(records).toHaveLength(3)
     const [lost, sold, waiting] = records as [typeof records[0], typeof records[0], typeof records[0]]
 
     expect(lost.name).toBe('METZLER - Claudio')
-    expect(lost.seller).toBe('Evandro')
+    expect(lost.seller).toBe('Evandro - Itajaí')
     expect(lost.phone).toBe('+554796470159')
     expect(lost.state).toBe('SC')
     expect(lost.saleStatus).toBe('NAO')
@@ -79,6 +81,8 @@ describe('importação da planilha', () => {
     expect(sold.invoiceNumber).toBe('144833')
     expect(sold.brands).toEqual(['JCB'])
     expect(sold.partTypes).toEqual(['Motor', 'FPS'])
+    // Sem tipos de produto cadastrados, tudo na coluna de produto entra como marca.
+    expect(mapSheet(csv).records[1]!.brands).toEqual(['JCB', 'Motor', 'FPS'])
     expect(sold.returnStatus).toBe('SIM')
 
     expect(waiting.customerCode).toBeNull()

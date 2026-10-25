@@ -43,10 +43,10 @@ const PHONE_RE = /(?<![\p{L}\p{N}@+.,-])(?:\+[ \t]?)?\(?\d[\d \t().-]{7,80}\d(?!
 
 /**
  * Formatos de telefone brasileiro: +55/55/0 opcional, DDD (com ou sem parênteses) e o número em 4-4, 5-4 ou 9 4-4.
- * Outras divisões (código de peça 6754-71-6110, 8-98018858-0, 119802-55800; CPF 479.123.456-01; linha digitável
+ * Outras divisões (código de produto 6754-71-6110, 8-98018858-0, 119802-55800; CPF 479.123.456-01; linha digitável
  * 74891.12345; blocos de 4 da chave de NF-e) não são telefone.
  */
-// O 0 antes do DDD só vale separado ("049 98863-2548"): grudado ("0419 8765 4321") é bloco de chave de NF-e.
+// O 0 antes do DDD só vale separado ("049 91234-5678"): grudado ("0419 8765 4321") é bloco de chave de NF-e.
 const BR_SHAPE = /^(?:\+55[ .-]?|55[ .-])?(?:\(0?\d{2}\)|0\d{2}(?=[ .-])|\d{2})[ .-]?(?:9[ .-]?)?\d{4}[ .-]?\d{4}$/
 /** Estrangeiro: com + e o código do país, em grupos. */
 const INTL_SHAPE = /^\+[1-9]\d{0,2}(?:[ .-]?\(?\d{1,5}\)?)+$/
@@ -77,10 +77,10 @@ export function splitPhones(text: string): PhonePart[] {
   const out: PhonePart[] = []
   let last = 0
   for (const m of text.matchAll(PHONE_RE)) {
-    // Vários telefones seguidos ("(49) 98863-2548 49 3664-0888"): o maior trecho válido a partir de cada palavra.
+    // Vários telefones seguidos ("(49) 91234-5678 49 3333-4444"): o maior trecho válido a partir de cada palavra.
     const words = [...m[0].matchAll(/\S+/g)].map((w) => ({ start: m.index + w.index, end: m.index + w.index + w[0].length }))
     for (let i = 0; i < words.length; ) {
-      // Telefone tem no máximo 6 palavras ("+55 (49) 9 8863 2548"): limita a busca em textos longos de números.
+      // Telefone tem no máximo 6 palavras ("+55 (11) 9 9999 0000"): limita a busca em textos longos de números.
       let j = Math.min(words.length, i + 6)
       let phone: string | null = null
       for (; j > i && !(phone = phoneFromText(text.slice(words[i]!.start, words[j - 1]!.end))); j--);

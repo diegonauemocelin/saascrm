@@ -17,14 +17,17 @@ interface PublicPlan {
   id: string
   name: string
   description: string
-  priceCents: number
   maxUsers: number
   maxWhatsapp: number
   trialDays: number
   systems: string[]
 }
 
-const brl = (cents: number) => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+/** Link "Consultar valores": WhatsApp comercial do site (Plataforma → Site), com a mensagem pronta. */
+const consultLink = (whatsapp: string, plan: string) => {
+  const n = whatsapp.replace(/\D/g, '')
+  return n ? `https://wa.me/${n.length <= 11 ? `55${n}` : n}?text=${encodeURIComponent(`Olá! Quero saber os valores do plano ${plan}.`)}` : null
+}
 const slugOf = (s: string) =>
   s
     .normalize('NFD')
@@ -42,6 +45,8 @@ export function CadastroPage() {
   usePageTitle('Cadastro')
   const branding = useBranding()
   const plans = useQuery({ queryKey: ['cadastro-planos'], queryFn: () => api.get<PublicPlan[]>('/public/cadastro/planos') })
+  const site = useQuery({ queryKey: ['public-site'], queryFn: () => api.get<{ contact: { whatsapp: string; email: string } }>('/public/site'), retry: false })
+  const whatsapp = site.data?.contact.whatsapp ?? ''
   // Link de um plano específico (ex.: página de apresentação): /cadastro?plano=<id>
   const [params] = useSearchParams()
   const [planId, setPlanId] = useState(params.get('plano') ?? '')
@@ -116,10 +121,7 @@ export function CadastroPage() {
           {plans.data?.map((p) => (
             <button key={p.id} type="button" onClick={() => setPlanId(p.id)} className={cn('flex flex-col items-start rounded-xl border bg-card p-4 text-left shadow-sm transition', planId === p.id ? 'ring-2 ring-primary' : 'hover:shadow-md')}>
               <p className="text-lg font-semibold">{p.name}</p>
-              <p className="text-2xl font-semibold tabular-nums">
-                {brl(p.priceCents)}
-                <span className="text-sm font-normal text-muted-foreground">/mês</span>
-              </p>
+              <p className="text-xl font-semibold text-primary">Sob consulta</p>
               {p.trialDays > 0 && <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{p.trialDays} dias grátis para testar</p>}
               {p.description && <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>}
               <ul className="mt-2 space-y-0.5 text-sm">
@@ -134,8 +136,16 @@ export function CadastroPage() {
               </ul>
             </button>
           ))}
-          {plans.data && !plans.data.length && <p className="text-center text-sm text-muted-foreground md:col-span-3">Nenhum plano disponível para cadastro agora. Fale com a sgmulticonecta.</p>}
+          {plans.data && !plans.data.length && <p className="text-center text-sm text-muted-foreground md:col-span-3">Nenhum plano disponível para cadastro agora. Fale com a SG Multiconecta.</p>}
         </div>
+        {plan && consultLink(whatsapp, plan.name) && (
+          <p className="text-center text-sm">
+            Valores sob consulta.{' '}
+            <a href={consultLink(whatsapp, plan.name)!} target="_blank" rel="noreferrer" className="font-medium text-primary underline">
+              Consultar valores do plano {plan.name} no WhatsApp
+            </a>
+          </p>
+        )}
         <Card className="gap-4 p-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
@@ -193,7 +203,7 @@ export function CadastroPage() {
             <Link to="/login" className="underline">
               Entre pelo endereço da sua empresa
             </Link>
-            . Dúvidas: {branding.supportEmail || 'fale com a sgmulticonecta'}.
+            . Dúvidas: {branding.supportEmail || 'fale com a SG Multiconecta'}.
           </p>
         </Card>
       </div>

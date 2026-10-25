@@ -88,7 +88,7 @@ export class TcarService {
     })
     await this.expireStale(tenantId, now)
     await this.plan(tenantId, s, now)
-    // Pedido feito na tela (estoque de uma peça na hora) passa na frente da cópia.
+    // Pedido feito na tela (estoque de um produto na hora) passa na frente da cópia.
     const [live, sync] = await Promise.all([
       this.prisma.tcarAction.findMany({ where: { tenantId, status: 'PENDENTE', kind: 'live' }, orderBy: [{ createdAt: 'asc' }], take: MAX_LIVE_PER_PING }),
       this.prisma.tcarAction.findMany({ where: { tenantId, status: 'PENDENTE', kind: { not: 'live' } }, orderBy: [{ createdAt: 'asc' }], take: MAX_ACTIONS_PER_PING }),
@@ -150,7 +150,7 @@ export class TcarService {
     if (code !== 200) {
       const msg = String((body?.data as { message?: unknown } | undefined)?.message ?? '').slice(0, 300)
       const error = `A Tcar respondeu ${code || 'sem código'} à consulta de produtos${msg ? `: ${msg}` : ''}.`
-      // Produto inexistente (busca de uma peça) não é falha da integração.
+      // Produto inexistente (consulta de um só produto) não é falha da integração.
       if (a.kind === 'live' && code === 404) await this.prisma.tcarAction.update({ where: { id }, data: { status: 'ERRO', resultCode: code, error: 'Produto não encontrado na Tcar.', doneAt: new Date() } })
       else if (a.attempts < 3 && code >= 500) await this.prisma.tcarAction.update({ where: { id }, data: { status: 'PENDENTE', resultCode: code, error } })
       else await this.giveUp(tenantId, a, error)
@@ -241,7 +241,7 @@ export class TcarService {
     }
   }
 
-  /** "Atualizar estoque agora": pede a peça à Tcar no próximo contato (alguns segundos). */
+  /** "Atualizar estoque agora": pede o produto à Tcar no próximo contato (alguns segundos). */
   async refreshOne(user: AuthUser, code: string) {
     this.assertView(user)
     const s = await this.config(user.tenantId)
@@ -256,7 +256,7 @@ export class TcarService {
   }
 
   /**
-   * Busca na tela: pede à Tcar o estoque e o preço atuais das primeiras peças do resultado (as atualizadas há menos de
+   * Busca na tela: pede à Tcar o estoque e o preço atuais dos primeiros produtos do resultado (os atualizados há menos de
    * 2 minutos ficam como estão). Sem contato recente da Tcar, não pede nada: a tela mostra a última cópia.
    */
   async refreshMany(user: AuthUser, codes: string[]) {

@@ -228,7 +228,7 @@ export class MarketingService {
 
   // ---------- Dados ----------
 
-  /** Nomes para os filtros e as tabelas (marcas, tipos de peça, origens, vendedores, filiais). */
+  /** Nomes para os filtros e as tabelas (marcas, tipos de produto, origens, vendedores, filiais). */
   async names(tenantId: string) {
     const [items, units, sellers, ads] = await Promise.all([
       this.prisma.lookupItem.findMany({ where: { tenantId, type: { in: ['ORIGEM', 'MARCA', 'TIPO_PECA', 'TIPO_CLIENTE'] } }, select: { id: true, name: true, type: true, active: true }, orderBy: { name: 'asc' } }),

@@ -56,7 +56,7 @@ export class UsersService {
     const l = await this.tenants.limits(tenantId)
     if (!l) return
     const active = await this.prisma.user.count({ where: { tenantId, active: true, deletedAt: null } })
-    if (active >= l.users) throw new BadRequestException(`O plano${l.plan ? ` ${l.plan}` : ''} permite ${l.users} usuário(s) ativo(s). Desative um usuário ou contrate usuários adicionais com a sgmulticonecta.`)
+    if (active >= l.users) throw new BadRequestException(`O plano${l.plan ? ` ${l.plan}` : ''} permite ${l.users} usuário(s) ativo(s). Desative um usuário ou contrate usuários adicionais com a SG Multiconecta.`)
   }
 
   async list(tenantId: string, q: { search?: string; status?: 'active' | 'inactive' }) {

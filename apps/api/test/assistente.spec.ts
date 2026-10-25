@@ -10,7 +10,7 @@ import { toXlsx } from '../src/marketing/arquivos'
 const ctx = (o: Partial<AssistContext> = {}): AssistContext =>
   ({
     anuncios_da_loja_encontrados: [],
-    anuncio_da_pergunta: { id: 'MLB1', titulo: 'Filtro de ar JCB', preco: 100, moeda: 'BRL', quantidade_disponivel: 2, status: 'active', codigo_peca: 'ABC-123', sku: null, marca_peca: null, descricao: '', atributos: [] },
+    anuncio_da_pergunta: { id: 'MLB1', titulo: 'Filtro de ar JCB', preco: 100, moeda: 'BRL', quantidade_disponivel: 2, status: 'active', codigo_produto: 'ABC-123', sku: null, marca_produto: null, descricao: '', atributos: [] },
     conhecimentos_aprovados: [],
     aplicacoes: [],
     anuncios_relacionados_ao_codigo: [],
@@ -64,7 +64,7 @@ describe('assistente: textos (mesma lógica do painel)', () => {
 
 describe('assistente: modo Sem IA', () => {
   const settings = { ...AI_DEFAULTS }
-  const app = (status: string) => ({ codigo: 'ABC-123', produto: 'Filtro', marca_peca: null, marca_maquina: 'Caterpillar', modelo: '416E', sistema: null, aplicacao: 'Retro 416E', status_validacao: status, anuncio_id: 'MLB1' })
+  const app = (status: string) => ({ codigo: 'ABC-123', produto: 'Filtro', marca_produto: null, marca_compativel: 'Caterpillar', modelo: '416E', sistema: null, aplicacao: 'Retro 416E', status_validacao: status, anuncio_id: 'MLB1' })
   const det = { codigos: [], marcas: [], modelos: ['416E'] }
 
   it('compatibilidade confirmada responde', () => {
@@ -79,7 +79,7 @@ describe('assistente: modo Sem IA', () => {
   })
 
   it('pergunta igual a um conhecimento aprovado usa a resposta aprovada', () => {
-    const k = { id: 5, categoria: 'Garantia e troca', titulo: 'Garantia', marca_maquina: null, modelo: null, codigo: null, produto: null, aplicacao: null, pergunta: 'Tem garantia?', resposta_aprovada: '90 dias.', fonte: 'x', semelhanca_com_a_pergunta: 1 }
+    const k = { id: 5, categoria: 'Garantia e troca', titulo: 'Garantia', marca: null, modelo: null, codigo: null, produto: null, aplicacao: null, pergunta: 'Tem garantia?', resposta_aprovada: '90 dias.', fonte: 'x', semelhanca_com_a_pergunta: 1 }
     const r = generateRules({ settings, question: 'Tem garantia?', greeting: 'Boa noite!', context: ctx({ conhecimentos_aprovados: [k] }) })
     expect(r.decision).toBe('responder')
     expect(r.knowledge_ids_used).toEqual([5])

@@ -276,7 +276,7 @@ export function ArtDialog({ open, onClose, frame: initialFrame = 'quadrado', onS
             {opts.bar && (
               <div className="grid grid-cols-[80px_1fr] gap-2">
                 <Input type="color" value={opts.barColor} onChange={(e) => set('barColor', e.target.value)} className="h-9 p-1" aria-label="Cor da faixa" />
-                <Input maxLength={60} value={opts.barText} onChange={(e) => set('barText', e.target.value)} placeholder="Ex.: (49) 98863-2548 · suaempresa.com.br" aria-label="Texto da faixa" />
+                <Input maxLength={60} value={opts.barText} onChange={(e) => set('barText', e.target.value)} placeholder="Ex.: (49) 99999-0000 · suaempresa.com.br" aria-label="Texto da faixa" />
               </div>
             )}
             <div className="space-y-1.5">
@@ -385,7 +385,7 @@ export function VideoDialog({ open, onClose, onSaved }: { open: boolean; onClose
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="vid-b">Faixa da marca (opcional)</Label>
-            <Input id="vid-b" maxLength={60} value={barText} onChange={(e) => setBarText(e.target.value)} placeholder="Ex.: (49) 98863-2548" />
+            <Input id="vid-b" maxLength={60} value={barText} onChange={(e) => setBarText(e.target.value)} placeholder="Ex.: (49) 99999-0000" />
           </div>
         </div>
         <div className="space-y-1.5">

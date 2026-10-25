@@ -139,9 +139,9 @@ export function aiError(status: number, body: unknown) {
 
 /** Pedido de transcrição dos áudios do chat (mensagens de voz de clientes e da equipe). */
 export const TRANSCRIBE_SYSTEM = [
-  'Você transcreve mensagens de voz do WhatsApp de uma empresa de peças para máquinas pesadas, em português do Brasil.',
+  'Você transcreve mensagens de voz do WhatsApp de uma empresa, em português do Brasil.',
   'Escreva exatamente o que foi falado, com pontuação, sem resumir, sem comentar e sem traduzir.',
-  'Mantenha números, códigos de peças, marcas e modelos como foram ditos (ex.: 320D, 3304, Caterpillar).',
+  'Mantenha números, códigos de produtos, marcas e modelos como foram ditos (ex.: A320, 3304-B).',
   'Se não houver fala ou não der para entender, responda apenas: [áudio sem fala compreensível]',
 ].join(' ')
 

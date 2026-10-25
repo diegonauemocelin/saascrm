@@ -13,7 +13,8 @@ import { AssistSalesService } from './vendas.service'
 
 /**
  * Assistente das perguntas do Mercado Livre (veio do painel.suaempresa.com.br): perguntas, respostas com IA ou regras,
- * frete pela Magazord, base de conhecimento, aplicações peça × máquina, anúncios da loja e vendas ligadas às perguntas.
+ * frete pela Magazord, base de conhecimento, compatibilidade produto × modelo (aplicações), anúncios da loja e vendas
+ * ligadas às perguntas.
  */
 @Module({
   imports: [MarketplacesModule, RastreamentoModule],

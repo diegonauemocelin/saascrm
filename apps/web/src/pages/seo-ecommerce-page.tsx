@@ -571,7 +571,7 @@ function ProductSheet({ id, fields, onClose }: { id: string; fields: FieldDef[];
                     <Label htmlFor="seo-instr" className="text-xs">
                       <SparklesIcon className="size-3.5" /> Pedido para a IA (opcional)
                     </Label>
-                    <Input id="seo-instr" value={instruction} maxLength={300} onChange={(e) => setInstruction(e.target.value)} placeholder="Ex.: destacar que serve na PC200-6 e PC200-7" />
+                    <Input id="seo-instr" value={instruction} maxLength={300} onChange={(e) => setInstruction(e.target.value)} placeholder="Ex.: destacar os modelos compatíveis e o material" />
                   </div>
                   <Button onClick={() => ai.mutate()} disabled={ai.isPending}>
                     {ai.isPending ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />} Sugerir com IA

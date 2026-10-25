@@ -32,7 +32,7 @@ export interface SeoFields {
 
 export type SeoField = keyof SeoFields
 export const SEO_FIELDS: { key: SeoField; label: string; group: 'seo' | 'descricao'; max: number; hint: string }[] = [
-  { key: 'seoTitle', label: 'Título SEO', group: 'seo', max: 70, hint: 'O que aparece no Google. Ideal: 50 a 60 caracteres, com o produto, a máquina e a marca.' },
+  { key: 'seoTitle', label: 'Título SEO', group: 'seo', max: 70, hint: 'O que aparece no Google. Ideal: 50 a 60 caracteres, com o produto, o modelo e a marca.' },
   { key: 'metaDescription', label: 'Meta-Description', group: 'seo', max: 160, hint: 'Texto abaixo do título no Google. Até 160 caracteres, com um convite para clicar.' },
   { key: 'pageTitle', label: 'Título página de produto', group: 'seo', max: 150, hint: 'Título da página do produto na loja.' },
   { key: 'url', label: 'Url da página', group: 'seo', max: 250, hint: 'Mudar a URL de um produto que já tem visitas pode perder posição no Google. Só altere se a atual estiver ruim.' },
@@ -158,8 +158,8 @@ export function seoSystem(company: string, about: string) {
     about ? `Sobre a empresa: ${about}` : '',
     'Regras obrigatórias:',
     '- Use só os dados informados do produto. Nunca invente compatibilidade, aplicação, medida, material, preço, prazo, estoque ou garantia. Se um dado importante faltar, escreva [conferir: ...] no lugar.',
-    '- Português do Brasil, claro e direto, para quem compra peças de máquinas pesadas. Sem exagero ("o melhor do mercado") e sem emojis.',
-    '- Mantenha códigos (originais, OEM, SKU) exatamente como vieram.',
+    '- Português do Brasil, claro e direto, para quem compra na loja. Sem exagero ("o melhor do mercado") e sem emojis.',
+    '- Mantenha códigos (SKU, referência, código do fabricante) exatamente como vieram.',
     '- Responda só com JSON válido, sem markdown.',
   ]
     .filter(Boolean)
@@ -188,14 +188,14 @@ export function seoPrompt(p: ProductFacts, current: Partial<SeoFields>, instruct
 Textos atuais:
 ${now}
 
-${instruction ? `Pedido de quem está revisando: ${instruction}\n\n` : ''}Escreva os textos de SEO desse produto. Aproveite o que já existe de bom na descrição atual (principalmente aplicação e códigos), sem perder informação.
-- seoTitle: 50 a 60 caracteres; produto + máquina/modelo (se informado) + marca; primeira letra maiúscula, não tudo em maiúsculas.
-- metaDescription: 130 a 155 caracteres, com o benefício e um convite (ex.: "Peça seu orçamento").
+${instruction ? `Pedido de quem está revisando: ${instruction}\n\n` : ''}Escreva os textos de SEO desse produto. Aproveite o que já existe de bom na descrição atual (principalmente características técnicas, medidas, compatibilidade e códigos, quando houver), sem perder informação.
+- seoTitle: 50 a 60 caracteres; produto + modelo/compatibilidade (se informado) + marca; primeira letra maiúscula, não tudo em maiúsculas.
+- metaDescription: 130 a 155 caracteres, com o benefício e um convite (ex.: "Confira na loja" ou "Compre online com segurança", ou "Peça seu orçamento" se a loja vender por orçamento).
 - pageTitle: título da página do produto, até 120 caracteres.
 - title: título da Descrição Geral (pode ser igual ao pageTitle).
 - summary: até 300 caracteres.
-- description: HTML simples só com <p>, <h3>, <ul>, <li> e <strong>; 600 a 1500 caracteres; seções: o que é, características (das informadas), aplicação (só se informada) e por que comprar na loja (importação direta, estoque, suporte técnico, envio para todo o Brasil).
-- searchKeywords: termos que o cliente digita (nome da peça, sinônimos, modelo, código), separados por vírgula.
+- description: HTML simples só com <p>, <h3>, <ul>, <li> e <strong>; 600 a 1500 caracteres; seções: o que é, características (das informadas), compatibilidade (só se informada) e por que comprar na loja (só os diferenciais de "Sobre a empresa"; sem eles, deixe essa seção de fora).
+- searchKeywords: termos que o cliente digita (nome do produto, sinônimos, modelo, código), separados por vírgula.
 - url: só o final da URL, em minúsculas com hífens.
 Formato: {"seoTitle":"","metaDescription":"","pageTitle":"","title":"","summary":"","description":"","searchKeywords":"","url":""}`
 }

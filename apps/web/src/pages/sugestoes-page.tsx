@@ -276,7 +276,7 @@ function NewSuggestion({ onClose }: { onClose: () => void }) {
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="sg-title" required>Título</Label>
-            <Input id="sg-title" required minLength={3} maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Filtrar leads pela marca da máquina" autoFocus />
+            <Input id="sg-title" required minLength={3} maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Filtrar leads pela marca do produto" autoFocus />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="sg-area">Tela do sistema (opcional)</Label>

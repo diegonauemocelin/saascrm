@@ -32,7 +32,7 @@ A plataforma usa uma porta interna (`127.0.0.1:8180`, ou a próxima livre), sem 
 
 ## 1. DNS (antes de instalar)
 
-No DNS de `sgmulticonecta.com.br`, aponte para o IP da VPS nova (não a da Usaparts):
+No DNS de `sgmulticonecta.com.br`, aponte para o IP da VPS onde a plataforma vai ser instalada:
 
 | Tipo | Nome | Valor |
 |---|---|---|

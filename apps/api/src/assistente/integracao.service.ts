@@ -185,7 +185,7 @@ export class AssistIntegrationService implements OnApplicationBootstrap, OnModul
         lastError: null,
       })
     } else if (c.status === 'DESCONECTADO' || !c.refreshTokenEnc) {
-      throw new BadRequestException('Conecte a conta do Mercado Livre em Marketplaces › Conexões (ou use o acesso do painel antigo).')
+      throw new BadRequestException('Conecte a conta do Mercado Livre em Marketplaces › Conexões.')
     }
     const test = await this.ml.testConnection(tenantId)
     if (!test.ok) throw new BadRequestException(`O teste da conexão falhou: ${test.error}`)

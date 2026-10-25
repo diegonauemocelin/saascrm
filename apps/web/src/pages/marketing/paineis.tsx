@@ -189,8 +189,8 @@ function Executivo({ d }: { d: Analysis }) {
         <BreakdownTable title="Receita por vendedor" rows={d.bySeller} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue, COLS.ticket]} onPick={drill('vendedor')} exportName="marketing-por-vendedor" limit={15} />
         <BreakdownTable title="Receita por região" rows={d.byRegion} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue, COLS.ticket]} onPick={drill('regiao')} exportName="marketing-por-regiao" />
         <BreakdownTable title="Receita por estado" rows={d.byState} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue, COLS.ticket]} onPick={drill('estado')} exportName="marketing-por-estado" limit={10} />
-        <BreakdownTable title="Por marca da máquina" rows={d.byBrand} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue]} onPick={drill('marca')} exportName="marketing-por-marca" limit={10} multi />
-        <BreakdownTable title="Por tipo de peça" rows={d.byPartType} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue]} onPick={drill('tipoPeca')} exportName="marketing-por-tipo-de-peca" limit={10} multi />
+        <BreakdownTable title="Por marca" rows={d.byBrand} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue]} onPick={drill('marca')} exportName="marketing-por-marca" limit={10} multi />
+        <BreakdownTable title="Por tipo de produto" rows={d.byPartType} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue]} onPick={drill('tipoPeca')} exportName="marketing-por-tipo-de-produto" limit={10} multi />
         <BreakdownTable title="Cliente novo ou recorrente" rows={d.byCliente} columns={[COLS.leads, COLS.sales, COLS.conversionRate, COLS.revenue, COLS.ticket]} onPick={drill('cliente')} />
       </div>
       <p className="text-xs text-muted-foreground">Clique numa linha para filtrar a tela por ela. Faturamento = valor da venda no Pré-Vendas (integração com o ERP prevista para depois).</p>
@@ -338,7 +338,7 @@ const FUNNEL_DIMS = [
   { key: 'byState', label: 'Estado' },
   { key: 'bySeller', label: 'Vendedor' },
   { key: 'byBrand', label: 'Marca' },
-  { key: 'byPartType', label: 'Tipo de peça' },
+  { key: 'byPartType', label: 'Tipo de produto' },
   { key: 'byOrigin', label: 'Origem' },
 ] as const
 
@@ -498,7 +498,7 @@ function Campanhas({ d }: { d: Analysis }) {
             <TrendChart title="Leads e vendas no período" kind="bar" data={d.series} series={[{ key: 'leads', label: 'Leads', color: 'var(--chart-1)' }, { key: 'sales', label: 'Vendas', color: 'var(--chart-3)' }]} />
             <div className="grid gap-4 xl:grid-cols-3">
               <BreakdownTable title="Por estado" rows={d.byState} columns={[COLS.leads, COLS.sales, COLS.revenue]} limit={10} />
-              <BreakdownTable title="Por tipo de peça" rows={d.byPartType} columns={[COLS.leads, COLS.sales, COLS.revenue]} limit={10} multi />
+              <BreakdownTable title="Por tipo de produto" rows={d.byPartType} columns={[COLS.leads, COLS.sales, COLS.revenue]} limit={10} multi />
               <BreakdownTable title="Por vendedor" rows={d.bySeller} columns={[COLS.leads, COLS.sales, COLS.revenue]} limit={10} />
             </div>
           </CardContent>
@@ -812,8 +812,8 @@ export function IntegracoesMktPage() {
                   <Kpi label="Com origem" value={share(q.withOrigin, q.records)} />
                   <Kpi label="Com estado (região)" value={share(q.withState, q.records)} />
                   <Kpi label="Com vendedor" value={share(q.withSeller, q.records)} />
-                  <Kpi label="Com marca da máquina" value={share(q.withBrand, q.records)} />
-                  <Kpi label="Com tipo de peça" value={share(q.withPartType, q.records)} />
+                  <Kpi label="Com marca" value={share(q.withBrand, q.records)} />
+                  <Kpi label="Com tipo de produto" value={share(q.withPartType, q.records)} />
                   <Kpi label="Possíveis duplicados" value={num(q.duplicates)} hint="mesmo lead mais de uma vez no mesmo dia (contado uma vez)" />
                 </CardContent>
               </Card>

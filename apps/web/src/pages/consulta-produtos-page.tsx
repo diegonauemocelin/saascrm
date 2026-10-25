@@ -93,8 +93,8 @@ function Search() {
         title="Consulta de produtos"
         description={
           d?.sync.lastFullAt
-            ? `Produtos da Tcar: ${int.format(d.sync.products)} peças. Estoque e preço da última cópia (${formatDateTime(d.sync.lastFullAt)}); use “Atualizar” para conferir uma peça na hora.`
-            : 'Busque peças da Tcar por código, referência, título ou aplicação, com estoque e preço.'
+            ? `Produtos da Tcar: ${int.format(d.sync.products)} itens. Estoque e preço da última cópia (${formatDateTime(d.sync.lastFullAt)}); use “Atualizar” para conferir um produto na hora.`
+            : 'Busque produtos da Tcar por código, referência, título ou aplicação, com estoque e preço.'
         }
       />
       <div className="space-y-4">
@@ -187,7 +187,7 @@ function Search() {
 }
 
 /**
- * Estoque na hora: a cada busca, pede à Tcar as primeiras peças do resultado e acompanha as respostas
+ * Estoque na hora: a cada busca, pede à Tcar os primeiros produtos do resultado e acompanha as respostas
  * (chegam no próximo contato da Tcar, em poucos segundos). Devolve os códigos ainda em atualização.
  */
 function useLiveStock(d: SearchData | undefined) {
@@ -257,7 +257,7 @@ function ProductRow({ p, usedIn, updating }: { p: Product; usedIn: boolean; upda
           toast.success(`Estoque de ${p.code} atualizado pela Tcar.`)
           return
         }
-        if (a.status === 'ERRO') return void toast.error(a.error ?? 'A Tcar não conseguiu consultar a peça.')
+        if (a.status === 'ERRO') return void toast.error(a.error ?? 'A Tcar não conseguiu consultar o produto.')
       }
       toast.error('A Tcar não respondeu em 1 minuto. O servidor dela está ligado?')
     } catch (err) {

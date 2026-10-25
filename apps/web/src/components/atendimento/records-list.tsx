@@ -286,7 +286,7 @@ export function RecordsList({ kind }: { kind: Kind }) {
         />
         <FilterSelect label="Região" value={params.get('region')} onChange={(v) => setFilter('region', v)} items={REGIONS.map((r) => ({ id: r, name: r }))} />
         <FilterSelect label="Marca" value={params.get('brandId')} onChange={(v) => setFilter('brandId', v)} items={o?.brands ?? []} />
-        <FilterSelect label="Tipo de peça" value={params.get('partTypeId')} onChange={(v) => setFilter('partTypeId', v)} items={o?.partTypes ?? []} />
+        <FilterSelect label="Tipo de produto" value={params.get('partTypeId')} onChange={(v) => setFilter('partTypeId', v)} items={o?.partTypes ?? []} />
         <FilterSelect label="Repassou" value={params.get('forwarded')} onChange={(v) => setFilter('forwarded', v)} items={[{ id: 'true', name: 'Sim' }, { id: 'false', name: 'Não' }]} />
         <FilterSelect label="Retorno" value={params.get('returnStatus')} onChange={(v) => setFilter('returnStatus', v)} items={(['SIM', 'NAO', 'PENDENTE'] as const).map((s) => ({ id: s, name: RETURN_LABEL[s] }))} />
         <FilterSelect label="Venda" value={params.get('saleStatus')} onChange={(v) => setFilter('saleStatus', v)} items={(['SIM', 'NAO', 'NEGOCIACAO'] as const).map((s) => ({ id: s, name: SALE_LABEL[s] }))} />

@@ -30,7 +30,7 @@ export interface WhatsappWidget {
   exclude: string[]
   device: 'todos' | 'celular' | 'computador'
   ownerId: string | null
-  /** Opcionais: tipo de cliente e marcas da máquina gravados no atendimento. */
+  /** Opcionais: tipo de cliente e marcas gravados no atendimento. */
   customerTypeId: string | null
   brandIds: string[]
   tags: string[]

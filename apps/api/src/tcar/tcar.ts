@@ -24,9 +24,9 @@ export const DEFAULT_TCAR: TcarSettings = { enabled: false, keyHash: null, compa
 
 export const PAGE_SIZE = 200
 export const MAX_ACTIONS_PER_PING = 4
-/** Consultas de uma peça pedidas pela tela (estoque na hora): vão na frente e em maior número. */
+/** Consultas de um produto pedidas pela tela (estoque na hora): vão na frente e em maior número. */
 export const MAX_LIVE_PER_PING = 20
-/** Peças da busca atualizadas sozinhas e o intervalo mínimo entre duas atualizações da mesma peça. */
+/** Produtos da busca atualizados sozinhos e o intervalo mínimo entre duas atualizações do mesmo produto. */
 export const AUTO_REFRESH_TOP = 10
 export const AUTO_REFRESH_MIN_AGE_MS = 2 * 60_000
 /** Sem contato da Tcar há mais que isso: a busca não pede atualização (mostra a última cópia). */
@@ -146,7 +146,7 @@ export function productQuery(o: { offset?: number; since?: Date | null; branchId
   return { cmd: '/produtos', verb: 'GET' as const, query_params: q }
 }
 
-/** Uma só peça (botão "Atualizar estoque agora"). */
+/** Um só produto (botão "Atualizar estoque agora"). */
 export function detailQuery(code: string, branchIds: number[]) {
   return { cmd: `/produtos/${encodeURIComponent(code)}`, verb: 'GET' as const, query_params: branchIds.length ? { include: 'filiais', branch_ids: branchIds.join(',') } : {} }
 }

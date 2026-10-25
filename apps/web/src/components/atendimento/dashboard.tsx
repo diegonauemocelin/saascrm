@@ -476,8 +476,8 @@ export function AtendimentoDashboard({ kind }: { kind: Kind }) {
             </Card>
             <HBar title="Por tipo de cliente" data={d.byCustomerType.map((g) => ({ name: name(g.id), value: g.leads }))} />
             <HBar title="Por região" data={d.byRegion.map((g) => ({ name: name(g.id, 'Sem estado'), value: g.leads }))} />
-            <HBar title="Marca da máquina (10 mais)" data={d.byBrand.slice(0, 10).map((g) => ({ name: name(g.id), value: g.leads }))} />
-            <HBar title="Tipo de peça" data={d.byPartType.map((g) => ({ name: name(g.id), value: g.leads }))} />
+            <HBar title="Marca (10 mais)" data={d.byBrand.slice(0, 10).map((g) => ({ name: name(g.id), value: g.leads }))} />
+            <HBar title="Tipo de produto" data={d.byPartType.map((g) => ({ name: name(g.id), value: g.leads }))} />
           </div>
 
           <HBar

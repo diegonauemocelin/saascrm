@@ -166,7 +166,7 @@ export function postSystem(company: string, about: string) {
   return [
     `Você escreve postagens de Instagram e Facebook para a ${company}, em português do Brasil.`,
     about ? `Sobre a empresa: ${about}` : '',
-    'Público: donos de máquinas pesadas, mecânicos, compradores de oficinas e construtoras. Tom profissional, direto e próximo, sem exagero.',
+    'Público: clientes e potenciais clientes da empresa. Tom profissional, direto e próximo, sem exagero.',
     'Regras: nunca invente preço, desconto, prazo, estoque, garantia, frete ou compatibilidade. Onde faltar um dado, escreva [conferir: ...].',
     'Não prometa o que a empresa não confirmou. Use poucos emojis (no máximo 3) e hashtags relevantes (de 5 a 12), no fim.',
   ]
@@ -225,7 +225,7 @@ export function planPrompt(d: PlanInput) {
   return [
     `Monte um calendário de postagens de ${d.from} a ${d.to}, com cerca de ${d.perWeek} postagem(ns) por semana.`,
     `Redes: ${d.networks.map((n) => NETWORK_LABEL[n]).join(' e ')}. Formatos possíveis: ${d.formats.map((f) => FORMAT_LABEL[f]).join(', ')}.`,
-    `Temas e campanhas do período: ${d.themes || 'peças e filtros para máquinas pesadas, dicas de manutenção, marcas atendidas, institucional'}.`,
+    `Temas e campanhas do período: ${d.themes || 'produtos e serviços da empresa, dicas de uso, bastidores, institucional'}.`,
     `Horários preferidos: ${d.times.join(', ') || '09:00, 12:00, 18:00'}. Varie os temas e os formatos; evite domingos.`,
     'Responda SÓ com JSON, sem texto fora dele, no formato:',
     '{"posts":[{"date":"AAAA-MM-DD","time":"HH:MM","format":"FEED|STORIES|REELS","title":"título curto interno","caption":"legenda pronta com chamada e hashtags","imageIdea":"descrição da imagem ou vídeo a usar"}]}',
@@ -272,7 +272,7 @@ export function imagePrompt(idea: string, format: PostFormat) {
   return [
     `Crie uma imagem para ${format === 'STORIES' || format === 'REELS' ? 'Stories do Instagram, vertical 9:16' : 'o feed do Instagram, quadrada 1:1'}.`,
     `Assunto: ${idea}`,
-    'Estilo: fotografia realista e profissional, boa luz, contexto de máquinas pesadas e oficina quando fizer sentido.',
+    'Estilo: fotografia realista e profissional, boa luz, com o produto em uso ou no ambiente da empresa quando fizer sentido.',
     'Não escreva textos, letras, números nem logotipos na imagem.',
   ].join('\n')
 }

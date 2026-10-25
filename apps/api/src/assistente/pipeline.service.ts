@@ -36,8 +36,8 @@ export class AssistPipelineService {
   // ---------- Busca nos anúncios da loja ----------
 
   /**
-   * Anúncios ATIVOS da loja oficial que correspondem ao pedido: TÍTULO, CÓDIGO DE REFERÊNCIA e CÓDIGO OEM. Se o cliente
-   * citou um modelo (ex.: 3C, 416E), o título precisa mencioná-lo ou o código precisa bater.
+   * Anúncios ATIVOS da loja oficial que correspondem ao pedido: TÍTULO, CÓDIGO DE REFERÊNCIA e CÓDIGO DO FABRICANTE (OEM).
+   * Se o cliente citou um modelo (ex.: X200, G20), o título precisa mencioná-lo ou o código precisa bater.
    */
   searchStoreItems(text: string, rows: AssistItem[], storeItems: Set<string>, o: { exclude?: string | null; limit?: number } = {}) {
     const hasDigit = (w: string) => /\d/.test(w)
@@ -65,7 +65,7 @@ export class AssistPipelineService {
         if (modelish.length && !modelHit) continue
         if (titleHit.length < Math.min(2, q.length)) continue
       }
-      const encontrado = [titleHit.length ? 'título' : null, refHit.length ? 'código de referência' : null, oemHit.length ? 'código OEM' : null].filter(Boolean) as string[]
+      const encontrado = [titleHit.length ? 'título' : null, refHit.length ? 'código de referência' : null, oemHit.length ? 'código do fabricante' : null].filter(Boolean) as string[]
       out.push({ r, score, matched: titleHit, allTerms: codeHit || titleHit.length === q.length, encontrado, ref: [...ref].join(', ') || null, oem: [...oem].join(', ') || null })
     }
     out.sort((a, b) => b.score - a.score)
@@ -124,7 +124,7 @@ export class AssistPipelineService {
         id: f.r.id,
         titulo: f.r.title,
         codigo_referencia: f.ref,
-        codigo_oem: f.oem,
+        codigo_fabricante: f.oem,
         preco: num(f.r.price),
         estoque: f.r.availableQuantity,
         encontrado_por: f.encontrado.join(' e '),
@@ -139,9 +139,9 @@ export class AssistPipelineService {
             moeda: item.currency,
             quantidade_disponivel: item.availableQuantity,
             status: item.status,
-            codigo_peca: item.partNumber,
+            codigo_produto: item.partNumber,
             sku: item.sellerSku,
-            marca_peca: item.brand,
+            marca_produto: item.brand,
             descricao: String(item.description ?? '').slice(0, 3000),
             atributos: (Array.isArray(item.attributes) ? item.attributes : []).slice(0, 40),
           }
@@ -150,7 +150,7 @@ export class AssistPipelineService {
         id: k.id,
         categoria: k.category,
         titulo: k.title,
-        marca_maquina: k.brand,
+        marca: k.brand,
         modelo: k.model,
         codigo: k.partCode,
         produto: k.product,
@@ -161,7 +161,7 @@ export class AssistPipelineService {
         anuncio_id: k.mlItemId ?? undefined,
         semelhanca_com_a_pergunta: k.question ? Math.round(questionSimilarity(text, k.question) * 100) / 100 : undefined,
       })),
-      aplicacoes: apps.map((a) => ({ codigo: a.partCode, produto: a.productName, marca_peca: a.partBrand, marca_maquina: a.machineBrand, modelo: a.machineModel, sistema: a.system, aplicacao: a.application, status_validacao: a.validationStatus, anuncio_id: a.mlItemId })),
+      aplicacoes: apps.map((a) => ({ codigo: a.partCode, produto: a.productName, marca_produto: a.partBrand, marca_compativel: a.machineBrand, modelo: a.machineModel, sistema: a.system, aplicacao: a.application, status_validacao: a.validationStatus, anuncio_id: a.mlItemId })),
       anuncios_relacionados_ao_codigo: related.map((i) => ({ id: i.id, titulo: i.title, codigo: i.partNumber ?? i.sellerSku, status: i.status })),
       anuncios_complementares: complementary.map((a) => ({ id: a.mlItemId!, titulo: itemById.get(a.mlItemId!)?.title ?? a.productName, codigo: a.partCode, sistema: a.system, aplicacao_confirmada: `${a.machineBrand ?? ''} ${a.machineModel ?? ''}`.trim() })),
       dados_detectados: { codigos: [...codeSet], marcas: entities.brands, modelos: entities.models },
@@ -583,7 +583,7 @@ export class AssistPipelineService {
     if (!q) throw new NotFoundException('Pergunta não encontrada.')
     const last = await this.prisma.assistAttempt.findFirst({ where: { questionId: q.id, origin: 'ia' }, orderBy: { id: 'desc' }, select: { ai: true } })
     const missing = ((last?.ai as { missing_info?: string[] } | null)?.missing_info ?? []).filter(Boolean)
-    const items = missing.length ? missing.slice(0, 3).join(', ').toLowerCase() : 'o modelo completo da máquina, o ano e, se possível, o código da peça original'
+    const items = missing.length ? missing.slice(0, 3).join(', ').toLowerCase() : 'o modelo completo (marca, modelo e ano) e, se possível, o código do fabricante do produto'
     return `${greetingFor()}\nPara confirmarmos a compatibilidade com segurança, poderia nos informar ${items}?\nAssim verificamos a aplicação correta e evitamos que você adquira um item incompatível.`
   }
 

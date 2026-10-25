@@ -597,7 +597,7 @@ function Social() {
                 </div>
                 <div className="grid gap-4 xl:grid-cols-2">
                   <SimpleTable title="Por formato" rows={d.byFormat} rowKey={(r) => r.format} cols={[{ label: 'Formato', value: (r) => r.format }, { label: 'Publicações', value: (r) => num(r.posts), right: true }, { label: 'Engajamento médio', value: (r) => num(r.avgEngagement), right: true }, { label: 'Taxa', value: (r) => pct(r.engagementRate), right: true }]} />
-                  <SimpleTable title="Por tema (marcas e tipos de peça citados)" rows={d.byTheme} rowKey={(r) => r.theme} cols={[{ label: 'Tema', value: (r) => r.theme }, { label: 'Publicações', value: (r) => num(r.posts), right: true }, { label: 'Engajamento médio', value: (r) => num(r.avgEngagement), right: true }]} empty="Nenhuma publicação cita marcas ou tipos de peça cadastrados." />
+                  <SimpleTable title="Por tema (marcas e tipos de produto citados)" rows={d.byTheme} rowKey={(r) => r.theme} cols={[{ label: 'Tema', value: (r) => r.theme }, { label: 'Publicações', value: (r) => num(r.posts), right: true }, { label: 'Engajamento médio', value: (r) => num(r.avgEngagement), right: true }]} empty="Nenhuma publicação cita marcas ou tipos de produto cadastrados." />
                 </div>
                 {d.times.some((t) => t.cells.length > 0) && (
                   <div className="grid gap-4 xl:grid-cols-2">
@@ -777,7 +777,7 @@ function EditorialDialog({ initial, owners, statuses, networks, onClose }: { ini
             <Label htmlFor="ed-title" required>
               Título
             </Label>
-            <Input id="ed-title" autoFocus maxLength={200} value={x.title ?? ''} onChange={(e) => set({ title: e.target.value })} placeholder="Ex.: Reels: troca de filtros da JCB 3CX" />
+            <Input id="ed-title" autoFocus maxLength={200} value={x.title ?? ''} onChange={(e) => set({ title: e.target.value })} placeholder="Ex.: Reels: lançamento do produto novo" />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
@@ -939,7 +939,7 @@ function Seo() {
             {!d.connected && !d.totals && (
               <PendingIntegration
                 title="Google Search Console"
-                what={['Cliques e impressões orgânicas, CTR e posição média', 'Consultas e páginas com mais potencial', 'Páginas de marcas, máquinas e categorias de peças', 'Relação entre páginas, leads e vendas do CRM']}
+                what={['Cliques e impressões orgânicas, CTR e posição média', 'Consultas e páginas com mais potencial', 'Páginas de marcas, modelos e categorias de produtos', 'Relação entre páginas, leads e vendas do CRM']}
                 steps={<p>Adicione a conta de serviço do Google Analytics como usuária da propriedade no Search Console e informe a propriedade em Configurações › Marketing Inteligente.</p>}
               />
             )}
@@ -991,8 +991,8 @@ function Seo() {
               <TabsContent value="marcas" className="grid gap-4 xl:grid-cols-2">
                 <SimpleTable title="Consultas por marca" rows={d.byBrand.queries} rowKey={(r) => r.name} cols={GROUP_COLS} />
                 <SimpleTable title="Páginas por marca" rows={d.byBrand.pages} rowKey={(r) => r.name} cols={GROUP_COLS} />
-                <SimpleTable title="Consultas por tipo de peça" rows={d.byPartType.queries} rowKey={(r) => r.name} cols={GROUP_COLS} />
-                <SimpleTable title="Páginas por tipo de peça" rows={d.byPartType.pages} rowKey={(r) => r.name} cols={GROUP_COLS} />
+                <SimpleTable title="Consultas por tipo de produto" rows={d.byPartType.queries} rowKey={(r) => r.name} cols={GROUP_COLS} />
+                <SimpleTable title="Páginas por tipo de produto" rows={d.byPartType.pages} rowKey={(r) => r.name} cols={GROUP_COLS} />
               </TabsContent>
               <TabsContent value="entrada">
                 <SimpleTable

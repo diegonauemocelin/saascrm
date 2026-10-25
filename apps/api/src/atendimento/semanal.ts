@@ -19,8 +19,8 @@ export const WEEKLY_SECTIONS = [
   { key: 'anterior', label: 'Comparação com o ciclo anterior' },
   { key: 'equipe', label: 'Média da equipe (conversão)' },
   { key: 'fechadas', label: 'Vendas fechadas na semana de repasses anteriores' },
-  { key: 'marcas', label: 'Marcas de máquina mais pedidas' },
-  { key: 'pecas', label: 'Tipos de peça mais pedidos' },
+  { key: 'marcas', label: 'Marcas mais pedidas' },
+  { key: 'pecas', label: 'Tipos de produto mais pedidos' },
   { key: 'origens', label: 'De onde vieram os leads (origem)' },
   { key: 'sugestoes', label: 'Sugestões de melhoria' },
 ] as const
@@ -214,8 +214,8 @@ export function weeklyMessage(o: { seller: string; label: string; stats: WeeklyS
   if (has('retorno')) lines.push(`📞 Retorno ao cliente: ${fmtPct(s.returnRate)}${s.returnHours !== null ? ` · em média ${fmtHours(s.returnHours)} depois do repasse` : ''}`)
   if (has('equipe') && o.team.conversion !== null) lines.push(`👥 Média da equipe: ${fmtPct(o.team.conversion)}`)
   if (has('fechadas') && o.closedInWeek > s.sales) lines.push(`🔁 Na semana você também fechou ${o.closedInWeek - s.sales} venda(s) de repasses anteriores.`)
-  if (has('marcas') && s.brands.length) lines.push(`🚜 Marcas mais pedidas: ${list(s.brands)}`)
-  if (has('pecas') && s.partTypes.length) lines.push(`🔧 Peças mais pedidas: ${list(s.partTypes)}`)
+  if (has('marcas') && s.brands.length) lines.push(`🏷️ Marcas mais pedidas: ${list(s.brands)}`)
+  if (has('pecas') && s.partTypes.length) lines.push(`📦 Tipos de produto mais pedidos: ${list(s.partTypes)}`)
   if (has('origens') && s.origins.length) lines.push(`📣 Origem dos leads: ${list(s.origins)}`)
   if (has('sem_contato') && s.noContact.length) lines.push('', `*Ainda sem contato registrado (${s.noContact.length})*`, ...s.noContact.slice(0, 15).map((n) => `• ${n}`), ...(s.noContact.length > 15 ? [`• e mais ${s.noContact.length - 15}`] : []))
   if (has('sugestoes') && o.suggestions.length) lines.push('', '*Sugestões*', ...o.suggestions.map((x) => `• ${x}`))
@@ -271,7 +271,7 @@ export async function loadWeekly(prisma: PrismaService, tenantId: string, cycle:
          AND h."createdAt" >= ${cycle.from} AND h."createdAt" < ${cycle.to} AND h.changes -> 'saleStatus' ->> 'para' = 'SIM'
        GROUP BY r."sellerId"`.catch((): { sellerId: string; n: number }[] => []),
   ])
-  // Nomes das marcas e tipos de peça (listas configuráveis) só quando essas partes vão na mensagem.
+  // Nomes das marcas e tipos de produto (listas configuráveis) só quando essas partes vão na mensagem.
   const ids = sections.includes('marcas') || sections.includes('pecas') ? [...new Set(now.flatMap((r) => [...r.brandIds, ...r.partTypeIds]))] : []
   const names = new Map(ids.length ? (await prisma.lookupItem.findMany({ where: { tenantId, id: { in: ids } }, select: { id: true, name: true } })).map((l) => [l.id, l.name]) : [])
   const row = (r: (typeof now)[number]): WeeklyRow => ({

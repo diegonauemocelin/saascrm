@@ -49,7 +49,7 @@ export function AiAssist({ html, onApply, disabled }: { html: string; onApply: (
         <SparklesIcon className="size-4 text-violet-600" /> Assistente de texto (IA)
       </p>
       <div className="flex gap-1.5">
-        <Input value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={1000} placeholder="Tema ou orientação (ex.: promoção de filtros JCB)" className="h-8 text-sm" disabled={disabled} aria-label="Tema para a IA" />
+        <Input value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={1000} placeholder="Tema ou orientação (ex.: promoção de fim de mês)" className="h-8 text-sm" disabled={disabled} aria-label="Tema para a IA" />
         <Button type="button" size="sm" onClick={() => run.mutate('escrever')} disabled={disabled || run.isPending || !topic.trim()}>
           Escrever
         </Button>

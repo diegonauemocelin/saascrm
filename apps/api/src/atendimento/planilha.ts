@@ -78,13 +78,6 @@ export function findHeader(rows: string[][]): { index: number; map: Partial<Reco
   return null
 }
 
-/** Tipos de peça conhecidos; qualquer outro item da coluna de produto é tratado como marca da máquina. */
-export const PART_TYPES = ['Filtro', 'Motor', 'Material Rodante', 'Tração ou Giro', 'Coroa de Giro', 'FPS']
-const PART_SET = new Set(PART_TYPES.map(norm))
-
-/** Nomes da planilha que são a mesma pessoa (confirmado com a empresa). */
-export const SELLER_ALIASES: Record<string, string> = { 'evandro - itajaí': 'Evandro', 'evandro - itajai': 'Evandro' }
-
 /** Valores da coluna "Motivos de Perda" que, na verdade, são situação do atendimento. */
 const MOTIVO_VENDEU = 'vendeu'
 const MOTIVO_AGUARDANDO = 'aguardando vendedor'
@@ -132,8 +125,12 @@ function titleCase(s: string) {
   return s.replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1))
 }
 
-/** Converte uma linha da planilha. Retorna null para linhas vazias (a planilha tem milhares só com caixas desmarcadas). */
-export function mapRow(cells: string[], map: Partial<Record<ColumnKey, number>>, line: number, issues: RowIssue[]): MappedRecord | null {
+/**
+ * Converte uma linha da planilha. Retorna null para linhas vazias (a planilha tem milhares só com caixas desmarcadas).
+ * knownTypes: tipos de produto já cadastrados na empresa; na coluna de produto, o que bater com eles vira tipo de
+ * produto e qualquer outro item é tratado como marca.
+ */
+export function mapRow(cells: string[], map: Partial<Record<ColumnKey, number>>, line: number, issues: RowIssue[], knownTypes: readonly string[] = []): MappedRecord | null {
   const get = (k: ColumnKey) => (map[k] === undefined ? '' : (cells[map[k]!] ?? '').trim())
 
   const rawName = get('nome')
@@ -172,11 +169,12 @@ export function mapRow(cells: string[], map: Partial<Record<ColumnKey, number>>,
     .split(',')
     .map((t) => t.trim())
     .filter(Boolean)
-  const brands = [...new Set(tokens.filter((t) => !PART_SET.has(norm(t))))]
-  const partTypes = [...new Set(tokens.filter((t) => PART_SET.has(norm(t))).map((t) => PART_TYPES.find((p) => norm(p) === norm(t))!))]
+  const typeOf = (t: string) => knownTypes.find((p) => norm(p) === norm(t))
+  const brands = [...new Set(tokens.filter((t) => !typeOf(t)))]
+  const partTypes = [...new Set(tokens.map(typeOf).filter((p): p is string => !!p))]
 
   const sellerRaw = get('vendedor')
-  const seller = sellerRaw ? (SELLER_ALIASES[norm(sellerRaw)] ?? sellerRaw) : null
+  const seller = sellerRaw || null
 
   const tipo = get('tipo')
   const customerType = !tipo || norm(tipo) === 'não informado' || norm(tipo) === 'nao informado' ? null : tipo
@@ -244,14 +242,14 @@ export function mapRow(cells: string[], map: Partial<Record<ColumnKey, number>>,
   }
 }
 
-export function mapSheet(csv: string) {
+export function mapSheet(csv: string, knownTypes: readonly string[] = []) {
   const rows = parseCsv(csv)
   const header = findHeader(rows)
   if (!header) throw new Error('Cabeçalho não encontrado: a planilha precisa ter as colunas "Data" e "Nome".')
   const issues: RowIssue[] = []
   const records: MappedRecord[] = []
   for (let i = header.index + 1; i < rows.length; i++) {
-    const r = mapRow(rows[i]!, header.map, i + 1, issues)
+    const r = mapRow(rows[i]!, header.map, i + 1, issues, knownTypes)
     if (r) records.push(r)
   }
   return { records, issues, columns: Object.keys(header.map) }

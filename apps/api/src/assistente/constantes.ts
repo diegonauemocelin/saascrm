@@ -30,10 +30,11 @@ export const REASONS: Record<string, string> = {
 export const KNOWLEDGE_STATUSES = ['ativo', 'em_revisao', 'inativo', 'rascunho']
 export const VALIDATION = ['confirmada', 'pendente', 'nao_confirmada']
 
+// Lista padrão, neutra quanto ao ramo; a empresa cria outras categorias pela planilha (as usadas aparecem nas telas).
 export const KNOWLEDGE_CATEGORIES = [
-  'Marcas de máquinas',
-  'Modelos de máquinas',
-  'Códigos de peças',
+  'Marcas',
+  'Modelos',
+  'Códigos de produtos',
   'Aplicações e compatibilidade',
   'Informações técnicas',
   'Dúvidas frequentes',
@@ -41,13 +42,10 @@ export const KNOWLEDGE_CATEGORIES = [
   'Frete e envio',
   'Informações comerciais',
   'Orientações de atendimento',
-  'Motor',
-  'Hidráulico',
-  'Filtros',
-  'Transmissão',
-  'Material rodante',
-  'Elétrica',
 ]
+
+/** Categorias da versão antiga: não são sugeridas, mas continuam liberadas para a IA (dados já cadastrados). */
+export const LEGACY_CATEGORIES = ['Marcas de máquinas', 'Modelos de máquinas', 'Códigos de peças', 'Motor', 'Hidráulico', 'Filtros', 'Transmissão', 'Material rodante', 'Elétrica']
 
 export const AI_KEY = 'assist_ai'
 export const STORE_KEY = 'assist_store'
@@ -111,13 +109,13 @@ export const AI_DEFAULTS: AiSettings = {
   min_confidence: 0.8,
   upsell_enabled: true,
   upsell_rules:
-    'Ofereça apenas itens com aplicação confirmada para o mesmo modelo de máquina e relacionados ao mesmo sistema ou à manutenção em curso (filtros, vedações, componentes do mesmo sistema). A oferta deve ser opcional e breve.',
+    'Ofereça apenas itens com compatibilidade confirmada para o mesmo modelo e relacionados ao produto da pergunta (complementos, acessórios ou itens usados junto). A oferta deve ser opcional e breve.',
   max_complementary: 2,
-  request_info_when: 'Quando o cliente não informar modelo completo, ano, número de série ou código original e isso for necessário para confirmar a compatibilidade.',
+  request_info_when: 'Quando faltar um dado do cliente necessário para indicar o produto certo ou confirmar a compatibilidade (por exemplo modelo, versão, ano, tamanho, medida ou código do produto).',
   request_info_mode: 'enviar',
   forward_when:
     'Quando envolver descontos, negociação, prazos ou condições não cadastradas; quando houver dados conflitantes; quando a compatibilidade não estiver confirmada na base; reclamações, garantia ou pós-venda.',
-  allowed_categories: KNOWLEDGE_CATEGORIES,
+  allowed_categories: [...KNOWLEDGE_CATEGORIES, ...LEGACY_CATEGORIES],
   company_profile: '',
   custom_instructions: '',
   provider: 'sem_ia',

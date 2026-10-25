@@ -5,16 +5,18 @@ import type { AuthUser } from '../common/types'
 import type { LookupType } from '../generated/prisma/client'
 import { linkSellersByEmail } from '../common/seller-link'
 import { PrismaService } from '../prisma/prisma.service'
-import { PART_TYPES } from './planilha'
 
 export const LOOKUP_TYPES: LookupType[] = ['ORIGEM', 'TIPO_CLIENTE', 'MARCA', 'TIPO_PECA', 'MOTIVO_PERDA']
 
-/** Listas iniciais (as mesmas usadas hoje na planilha da empresa). Só são criadas se o tenant ainda não tiver nenhuma. */
+/**
+ * Listas iniciais genéricas (cada empresa ajusta nas Listas do atendimento). Marcas e tipos de produto (TIPO_PECA)
+ * começam vazios: dependem do ramo da empresa. Só são criadas se o tenant ainda não tiver nenhuma.
+ */
 const DEFAULTS: Record<LookupType, string[]> = {
   ORIGEM: ['Site - LP', 'WhatsApp', 'RD Station', 'Ligação', 'Facebook / Instagram', 'E-mail', 'Indicação'],
-  TIPO_CLIENTE: ['Consumidor Final', 'Revenda', 'Mecânico / Oficina'],
-  MARCA: ['JCB', 'Caterpillar', 'Hyundai', 'Case', 'Perkins', 'Komatsu', 'XCMG', 'Volvo', 'New Holland', 'John Deere', 'Sany', 'LiuGong', 'SDLG', 'Doosan', 'SEM', 'Randon'],
-  TIPO_PECA: PART_TYPES,
+  TIPO_CLIENTE: ['Consumidor Final', 'Revenda', 'Empresa'],
+  MARCA: [],
+  TIPO_PECA: [],
   MOTIVO_PERDA: ['Sem produto disponível', 'Não respondeu', 'Urgência', 'Preço', 'Frete', 'Indeciso', 'Outro'],
 }
 

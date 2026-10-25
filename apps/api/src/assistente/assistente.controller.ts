@@ -605,7 +605,7 @@ export class AssistenteController {
     return this.imports.cancel(user.tenantId, id)
   }
 
-  // ---------- Produtos e aplicações ----------
+  // ---------- Produtos e compatibilidade ----------
 
   @Get('aplicacoes/meta')
   @RequirePermission('assist_aplicacoes', 'view')

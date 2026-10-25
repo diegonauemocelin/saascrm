@@ -33,7 +33,7 @@ export interface ApplicationInput {
   validationStatus?: string | null
 }
 
-/** Base de conhecimento (com versões) e aplicações peça × máquina. */
+/** Base de conhecimento (com versões) e aplicações (compatibilidade produto × marca e modelo). */
 @Injectable()
 export class AssistKnowledgeService {
   constructor(private readonly assist: AssistService) {}
@@ -243,9 +243,9 @@ export class AssistKnowledgeService {
     return { id, updated: !!same, status }
   }
 
-  // ---------- Aplicações peça × máquina ----------
+  // ---------- Aplicações (compatibilidade produto × modelo) ----------
 
-  /** Anúncio da loja cujo código (part number/SKU) ou título contém o código da peça. */
+  /** Anúncio da loja cujo código (part number/SKU) ou título contém o código do produto. */
   async findItemForCode(tenantId: string, partCode: string) {
     const code = normCode(partCode)
     if (!code) return null
@@ -286,7 +286,7 @@ export class AssistKnowledgeService {
     return row.id
   }
 
-  /** Depois de sincronizar os anúncios, liga aplicações sem anúncio pelo código da peça. */
+  /** Depois de sincronizar os anúncios, liga aplicações sem anúncio pelo código do produto. */
   async relinkApplications(tenantId: string) {
     const rows = await this.prisma.assistApplication.findMany({ where: { tenantId, mlItemId: null }, select: { id: true, partCode: true } })
     let linked = 0

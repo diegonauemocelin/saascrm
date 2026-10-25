@@ -7,16 +7,16 @@ import type { AssistKnowledge, Prisma } from '../generated/prisma/client'
 import { toXlsx } from '../marketing/arquivos'
 import { type Actor, AssistService } from './assist.service'
 import { AssistKnowledgeService, type KnowledgeData } from './conhecimento.service'
-import { KNOWLEDGE_CATEGORIES } from './constantes'
+import { KNOWLEDGE_CATEGORIES, LEGACY_CATEGORIES } from './constantes'
 import { matchKey, norm, str } from './texto'
 import { readXlsx } from './xlsx-leitor'
 
 export const COLUMNS = [
-  { key: 'category', header: 'Categoria', required: true, hint: 'Motor, hidráulico, filtros etc.' },
-  { key: 'brand', header: 'Marca', required: true, hint: 'Fabricante da máquina' },
-  { key: 'model', header: 'Modelo', required: true, hint: 'Modelo da máquina' },
-  { key: 'part_code', header: 'Código', required: false, hint: 'Código da peça' },
-  { key: 'product', header: 'Produto', required: true, hint: 'Nome da peça' },
+  { key: 'category', header: 'Categoria', required: true, hint: 'Dúvidas frequentes, garantia e troca etc.' },
+  { key: 'brand', header: 'Marca', required: true, hint: 'Marca do modelo compatível' },
+  { key: 'model', header: 'Modelo', required: true, hint: 'Modelo compatível' },
+  { key: 'part_code', header: 'Código', required: false, hint: 'Código do produto' },
+  { key: 'product', header: 'Produto', required: true, hint: 'Nome do produto' },
   { key: 'application', header: 'Aplicação', required: false, hint: 'Compatibilidade confirmada' },
   { key: 'question', header: 'Pergunta', required: false, hint: 'Dúvida que o cliente pode fazer' },
   { key: 'answer', header: 'Resposta', required: true, hint: 'Resposta aprovada para a IA' },
@@ -27,7 +27,8 @@ type ColKey = (typeof COLUMNS)[number]['key']
 export type RowData = Record<ColKey, string>
 
 const HEADER_ALIASES: Record<string, ColKey> = Object.fromEntries(COLUMNS.map((c) => [norm(c.header), c.key]))
-Object.assign(HEADER_ALIASES, { 'codigo da peca': 'part_code', cod: 'part_code', fabricante: 'brand', 'marca da maquina': 'brand', 'modelo da maquina': 'model', 'nome da peca': 'product', peca: 'product', compatibilidade: 'application', 'resposta aprovada': 'answer', situacao: 'status' })
+// nomes antigos das colunas continuam aceitos (planilhas já preenchidas)
+Object.assign(HEADER_ALIASES, { 'codigo do produto': 'part_code', 'codigo da peca': 'part_code', cod: 'part_code', fabricante: 'brand', 'marca compativel': 'brand', 'marca da maquina': 'brand', 'modelo compativel': 'model', 'modelo da maquina': 'model', 'nome do produto': 'product', 'nome da peca': 'product', peca: 'product', compatibilidade: 'application', 'resposta aprovada': 'answer', situacao: 'status' })
 
 function normalizeStatus(s: string) {
   const n = norm(s)
@@ -42,10 +43,11 @@ export function classifyRow(data: RowData, seenKeys: Map<string, number>, findEx
   const warnings: string[] = []
   for (const c of COLUMNS) if (c.required && !data[c.key]) errors.push(`Campo obrigatório vazio: ${c.header}.`)
   if (data.status && !normalizeStatus(data.status)) errors.push('Status deve ser "Ativo" ou "Inativo".')
-  if (!data.part_code) warnings.push('Sem código da peça: não será possível detectar atualizações nem ligar a um produto.')
+  if (!data.part_code) warnings.push('Sem código do produto: não será possível detectar atualizações nem ligar a um anúncio.')
   if (!data.application) warnings.push('Sem aplicação confirmada: a IA não poderá afirmar compatibilidade com base nesta linha.')
   if (data.category && !KNOWLEDGE_CATEGORIES.includes(data.category)) {
-    const match = KNOWLEDGE_CATEGORIES.find((c) => norm(c) === norm(data.category))
+    // Aceita também as categorias da versão antiga (planilhas já existentes), sem aviso.
+    const match = [...KNOWLEDGE_CATEGORIES, ...LEGACY_CATEGORIES].find((c) => norm(c) === norm(data.category))
     if (match) data.category = match
     else warnings.push(`Categoria "${data.category}" não está na lista padrão; será criada como nova categoria.`)
   }
@@ -86,7 +88,7 @@ export class AssistImportService {
         {
           name: 'Conhecimentos',
           header: COLUMNS.map((c) => c.header),
-          rows: [['Filtros', 'Caterpillar', '416E', '1R-0750', 'Filtro de combustível', 'Retroescavadeira Caterpillar 416E', 'Esse filtro serve na 416E?', 'Sim. Conforme catálogo, o filtro 1R-0750 tem aplicação confirmada para a retroescavadeira Caterpillar 416E.', 'Catálogo Caterpillar SIS, validado por J. Silva', 'Ativo']],
+          rows: [['Aplicações e compatibilidade', 'Marca X', 'X200', 'AB-1234', 'Capa protetora', 'Marca X X200, anos 2020 a 2023', 'Essa capa serve no X200?', 'Sim. Conforme o catálogo do fabricante, a capa AB-1234 tem compatibilidade confirmada com o modelo X200 da Marca X.', 'Catálogo do fabricante, validado por J. Silva', 'Ativo']],
         },
         {
           name: 'Orientações',
@@ -96,7 +98,7 @@ export class AssistImportService {
             ['2', 'Obrigatórias: Categoria, Marca, Modelo, Produto, Resposta, Fonte e Status.'],
             ['3', 'Código + Aplicação identificam o registro. Se já existirem na base, a linha é tratada como atualização e você compara antes de confirmar.'],
             ['4', 'Status aceita apenas "Ativo" ou "Inativo".'],
-            ['5', 'Em "Aplicação" informe somente compatibilidades confirmadas. A IA só afirma que uma peça serve quando a informação está aprovada.'],
+            ['5', 'Em "Aplicação" informe somente compatibilidades confirmadas. A IA só afirma que um produto serve quando a informação está aprovada.'],
             ['6', 'Nunca inclua senhas, tokens ou dados de clientes na planilha.'],
             ['7', 'Apague a linha de exemplo antes de importar.'],
             ['', ''],

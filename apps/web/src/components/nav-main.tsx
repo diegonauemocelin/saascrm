@@ -29,7 +29,7 @@ function Items({ items }: { items: NavItem[] }) {
           </SidebarMenuButton>
           {item.phase && <SidebarMenuBadge className="text-xs font-normal text-muted-foreground">Em breve</SidebarMenuBadge>}
           {item.onRequest && (
-            <SidebarMenuBadge className="text-muted-foreground" title="Sob consulta: fale com a sgmulticonecta para contratar">
+            <SidebarMenuBadge className="text-muted-foreground" title="Sob consulta: fale com a SG Multiconecta para contratar">
               <LockKeyholeIcon className="size-3.5" aria-label="Sob consulta" />
             </SidebarMenuBadge>
           )}

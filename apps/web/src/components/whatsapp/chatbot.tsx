@@ -75,13 +75,13 @@ function template(sectors: Data['sectors']): Pick<FlowRow, 'steps' | 'startStepI
         type: 'menu',
         text: 'Como podemos ajudar?',
         options: [
-          { label: 'Comprar peças / orçamento', next: 'maquina' },
+          { label: 'Comprar / pedir orçamento', next: 'produto' },
           { label: a ? `Falar com ${a.name}` : 'Falar com um atendente', ...(a ? { sectorId: a.id } : { next: null }) },
           ...(b ? [{ label: `Falar com ${b.name}`, sectorId: b.id }] : []),
         ],
       },
-      { id: 'maquina', type: 'pergunta', label: 'Máquina e peça', text: 'Qual a marca, o modelo da máquina e a peça que você procura? (se tiver o código da peça, mande também)', go: { next: 'fim' } },
-      { id: 'fim', type: 'transferir', text: 'Obrigado! Um vendedor já vai te atender.', go: a ? { sectorId: a.id } : {} },
+      { id: 'produto', type: 'pergunta', label: 'Produto', text: 'Qual produto você procura? (se tiver o código, a marca ou o modelo, mande também)', go: { next: 'fim' } },
+      { id: 'fim', type: 'transferir', text: 'Obrigado! Já passei sua mensagem para a nossa equipe, que vai te atender assim que possível.', go: a ? { sectorId: a.id } : {} },
     ],
   }
 }
@@ -360,7 +360,7 @@ function FlowEditor({ flow, data, onClose }: { flow: FlowRow | null; data: Data;
                     </div>
                     <p className="text-xs text-muted-foreground">{TYPE_INFO[s.type].help}</p>
                     {s.type === 'pergunta' && (
-                      <Input aria-label="Nome da resposta" maxLength={60} placeholder="Nome da resposta (ex.: Modelo da máquina)" value={s.label ?? ''} onChange={(e) => setStep(i, { label: e.target.value })} />
+                      <Input aria-label="Nome da resposta" maxLength={60} placeholder="Nome da resposta (ex.: Produto procurado)" value={s.label ?? ''} onChange={(e) => setStep(i, { label: e.target.value })} />
                     )}
                     <Textarea rows={s.type === 'menu' ? 2 : 3} maxLength={1000} placeholder={s.type === 'menu' ? 'Pergunta do menu (ex.: Como podemos ajudar?)' : s.type === 'transferir' || s.type === 'encerrar' ? 'Mensagem (opcional)' : 'Mensagem para o cliente'} value={s.text} onChange={(e) => setStep(i, { text: e.target.value })} aria-label="Mensagem da etapa" />
                     {s.type === 'menu' ? (

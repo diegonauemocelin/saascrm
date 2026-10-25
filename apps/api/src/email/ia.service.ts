@@ -241,7 +241,7 @@ export class EmailAiService {
     const company = (await this.settings.branding(user.tenantId)).appName
     const draft = d.html ? htmlToText(d.html) : (d.text ?? '')
     const prompt = userPrompt(d.action, draft, d.topic ?? '')
-    if (!prompt) throw new BadRequestException(d.action === 'escrever' ? 'Escreva o tema do e-mail (ex.: promoção de filtros para retroescavadeira JCB).' : 'Escreva algum texto no bloco antes de pedir para a IA.')
+    if (!prompt) throw new BadRequestException(d.action === 'escrever' ? 'Escreva o tema do e-mail (ex.: promoção de fim de mês com frete grátis).' : 'Escreva algum texto no bloco antes de pedir para a IA.')
     const { text: raw } = await this.call(s, systemPrompt(company, s.about), prompt, d.action === 'corrigir' ? 0.2 : 0.7)
     if (d.action === 'assunto' || d.action === 'preheader') return { options: answerOptions(raw, d.action === 'assunto' ? 5 : 3) }
     return { html: answerHtml(raw), text: cleanAnswer(raw) }

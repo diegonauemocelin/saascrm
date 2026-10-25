@@ -67,7 +67,7 @@ export class TcarController {
     return this.tcar.search(user, { term: q.busca, field: q.campo, inStock: q.estoque, page: q.pagina })
   }
 
-  /** Estoque na hora das primeiras peças da busca. */
+  /** Estoque na hora dos primeiros produtos da busca. */
   @Post('produtos/atualizar')
   @HttpCode(200)
   @Throttle({ default: { limit: 40, ttl: 60_000 } })

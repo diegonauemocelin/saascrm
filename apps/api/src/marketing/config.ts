@@ -123,8 +123,8 @@ export const REPORT_SECTIONS = [
   { key: 'funil', label: 'Funil de marketing e vendas' },
   { key: 'vendedores', label: 'Resultado por vendedor' },
   { key: 'regioes', label: 'Resultado por estado e região' },
-  { key: 'marcas', label: 'Resultado por marca da máquina' },
-  { key: 'categorias', label: 'Resultado por tipo de peça' },
+  { key: 'marcas', label: 'Resultado por marca' },
+  { key: 'categorias', label: 'Resultado por tipo de produto' },
   { key: 'origens', label: 'Resultado por origem do lead' },
   { key: 'email', label: 'E-mail marketing do período' },
   { key: 'loja', label: 'Loja virtual (Magazord): vendas, canais de venda e produtos mais vendidos' },
@@ -206,7 +206,7 @@ export function cleanSchedule(input: Partial<ReportSchedule>, prev: ReportSchedu
   if (bad) return { error: `E-mail inválido: ${bad}` }
   const rawPhones = (input.whatsapp ?? prev?.whatsapp ?? []).map((x) => String(x).trim()).filter(Boolean)
   const badPhone = rawPhones.find((x) => !normalizePhone(x))
-  if (badPhone) return { error: `Celular inválido para WhatsApp: ${badPhone} (use DDD + número, ex.: (49) 98863-2548).` }
+  if (badPhone) return { error: `Celular inválido para WhatsApp: ${badPhone} (use DDD + número, ex.: (49) 99999-0000).` }
   const whatsapp = [...new Set(rawPhones.map((x) => normalizePhone(x)!))]
   if (whatsapp.length > 20) return { error: 'No máximo 20 celulares por relatório.' }
   if (!emails.length && !whatsapp.length) return { error: 'Cadastre ao menos um e-mail ou um celular de WhatsApp para receber o relatório.' }

@@ -55,6 +55,7 @@ enum FollowStatus {
 }
 
 /// Listas configuráveis dos atendimentos. Itens são desativados, nunca apagados, para preservar o histórico.
+/// TIPO_PECA é a lista "Tipos de produto" (o nome do valor ficou da versão antiga, para não mexer nos dados).
 enum LookupType {
   ORIGEM
   TIPO_CLIENTE
@@ -438,7 +439,7 @@ model ServiceRecord {
   country        String        @default("BR")
   state          String?       @db.Char(2)
   city           String?
-  /// Marcas da máquina e tipos de peça (ids de LookupItem), seleção múltipla.
+  /// Marcas e tipos de produto (ids de LookupItem), seleção múltipla.
   brandIds       String[]      @db.Uuid
   partTypeIds    String[]      @db.Uuid
   forwarded      Boolean       @default(false)
@@ -475,7 +476,7 @@ model ServiceRecord {
   adsTouchAt     DateTime?
   /// Quando a campanha foi conferida (é refeita se o atendimento ou o lead mudar depois disso).
   adsCheckedAt   DateTime?
-  /// Página por onde o contato chegou (LP ou página do site), sem os parâmetros do link. Ex.: lp.usaparts.com.br/hyundai
+  /// Página por onde o contato chegou (LP ou página do site), sem os parâmetros do link. Ex.: lp.suaempresa.com.br/promocao
   entryPage      String?
   /// Por onde entrou no site: formulário, pop-up ou botão de WhatsApp (com o nome dado na Captura).
   entryChannel   String?
@@ -844,7 +845,7 @@ model CaptureForm {
   consentText    String?
   originName     String   @default("Site - LP")
   ownerId        String?  @db.Uuid
-  /// Opcionais: tipo de cliente e marcas da máquina gravados no atendimento (rastreiam de qual LP/site veio).
+  /// Opcionais: tipo de cliente e marcas gravados no atendimento (rastreiam de qual LP/site veio).
   customerTypeId String?  @db.Uuid
   brandIds       String[] @default([]) @db.Uuid
   tags           String[]
@@ -928,7 +929,7 @@ model CaptureWhatsapp {
   customerTypeId String?  @db.Uuid
   brandIds       String[] @default([]) @db.Uuid
   tags           String[]
-  /// Origem do atendimento criado pelo botão (ex.: "WhatsApp - LP Hyundai"), para separar cada LP.
+  /// Origem do atendimento criado pelo botão (ex.: "WhatsApp - LP Promoção"), para separar cada LP.
   originName     String   @default("WhatsApp")
   createRecord   Boolean  @default(true)
   active         Boolean  @default(false)
@@ -1717,7 +1718,7 @@ model TcarAction {
   /// Também é o "transaction" enviado à Tcar.
   id        String    @id @default(uuid()) @db.Uuid
   tenantId  String    @db.Uuid
-  /// full (cópia completa, página a página), incremental (alterados) ou live (uma peça, pedido na tela).
+  /// full (cópia completa, página a página), incremental (alterados) ou live (um produto, pedido na tela).
   kind      String
   cmd       String
   query     Json      @default("{}")
@@ -2052,7 +2053,7 @@ model MarketplaceAdDay {
   checkouts       Int      @default(0)
   /// Display: vendas pela data do evento (a receita padrão é pelo ponto de contato)
   eventRevenue    Decimal  @default(0) @db.Decimal(14, 2)
-  /// api (sincronizado pelo CRM) ou bi (trazido do Usaparts BI)
+  /// api (sincronizado pelo CRM) ou bi (trazido de um BI externo)
   source          String   @default("api")
   updatedAt       DateTime @updatedAt
 
@@ -2061,7 +2062,7 @@ model MarketplaceAdDay {
   @@map("marketplace_ad_days")
 }
 
-// ---------- Assistente de perguntas do Mercado Livre (veio do painel.usaparts.com.br) ----------
+// ---------- Assistente de perguntas do Mercado Livre (veio de um painel externo) ----------
 // Os ids são números, como no painel: a IA cita os conhecimentos pelo número e as telas mostram "#123".
 
 /// Pergunta recebida no marketplace: registro único por pergunta, com a trajetória em assist_events.
@@ -2312,7 +2313,8 @@ model AssistItem {
   @@map("assist_items")
 }
 
-/// Aplicação peça × máquina (compatibilidade confirmada, pendente ou não confirmada).
+/// Compatibilidade do produto: produto × marca/modelo em que ele serve (campos machine*: veículo, aparelho ou
+/// equipamento), confirmada, pendente ou não confirmada.
 model AssistApplication {
   id               Int       @id @default(autoincrement())
   tenantId         String    @db.Uuid
@@ -2377,7 +2379,7 @@ model LandingPage {
   id          String    @id @default(uuid()) @db.Uuid
   tenantId    String    @db.Uuid
   name        String
-  /// Endereço da página no subdomínio (ex.: filtros-komatsu).
+  /// Endereço da página no subdomínio (ex.: promocao-de-verao).
   slug        String
   /// RASCUNHO, PUBLICADA ou PAUSADA.
   status      String    @default("RASCUNHO")

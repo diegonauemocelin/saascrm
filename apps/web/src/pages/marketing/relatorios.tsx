@@ -277,7 +277,7 @@ function ScheduleDialog({ initial, view, onClose, onSaved }: { initial: Partial<
             <Label htmlFor="rep-whatsapp">
               <MessageCircleIcon className="size-4" /> WhatsApp que recebem
             </Label>
-            <Textarea id="rep-whatsapp" rows={2} placeholder={'(49) 98863-2548\n(49) 99999-0000'} value={phones} onChange={(e) => setPhones(e.target.value)} />
+            <Textarea id="rep-whatsapp" rows={2} placeholder={'(49) 99999-0000\n(49) 99999-1111'} value={phones} onChange={(e) => setPhones(e.target.value)} />
             <p className="text-xs text-muted-foreground">
               Um celular por linha, com DDD. Até 20. Vai um resumo com os principais números e o PDF. Os celulares recebem um de cada vez, com uma pausa sorteada entre 40 s e 2 min, para não bloquear o número.
             </p>
