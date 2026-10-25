@@ -2,6 +2,33 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.2",
+      "date": "2026-10-25",
+      "title": "Entrada da plataforma: entrar na empresa, recuperar o acesso ou criar conta",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Entrada",
+          "text": "Na tela de entrada da plataforma, quem já é cliente informa o endereço da empresa e vai direto para o login dela (onde também recupera a senha); quem ainda não é cliente cria a conta escolhendo o plano."
+        },
+        {
+          "type": "novo",
+          "area": "Entrada",
+          "text": "\"Não lembro o endereço\": o cliente informa o e-mail e recebe o link de acesso das empresas em que é usuário (a tela não revela se o e-mail tem cadastro)."
+        },
+        {
+          "type": "melhoria",
+          "area": "Cadastro",
+          "text": "Link para entrar na empresa a partir do cadastro e plano já escolhido pelo endereço /cadastro?plano=."
+        },
+        {
+          "type": "melhoria",
+          "area": "Entrada",
+          "text": "A equipe da plataforma entra pelo \"Acesso da administração\"; depois do primeiro acesso, o navegador já abre direto o login da administração."
+        }
+      ]
+    },
+    {
       "version": "1.0.1",
       "date": "2026-10-25",
       "title": "Correção na primeira instalação",

@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { CheckIcon, ExternalLinkIcon, Loader2Icon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -41,13 +42,15 @@ export function CadastroPage() {
   usePageTitle('Cadastro')
   const branding = useBranding()
   const plans = useQuery({ queryKey: ['cadastro-planos'], queryFn: () => api.get<PublicPlan[]>('/public/cadastro/planos') })
-  const [planId, setPlanId] = useState('')
+  // Link de um plano específico (ex.: página de apresentação): /cadastro?plano=<id>
+  const [params] = useSearchParams()
+  const [planId, setPlanId] = useState(params.get('plano') ?? '')
   const [f, setF] = useState({ company: '', slug: '', document: '', adminName: '', email: '', phone: '', password: '', password2: '' })
   const [slugEdited, setSlugEdited] = useState(false)
   const [terms, setTerms] = useState(false)
   const [slugState, setSlugState] = useState<{ available: boolean; url: string | null } | null>(null)
   useEffect(() => {
-    if (!planId && plans.data?.length) setPlanId(plans.data.find((p) => p.trialDays)?.id ?? plans.data[0]!.id)
+    if (plans.data?.length && !plans.data.some((p) => p.id === planId)) setPlanId(plans.data.find((p) => p.trialDays)?.id ?? plans.data[0]!.id)
   }, [plans.data, planId])
   useEffect(() => {
     if (f.slug.length < 3) return setSlugState(null)
@@ -102,10 +105,16 @@ export function CadastroPage() {
         <div className="text-center">
           <h1 className="text-2xl font-semibold">Comece a usar o {branding.appName}</h1>
           <p className="text-muted-foreground">Escolha o plano, cadastre a empresa e o administrador. Cada empresa tem o seu endereço próprio.</p>
+          <p className="mt-1 text-sm">
+            Já tem cadastro?{' '}
+            <Link to="/login" className="font-medium underline">
+              Entrar na minha empresa
+            </Link>
+          </p>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {plans.data?.map((p) => (
-            <button key={p.id} type="button" onClick={() => setPlanId(p.id)} className={cn('rounded-xl border bg-card p-4 text-left shadow-sm transition', planId === p.id ? 'ring-2 ring-primary' : 'hover:shadow-md')}>
+            <button key={p.id} type="button" onClick={() => setPlanId(p.id)} className={cn('flex flex-col items-start rounded-xl border bg-card p-4 text-left shadow-sm transition', planId === p.id ? 'ring-2 ring-primary' : 'hover:shadow-md')}>
               <p className="text-lg font-semibold">{p.name}</p>
               <p className="text-2xl font-semibold tabular-nums">
                 {brl(p.priceCents)}
@@ -180,7 +189,11 @@ export function CadastroPage() {
             {signup.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} {plan?.trialDays ? `Começar o teste grátis de ${plan.trialDays} dias` : 'Cadastrar e pagar a primeira mensalidade'}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Já tem cadastro? Entre pelo endereço da sua empresa. Dúvidas: {branding.supportEmail || 'fale com a sgmulticonecta'}.
+            Já tem cadastro?{' '}
+            <Link to="/login" className="underline">
+              Entre pelo endereço da sua empresa
+            </Link>
+            . Dúvidas: {branding.supportEmail || 'fale com a sgmulticonecta'}.
           </p>
         </Card>
       </div>

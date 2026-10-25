@@ -17,6 +17,7 @@ import { Type } from 'class-transformer'
 import { IsBoolean, IsEmail, IsIn, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min, ValidateIf } from 'class-validator'
 import { AuditService } from '../audit/audit.service'
 import { encrypt } from '../common/crypto'
+import { env } from '../config/env'
 import { CurrentUser, Public, ReqContext, type RequestCtx, RequirePermission, ReqHost } from '../common/decorators'
 import type { AuthUser } from '../common/types'
 import { FilesService, IMAGE_UPLOAD_LIMIT } from '../files/files.service'
@@ -96,11 +97,16 @@ export class SettingsController {
     return this.renomear.run(user, dto.de, dto.para, dto.aplicar, ctx)
   }
 
-  /** Identidade visual usada na tela de login, antes de existir sessão. */
+  /**
+   * Identidade visual usada na tela de login, antes de existir sessão. No endereço da plataforma (empresa dona), a tela
+   * de entrada também oferece o cadastro de empresas novas e o caminho para o login da empresa de quem já é cliente.
+   */
   @Public()
   @Get('public/branding')
   async publicBranding(@ReqHost() host: string) {
-    return publicBranding(await this.settings.branding(await this.tenants.requireFromHost(host)))
+    const tenantId = await this.tenants.requireFromHost(host)
+    const platform = !!env.platformDomain && (await this.tenants.info(tenantId)).isPlatform
+    return { ...publicBranding(await this.settings.branding(tenantId)), signup: platform, platformDomain: platform ? env.platformDomain : null }
   }
 
   @Get('settings/branding')

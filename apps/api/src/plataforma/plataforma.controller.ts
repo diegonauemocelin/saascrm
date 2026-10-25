@@ -182,6 +182,10 @@ export class PlataformaController {
   }
 }
 
+class RemindDto {
+  @IsEmail() @MaxLength(200) email!: string
+}
+
 /** Página de cadastro (pública, no domínio da plataforma): planos, endereço livre e o cadastro em si. */
 @ApiTags('Plataforma')
 @Controller('public/cadastro')
@@ -207,6 +211,14 @@ export class CadastroController {
   @HttpCode(200)
   signup(@Body() dto: SignupDto, @ReqContext() ctx: RequestCtx) {
     return this.billing.signup(dto, ctx)
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 3_600_000 } })
+  @Post('minhas-empresas')
+  @HttpCode(200)
+  remind(@Body() dto: RemindDto) {
+    return this.billing.remindCompanies(dto.email)
   }
 }
 

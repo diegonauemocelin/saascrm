@@ -77,6 +77,9 @@ export interface Branding {
   allowLayoutChoice: boolean
   defaultScreens?: ScreenModel
   supportEmail: string
+  /** Só no endereço da plataforma: a tela de entrada oferece o cadastro e o caminho para o login da empresa. */
+  signup?: boolean
+  platformDomain?: string | null
   /** Cor da marca (logo sem imagem, relatórios e e-mails); vazio = a cor de ação (primaryColor). */
   brandColor?: string
   companyInfo?: string

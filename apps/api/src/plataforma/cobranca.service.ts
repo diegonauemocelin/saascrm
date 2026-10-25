@@ -7,6 +7,8 @@ import type { AuthUser } from '../common/types'
 import { env } from '../config/env'
 import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
+import { MailService } from '../settings/mail.service'
+import { SettingsService } from '../settings/settings.service'
 import { AsaasClient, type AsaasPayment, brDate, isPaid, paidUntilAfter, paymentStatus } from './asaas'
 import { PlataformaService } from './plataforma.service'
 import { cleanSlug, STATUS_LABEL, SYSTEMS, type TenantStatus, validDocument } from './sistemas'
@@ -35,6 +37,8 @@ export class CobrancaService {
     private readonly tenants: TenantService,
     private readonly audit: AuditService,
     private readonly plataforma: PlataformaService,
+    private readonly mail: MailService,
+    private readonly settings: SettingsService,
   ) {}
 
   private client() {
@@ -43,6 +47,45 @@ export class CobrancaService {
   }
 
   // ---------- Cadastro ----------
+
+  /**
+   * "Esqueci o endereço da minha empresa": manda para o e-mail os links de login das empresas em que ele é usuário
+   * ativo. A resposta é sempre a mesma (não revela se o e-mail tem cadastro).
+   */
+  async remindCompanies(rawEmail: string) {
+    const message = 'Se este e-mail tiver cadastro, enviamos para ele o endereço de acesso da sua empresa. Confira também a caixa de spam.'
+    const email = rawEmail.trim().toLowerCase()
+    const platformId = (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id
+    if (!platformId || !/^\S+@\S+\.\S+$/.test(email)) return { ok: true, message }
+    const users = await this.prisma.user.findMany({
+      where: { email: { equals: email, mode: 'insensitive' }, active: true, tenant: { isPlatform: false, status: { not: 'CANCELADA' } } },
+      select: { name: true, tenantId: true, tenant: { select: { name: true } } },
+      take: 20,
+    })
+    if (!users.length) return { ok: true, message }
+    const links = await Promise.all(users.map(async (u) => ({ name: u.tenant.name, url: `${await this.tenants.url(u.tenantId)}/login` })))
+    const branding = await this.settings.branding(platformId)
+    const title = `Endereço de acesso - ${branding.appName}`
+    const body = links.length === 1 ? `O endereço de acesso da ${links[0]!.name} é ${links[0]!.url}` : `Você tem acesso a estas empresas: ${links.map((l) => `${l.name}: ${l.url}`).join(' · ')}`
+    try {
+      await this.mail.send(platformId, {
+        to: email,
+        subject: title,
+        text: `Olá, ${users[0]!.name}.\n\n${links.map((l) => `${l.name}: ${l.url}`).join('\n')}\n\nGuarde este endereço nos favoritos.`,
+        html: this.mail.simpleTemplate(branding, {
+          title,
+          greeting: `Olá, ${users[0]!.name}.`,
+          body,
+          buttonLabel: links.length === 1 ? 'Entrar' : undefined,
+          buttonUrl: links.length === 1 ? links[0]!.url : undefined,
+          footnote: 'Guarde este endereço nos favoritos. Se não foi você que pediu, ignore este e-mail.',
+        }),
+      })
+    } catch (err) {
+      this.logger.error(`Falha ao enviar o endereço de acesso: ${(err as Error).message}`)
+    }
+    return { ok: true, message }
+  }
 
   /** Planos que aparecem na página de cadastro. */
   async publicPlans() {
