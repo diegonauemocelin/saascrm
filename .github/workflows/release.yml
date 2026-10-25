@@ -86,4 +86,9 @@ jobs:
         run: |
           maior="$(git ls-remote --tags --refs origin 'v*.*.*' | sed 's#.*refs/tags/##' | sort -V | tail -n1)"
           latest=$([ "$maior" = "${GITHUB_REF_NAME}" ] && echo true || echo false)
-          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file notas.md --verify-tag --latest="$latest"
+          # Release criada pelo site do GitHub (que também cria a tag): só atualiza as notas.
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release edit "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file notas.md --latest="$latest"
+          else
+            gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file notas.md --verify-tag --latest="$latest"
+          fi
