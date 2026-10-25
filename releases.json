@@ -2,6 +2,23 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.5",
+      "date": "2026-10-25",
+      "title": "Site: marketplaces, anúncios e novidades em breve",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Site",
+          "text": "Seção Marketplaces e anúncios: perguntas do Mercado Livre respondidas pela IA com base de conhecimento e indicação de produtos complementares, dashboard do Mercado Livre Ads e painéis de Meta, Google e TikTok Ads com alertas e ações sugeridas."
+        },
+        {
+          "type": "novo",
+          "area": "Site",
+          "text": "Seção Em breve: Shopee, Amazon e TikTok Shop, análise de mercado, análise de concorrentes e busca de leads por região e área de interesse."
+        }
+      ]
+    },
+    {
       "version": "1.0.4",
       "date": "2026-10-25",
       "title": "Sistema genérico para qualquer ramo e planos sob consulta no cadastro",
