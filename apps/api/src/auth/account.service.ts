@@ -6,7 +6,7 @@ import type { AuthUser } from '../common/types'
 import type { LayoutMode, ThemeMode } from '../generated/prisma/client'
 import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
-import { accessOf, allowedModules, STATUS_LABEL, type TenantStatus } from '../plataforma/sistemas'
+import { accessOf, allowedModules, onRequestModules, STATUS_LABEL, type TenantStatus } from '../plataforma/sistemas'
 import { SettingsService } from '../settings/settings.service'
 import { cleanSignature } from '../whatsapp/envio'
 import { AuthService } from './auth.service'
@@ -53,6 +53,8 @@ export class AccountService {
       permissions: user.permissions,
       // Só os módulos dos sistemas do plano (o editor de perfis mostra só esses).
       modules: MODULES.filter((m) => allowedModules(tenant).has(m.key)),
+      // Sistemas sob consulta que a empresa não tem: o menu mostra com a marca "Sob consulta".
+      onRequest: onRequestModules(allowedModules(tenant)),
       company: {
         name: tenant.name,
         slug: tenant.slug,

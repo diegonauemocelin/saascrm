@@ -104,13 +104,14 @@ export function GlobalSearch({ className, iconOnly = false }: { className?: stri
               ))}
             </CommandGroup>
           )}
-          {visibleNavigation(can, !!me?.role.isSystem).map((group) => (
+          {visibleNavigation(can, !!me?.role.isSystem, me?.onRequest, !!me?.company?.isPlatform).map((group) => (
             <CommandGroup key={group.title} heading={group.title}>
               {group.items.map((item) => (
                 <CommandItem key={item.to} value={`${group.title} ${item.title}`} onSelect={() => go(item.to)}>
                   <item.icon />
                   {item.title}
                   {item.phase && <CommandShortcut>Em breve</CommandShortcut>}
+                  {item.onRequest && <CommandShortcut>Sob consulta</CommandShortcut>}
                 </CommandItem>
               ))}
             </CommandGroup>

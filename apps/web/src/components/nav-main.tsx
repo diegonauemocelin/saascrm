@@ -1,4 +1,4 @@
-import { ChevronRightIcon } from 'lucide-react'
+import { ChevronRightIcon, LockKeyholeIcon } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -28,6 +28,11 @@ function Items({ items }: { items: NavItem[] }) {
             </NavLink>
           </SidebarMenuButton>
           {item.phase && <SidebarMenuBadge className="text-xs font-normal text-muted-foreground">Em breve</SidebarMenuBadge>}
+          {item.onRequest && (
+            <SidebarMenuBadge className="text-muted-foreground" title="Sob consulta: fale com a sgmulticonecta para contratar">
+              <LockKeyholeIcon className="size-3.5" aria-label="Sob consulta" />
+            </SidebarMenuBadge>
+          )}
           {badge(item.to).n > 0 && (
             <SidebarMenuBadge className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums" aria-label={`${badge(item.to).n} ${badge(item.to).label}`}>
               {badge(item.to).n}

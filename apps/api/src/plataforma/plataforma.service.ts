@@ -43,6 +43,8 @@ export interface CompanyInput {
   contactName?: string | null
   contactEmail?: string | null
   contactPhone?: string | null
+  /** Senha escolhida no cadastro (sem ela, o administrador recebe o convite para criar a senha). */
+  password?: string
 }
 
 /**
@@ -72,7 +74,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
   }
 
   /** Só a empresa dona da plataforma, com a permissão do módulo Plataforma. */
-  private async assertCan(user: AuthUser, action: Action) {
+  async assertCan(user: AuthUser, action: Action) {
     const t = await this.tenants.info(user.tenantId)
     if (!t.isPlatform || !can(user.permissions, user.role.isSystem, PLATFORM_MODULE, action)) throw new ForbiddenException('Você não tem permissão para esta ação.')
   }
@@ -108,7 +110,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
   // ---------- Sistemas e planos ----------
 
   systems() {
-    return SYSTEMS.map((s) => ({ key: s.key, label: s.label }))
+    return SYSTEMS.map((s) => ({ key: s.key, label: s.label, onRequest: 'onRequest' in s && s.onRequest }))
   }
 
   async plans(user: AuthUser) {
@@ -191,6 +193,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
       whatsapp: numbers.find((n) => n.tenantId === r.id)?._count ?? 0,
       extraUsers: r.extraUsers,
       extraWhatsapp: r.extraWhatsapp,
+      extraSystems: r.extraSystems,
       document: r.document,
       contactName: r.contactName,
       contactEmail: r.contactEmail,
@@ -240,20 +243,20 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
         },
       })
       const roleId = await createDefaultRoles(tx, tenant.id)
-      // Senha aleatória que ninguém conhece: o administrador cria a dele pelo link do convite.
-      const admin = await tx.user.create({ data: { tenantId: tenant.id, roleId, name: d.adminName.trim().slice(0, 120) || 'Administrador', email, passwordHash: await hashPassword(randomBytes(24).toString('base64url')), mustChangePassword: false } })
+      // Sem senha escolhida, uma aleatória que ninguém conhece: o administrador cria a dele pelo link do convite.
+      const admin = await tx.user.create({ data: { tenantId: tenant.id, roleId, name: d.adminName.trim().slice(0, 120) || 'Administrador', email, passwordHash: await hashPassword(d.password ?? randomBytes(24).toString('base64url')), mustChangePassword: false } })
       await tx.tenantSetting.create({ data: { tenantId: tenant.id, key: 'branding', value: { appName: name, shortName: name.slice(0, 30) } as Prisma.InputJsonValue } })
       return { tenant, admin }
     })
     const url = this.urlOf(tenant.slug, null)
-    let invite = 'enviado'
+    let invite = d.password ? 'não precisa (senha criada no cadastro)' : 'enviado'
     try {
-      await this.auth.sendPasswordLink(admin.id, tenant.id, admin.email, admin.name, 'invite')
+      if (!d.password) await this.auth.sendPasswordLink(admin.id, tenant.id, admin.email, admin.name, 'invite')
     } catch (err) {
       invite = `não enviado (${(err as Error).message.slice(0, 120).replace(/\.+$/, '')}). Configure o SMTP da plataforma em Configurações › E-mail e use "Reenviar convite"`
     }
     await this.audit.log({ tenantId: tenant.id, userId: user?.id, userEmail: user?.email ?? email, action: user ? 'plataforma.empresa_criada' : 'plataforma.cadastro', entity: 'tenant', entityId: tenant.id, ...ctx, data: { nome: name, endereco: slug, plano: plan?.name ?? null, inicio: start } })
-    return { id: tenant.id, slug, url, invite, inviteSent: invite === 'enviado', message: `Empresa criada em ${url}. Convite para ${email}: ${invite}.` }
+    return { id: tenant.id, slug, url, invite, inviteSent: invite !== 'enviado' ? !!d.password : true, message: `Empresa criada em ${url}. Convite para ${email}: ${invite}.` }
   }
 
   async resendInvite(user: AuthUser, id: string) {
@@ -265,7 +268,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
   }
 
   /** Alterar a empresa: plano, adicionais, contato, observação, vencimento e a situação (suspender, reativar, cancelar). */
-  async updateCompany(user: AuthUser, id: string, d: Partial<CompanyInput> & { status?: string; trialEndsAt?: string | null; extraUsers?: number; extraWhatsapp?: number; notes?: string | null }, ctx: RequestCtx) {
+  async updateCompany(user: AuthUser, id: string, d: Partial<CompanyInput> & { status?: string; trialEndsAt?: string | null; extraUsers?: number; extraWhatsapp?: number; extraSystems?: string[]; notes?: string | null }, ctx: RequestCtx) {
     await this.assertCan(user, 'edit')
     const cur = await this.prisma.tenant.findFirst({ where: { id, isPlatform: false } })
     if (!cur) throw new NotFoundException('Empresa não encontrada.')
@@ -276,6 +279,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
       data.planId = d.planId || null
     }
     for (const k of ['extraUsers', 'extraWhatsapp'] as const) if (d[k] !== undefined) data[k] = Math.max(0, Math.min(1000, Math.round(d[k]!)))
+    if (d.extraSystems !== undefined) data.extraSystems = cleanSystems(d.extraSystems)
     for (const k of ['document', 'contactName', 'contactEmail', 'contactPhone', 'notes'] as const) if (d[k] !== undefined) data[k] = d[k]?.toString().trim().slice(0, k === 'notes' ? 1000 : 200) || null
     if (d.paidUntil !== undefined) data.paidUntil = d.paidUntil && Number.isFinite(Date.parse(d.paidUntil)) ? new Date(d.paidUntil) : null
     if (d.trialEndsAt !== undefined) data.trialEndsAt = d.trialEndsAt && Number.isFinite(Date.parse(d.trialEndsAt)) ? new Date(d.trialEndsAt) : null

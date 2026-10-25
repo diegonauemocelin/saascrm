@@ -37,7 +37,7 @@ export function ClassicLayout() {
   const { can, me } = useAuth()
   const branding = useBranding()
   const { pathname, search } = useLocation()
-  const groups = visibleNavigation(can, !!me?.role.isSystem)
+  const groups = visibleNavigation(can, !!me?.role.isSystem, me?.onRequest, !!me?.company?.isPlatform)
   const crumbs = useBreadcrumb()
   const activeGroup = findNavItem(pathname, search)?.group.title
   const activeItem = findNavItem(pathname, search)?.item.to
@@ -125,6 +125,11 @@ export function ClassicLayout() {
                           {item.phase && (
                             <Badge variant="outline" className="text-[10px] font-normal">
                               Em breve
+                            </Badge>
+                          )}
+                          {item.onRequest && (
+                            <Badge variant="outline" className="text-[10px] font-normal">
+                              Sob consulta
                             </Badge>
                           )}
                           {badge(item.to).n > 0 && <Badge className="h-5 px-1.5 tabular-nums">{badge(item.to).n}</Badge>}

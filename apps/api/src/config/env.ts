@@ -43,6 +43,8 @@ function loadEnv() {
     /** Asaas (cobrança das mensalidades): chave da API, ambiente e o token que o Asaas manda nos avisos (webhook). */
     asaasApiKey: process.env.ASAAS_API_KEY || null,
     asaasSandbox: (process.env.ASAAS_ENV || 'sandbox') !== 'producao',
+    /** Endereço da API do Asaas (só para testes; vazio = o do ambiente escolhido). */
+    asaasUrl: (process.env.ASAAS_API_URL || '').replace(/\/+$/, '') || null,
     asaasWebhookToken: process.env.ASAAS_WEBHOOK_TOKEN || null,
     smtpAllowPrivate: optional('SMTP_ALLOW_PRIVATE', 'false') === 'true',
     // WhatsApp (Evolution API na rede interna do Docker). Sem a chave, o módulo fica desligado.

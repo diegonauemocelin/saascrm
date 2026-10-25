@@ -13,7 +13,8 @@ export const SYSTEMS = [
   { key: 'captura', label: 'Captura de leads (formulários, pop-ups e botões)', modules: ['captura'] },
   { key: 'email_marketing', label: 'E-mail marketing, landing pages e automações', modules: ['email_marketing', 'automacoes'] },
   { key: 'postagens', label: 'Postagens no Instagram e no Facebook', modules: ['postagens'] },
-  { key: 'ecommerce', label: 'E-commerce (catálogo, carrinhos abandonados e SEO)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce'] },
+  { key: 'ecommerce', label: 'Integração com e-commerce (catálogo, carrinhos abandonados e SEO)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce'], onRequest: true },
+  { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço)', modules: ['consulta_produtos'], onRequest: true },
   { key: 'relatorios', label: 'Relatórios e Google Ads', modules: ['relatorios', 'google_ads'] },
   { key: 'marketing_inteligente', label: 'Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
   { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads e assistente de perguntas)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config'] },
@@ -26,14 +27,19 @@ export const SYSTEM_KEYS = SYSTEMS.map((s) => s.key) as readonly string[]
 export const PLATFORM_MODULE = 'plataforma'
 
 /** Módulos que a empresa pode usar: a base, os dos sistemas do plano e, na empresa dona, todos. */
-/** Módulos de integrações feitas só para a Usaparts (Tcar): não aparecem na plataforma. */
-export const HIDDEN_MODULES = new Set(['consulta_produtos'])
-
 export function allowedModules(t: { isPlatform: boolean; systems: readonly string[] }): Set<string> {
-  if (t.isPlatform) return new Set(MODULE_KEYS.filter((m) => !HIDDEN_MODULES.has(m)))
+  if (t.isPlatform) return new Set(MODULE_KEYS)
   const out = new Set<string>(BASE_MODULES)
   for (const s of SYSTEMS) if (t.systems.includes(s.key)) for (const m of s.modules) out.add(m)
   return out
+}
+
+/**
+ * Sistemas sob consulta (integrações com e-commerce e ERP): ficam no menu de todas as empresas; quem não tem vê a tela
+ * para falar com a sgmulticonecta. Devolve os módulos desses sistemas que a empresa ainda não tem.
+ */
+export function onRequestModules(allowed: Set<string>): string[] {
+  return SYSTEMS.filter((s) => 'onRequest' in s && s.onRequest).flatMap((s) => s.modules).filter((m) => !allowed.has(m))
 }
 
 /** Permissões do usuário só nos módulos liberados para a empresa (o administrador recebe todos os liberados). */
@@ -123,4 +129,27 @@ export function hostKind(host: string, platformDomain: string | null, adminHost:
   }
   if (platformDomain && h === platformDomain) return { kind: 'none' }
   return { kind: 'custom', host: h }
+}
+
+/** CPF (11) ou CNPJ (14) com os dígitos verificadores certos. */
+export function validDocument(raw: string): boolean {
+  const d = raw.replace(/\D/g, '')
+  if (/^(\d)\1+$/.test(d)) return false
+  const digit = (base: string, weights: number[]) => {
+    const sum = base.split('').reduce((s, c, i) => s + Number(c) * weights[i]!, 0)
+    const r = sum % 11
+    return r < 2 ? 0 : 11 - r
+  }
+  if (d.length === 11) {
+    const w1 = [10, 9, 8, 7, 6, 5, 4, 3, 2]
+    const w2 = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]
+    // CPF: dígito = 11 - resto (resto < 2 → 0), com os pesos 10..2 e 11..2.
+    return digit(d.slice(0, 9), w1) === Number(d[9]) && digit(d.slice(0, 10), w2) === Number(d[10])
+  }
+  if (d.length === 14) {
+    const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    return digit(d.slice(0, 12), w1) === Number(d[12]) && digit(d.slice(0, 13), w2) === Number(d[13])
+  }
+  return false
 }

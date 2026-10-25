@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, ForbiddenException, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 import { Type } from 'class-transformer'
-import { IsArray, IsBoolean, IsEmail, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Max, MaxLength, Min, ValidateIf } from 'class-validator'
-import { CurrentUser, ReqContext, type RequestCtx } from '../common/decorators'
+import { IsArray, IsBoolean, IsEmail, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator'
+import { AllowBlocked, CurrentUser, Public, ReqContext, type RequestCtx } from '../common/decorators'
+import { can } from '../common/permissions'
+import { CobrancaService } from './cobranca.service'
 import type { AuthUser } from '../common/types'
 import { PlataformaService } from './plataforma.service'
 import { TENANT_STATUSES } from './sistemas'
@@ -44,11 +46,23 @@ class CompanyUpdateDto {
   @IsOptional() @ValidateIf((o: CompanyUpdateDto) => o.trialEndsAt !== null) @IsISO8601() trialEndsAt?: string | null
   @IsOptional() @IsInt() @Min(0) @Max(1000) extraUsers?: number
   @IsOptional() @IsInt() @Min(0) @Max(1000) extraWhatsapp?: number
+  @IsOptional() @IsArray() @IsString({ each: true }) extraSystems?: string[]
   @IsOptional() @IsString() @MaxLength(20) document?: string
   @IsOptional() @IsString() @MaxLength(120) contactName?: string
   @IsOptional() @IsString() @MaxLength(200) contactEmail?: string
   @IsOptional() @IsString() @MaxLength(20) contactPhone?: string
   @IsOptional() @IsString() @MaxLength(1000) notes?: string
+}
+
+class SignupDto {
+  @IsString() @MinLength(2) @MaxLength(120) company!: string
+  @IsString() @MaxLength(40) slug!: string
+  @IsUUID() planId!: string
+  @IsString() @MaxLength(20) document!: string
+  @IsString() @MinLength(2) @MaxLength(120) adminName!: string
+  @IsEmail() @MaxLength(200) email!: string
+  @IsOptional() @IsString() @MaxLength(20) phone?: string
+  @IsString() @MinLength(12) @MaxLength(200) password!: string
 }
 
 class DomainDto {
@@ -69,7 +83,10 @@ class PaymentsDto {
 @ApiTags('Plataforma')
 @Controller('plataforma')
 export class PlataformaController {
-  constructor(private readonly svc: PlataformaService) {}
+  constructor(
+    private readonly svc: PlataformaService,
+    private readonly billing: CobrancaService,
+  ) {}
 
   @Get('resumo')
   summary(@CurrentUser() user: AuthUser) {
@@ -110,8 +127,26 @@ export class PlataformaController {
   }
 
   @Put('empresas/:id')
-  updateCompany(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: CompanyUpdateDto, @ReqContext() ctx: RequestCtx) {
-    return this.svc.updateCompany(user, id, dto, ctx)
+  async updateCompany(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: CompanyUpdateDto, @ReqContext() ctx: RequestCtx) {
+    const r = await this.svc.updateCompany(user, id, dto, ctx)
+    // Asaas acompanha: troca de plano muda o valor; cancelada para de cobrar.
+    let billing: string | null = null
+    try {
+      if (dto.status === 'CANCELADA') await this.billing.canceled(id)
+      else if (dto.planId !== undefined) await this.billing.planChanged(id)
+    } catch (err) {
+      billing = `Salvo, mas o Asaas não foi atualizado: ${(err as Error).message}`
+    }
+    return { ...r, warning: billing }
+  }
+
+  /** Gera (ou confere) a assinatura no Asaas e copia as cobranças. */
+  @Post('empresas/:id/cobranca')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async charge(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    await this.svc.assertCan(user, 'edit')
+    return this.billing.ensureSubscription(id)
   }
 
   @Post('empresas/:id/convite')
@@ -142,5 +177,75 @@ export class PlataformaController {
   @Get('cobrancas')
   payments(@CurrentUser() user: AuthUser, @Query() q: PaymentsDto) {
     return this.svc.payments(user, q.empresa)
+  }
+}
+
+/** Página de cadastro (pública, no domínio da plataforma): planos, endereço livre e o cadastro em si. */
+@ApiTags('Plataforma')
+@Controller('public/cadastro')
+export class CadastroController {
+  constructor(private readonly billing: CobrancaService) {}
+
+  @Public()
+  @Get('planos')
+  plans() {
+    return this.billing.publicPlans()
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @Get('endereco')
+  slug(@Query('slug') slug = '') {
+    return this.billing.slugAvailable(slug.slice(0, 60))
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 3_600_000 } })
+  @Post()
+  @HttpCode(200)
+  signup(@Body() dto: SignupDto, @ReqContext() ctx: RequestCtx) {
+    return this.billing.signup(dto, ctx)
+  }
+}
+
+/** Avisos de cobrança do Asaas (pagamento confirmado, vencido, estornado). */
+@ApiTags('Plataforma')
+@Controller('webhooks/asaas')
+export class AsaasWebhookController {
+  constructor(private readonly billing: CobrancaService) {}
+
+  @Public()
+  @Throttle({ default: { limit: 600, ttl: 60_000 } })
+  @Post()
+  @HttpCode(200)
+  receive(@Headers('asaas-access-token') token: string | undefined, @Body() body: unknown) {
+    return this.billing.webhook(token, body)
+  }
+}
+
+/** Assinatura da própria empresa: plano, vencimento, faturas e o botão de pagar (vale com o acesso bloqueado). */
+@ApiTags('Plataforma')
+@Controller('assinatura')
+export class AssinaturaController {
+  constructor(private readonly billing: CobrancaService) {}
+
+  private assertAdmin(user: AuthUser) {
+    if (!user.role.isSystem && !can(user.permissions, false, 'configuracoes', 'view')) throw new ForbiddenException('Só o administrador da empresa vê a assinatura.')
+  }
+
+  @AllowBlocked()
+  @Get()
+  view(@CurrentUser() user: AuthUser) {
+    this.assertAdmin(user)
+    return this.billing.billing(user)
+  }
+
+  @AllowBlocked()
+  @Post('pagar')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  pay(@CurrentUser() user: AuthUser, @ReqContext() ctx: RequestCtx) {
+    this.assertAdmin(user)
+    return this.billing.payNow(user, ctx)
   }
 }

@@ -10,6 +10,7 @@ import {
   InboxIcon,
   LayoutDashboardIcon,
   LayoutTemplateIcon,
+  CreditCardIcon,
   Building2Icon,
   CalendarClockIcon,
   SearchCheckIcon,
@@ -58,6 +59,10 @@ export interface NavItem {
   anyOf?: string[]
   /** Fase do roadmap em que o módulo chega. Itens futuros aparecem com selo "Em breve". */
   phase?: number
+  /** Sistema sob consulta que a empresa não tem (integração com e-commerce ou ERP): selo "Sob consulta". */
+  onRequest?: boolean
+  /** Não aparece na empresa dona da plataforma (ex.: a assinatura, que ela não paga). */
+  notOnPlatform?: boolean
 }
 
 export interface NavGroup {
@@ -99,7 +104,7 @@ export const NAVIGATION: NavGroup[] = [
       { title: 'Chat WhatsApp', to: '/chat', icon: MessageCircleIcon, module: 'chat' },
       { title: 'Agenda de contatos', to: '/agenda', icon: BookUserIcon, module: 'whatsapp' },
       { title: 'Monitorar conversas', to: '/chat?monitorar=1', icon: EyeIcon, module: 'monitoramento' },
-      { title: 'Consulta de produtos', to: '/consulta-produtos', icon: PackageSearchIcon, module: 'consulta_produtos' },
+      { title: 'Consulta de produtos (ERP)', to: '/consulta-produtos', icon: PackageSearchIcon, module: 'consulta_produtos' },
     ],
   },
   {
@@ -174,6 +179,7 @@ export const NAVIGATION: NavGroup[] = [
       // Um lugar só para todos os ajustes: empresa, equipe e acesso, atendimento, WhatsApp, marketing e integrações.
       { title: 'Configurações', to: '/configuracoes', icon: SettingsIcon, anyOf: SETTINGS_MODULES },
       { title: 'Auditoria', to: '/auditoria', icon: FileClockIcon, module: 'auditoria' },
+      { title: 'Assinatura', to: '/assinatura', icon: CreditCardIcon, module: 'configuracoes', notOnPlatform: true },
     ],
   },
   {
@@ -185,12 +191,17 @@ export const NAVIGATION: NavGroup[] = [
   },
 ]
 
-/** Telas "Em breve" só aparecem para o administrador do sistema: para os outros, seriam um clique sem resultado. */
-export function visibleNavigation(can: (module: string, action?: Action) => boolean, isAdmin = false): NavGroup[] {
-  const allowed = (i: NavItem) => (!i.phase || isAdmin) && (i.anyOf ? i.anyOf.some((m) => can(m, 'view')) : !i.module || can(i.module, i.action ?? 'view'))
-  return NAVIGATION.map((g) => ({ ...g, items: g.items.filter(allowed) })).filter(
-    (g) => g.items.length > 0,
-  )
+/**
+ * Telas "Em breve" só aparecem para o administrador do sistema: para os outros, seriam um clique sem resultado.
+ * Sistemas sob consulta que a empresa não tem (onRequest) aparecem para todos, com o selo e a tela para contratar.
+ */
+export function visibleNavigation(can: (module: string, action?: Action) => boolean, isAdmin = false, onRequest: string[] = [], isPlatform = false): NavGroup[] {
+  const allowed = (i: NavItem) => (!i.phase || isAdmin) && !(i.notOnPlatform && isPlatform) && (i.anyOf ? i.anyOf.some((m) => can(m, 'view')) : !i.module || can(i.module, i.action ?? 'view'))
+  const offered = (i: NavItem) => !!i.module && onRequest.includes(i.module) && !can(i.module, 'view')
+  return NAVIGATION.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => allowed(i) || offered(i)).map((i) => (offered(i) ? { ...i, onRequest: true, to: `/sob-consulta?modulo=${i.module}` } : i)),
+  })).filter((g) => g.items.length > 0)
 }
 
 /**

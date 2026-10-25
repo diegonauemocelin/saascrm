@@ -87,6 +87,9 @@ const pages = {
   seoEcommerce: () => page(() => import('@/pages/seo-ecommerce-page'), 'SeoEcommercePage'),
   postagens: () => page(() => import('@/pages/postagens-page'), 'PostagensPage'),
   plataforma: () => page(() => import('@/pages/plataforma-page'), 'PlataformaPage'),
+  sobConsulta: () => page(() => import('@/pages/sob-consulta-page'), 'SobConsultaPage'),
+  assinatura: () => page(() => import('@/pages/assinatura-page'), 'AssinaturaPage'),
+  cadastro: () => page(() => import('@/pages/auth/cadastro-page'), 'CadastroPage'),
   landingEditor: () => page(() => import('@/pages/landing-editor-page'), 'LandingEditorPage'),
   sugestoes: () => page(() => import('@/pages/sugestoes-page'), 'SugestoesPage'),
   sugestoesAnalisar: () => page(() => import('@/pages/sugestoes-page'), 'SugestoesAnalisarPage'),
@@ -201,6 +204,7 @@ const comingSoon = NAVIGATION.flatMap((g) => g.items)
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/cadastro', element: <Lazy fullscreen>{pages.cadastro()}</Lazy> },
   { path: '/esqueci-senha', element: <Lazy fullscreen>{pages.forgot()}</Lazy> },
   { path: '/redefinir-senha', element: <Lazy fullscreen>{pages.reset()}</Lazy> },
   { path: '/configurar-conta', element: <Lazy fullscreen>{pages.setup()}</Lazy> },
@@ -238,6 +242,8 @@ const router = createBrowserRouter([
           { path: 'seo-ecommerce', element: <Lazy>{pages.seoEcommerce()}</Lazy> },
           { path: 'postagens', element: <Lazy>{pages.postagens()}</Lazy> },
           { path: 'plataforma', element: <Lazy>{pages.plataforma()}</Lazy> },
+          { path: 'sob-consulta', element: <Lazy>{pages.sobConsulta()}</Lazy> },
+          { path: 'assinatura', element: <Lazy>{pages.assinatura()}</Lazy> },
           { path: 'automacoes', element: <Lazy>{pages.automacoes()}</Lazy> },
           { path: 'automacoes/:id', element: <Lazy>{pages.automacao()}</Lazy> },
           { path: 'relatorios', element: <Lazy>{pages.relatorios()}</Lazy> },

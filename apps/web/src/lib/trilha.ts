@@ -38,6 +38,26 @@ export interface TrailModule {
 
 export const TRAIL: TrailModule[] = [
   {
+    key: 'assinatura',
+    title: 'Assinatura',
+    module: 'configuracoes',
+    routes: ['/assinatura'],
+    purpose: 'Ver o plano da empresa, o vencimento e as faturas da mensalidade, e pagar.',
+    howItWorks: 'A mensalidade é cobrada pelo Asaas (Pix, boleto ou cartão). O pagamento confirmado libera o acesso na hora; sem pagamento, depois de alguns dias de tolerância, o acesso é bloqueado até a fatura ser paga.',
+    media: { src: '/trilha/assinatura.jpg', alt: 'Assinatura da empresa' },
+    lessons: [{ id: 'assinatura.pagar', title: 'Pagar a mensalidade', steps: ['Abra Administração → Assinatura.', 'Clique em Pagar agora: a fatura abre com Pix, boleto e cartão.', 'Pix e cartão liberam na hora; boleto, em até 3 dias úteis.'] }],
+  },
+  {
+    key: 'sob-consulta',
+    title: 'Sistemas sob consulta',
+    module: 'dashboard',
+    routes: ['/sob-consulta'],
+    purpose: 'Conhecer as integrações com e-commerce e com ERP, que são contratadas sob consulta.',
+    howItWorks: 'Os itens com o selo “Sob consulta” no menu são integrações feitas para o sistema que a empresa usa. A tela explica o que cada uma faz e leva ao contato com a sgmulticonecta.',
+    media: { src: '/trilha/sob-consulta.jpg', alt: 'Integrações sob consulta' },
+    lessons: [{ id: 'sob-consulta.contratar', title: 'Contratar uma integração', steps: ['Clique no item com o selo Sob consulta.', 'Veja o que a integração faz e clique em Falar com a sgmulticonecta.'] }],
+  },
+  {
     key: 'plataforma',
     title: 'Plataforma',
     module: 'plataforma',

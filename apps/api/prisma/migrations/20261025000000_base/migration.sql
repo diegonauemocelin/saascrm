@@ -51,6 +51,7 @@ CREATE TABLE "tenants" (
     "planId" UUID,
     "trialEndsAt" TIMESTAMP(3),
     "paidUntil" TIMESTAMP(3),
+    "extraSystems" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "extraUsers" INTEGER NOT NULL DEFAULT 0,
     "extraWhatsapp" INTEGER NOT NULL DEFAULT 0,
     "document" TEXT,

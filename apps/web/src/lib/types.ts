@@ -44,6 +44,8 @@ export interface Me {
   modules: ModuleDef[]
   /** Empresa e assinatura (plataforma SaaS). */
   company?: CompanyInfo
+  /** Módulos de sistemas sob consulta que a empresa não tem (aparecem no menu com o selo). */
+  onRequest?: string[]
 }
 
 export interface CompanyInfo {

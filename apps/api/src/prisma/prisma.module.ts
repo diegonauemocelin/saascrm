@@ -51,7 +51,8 @@ export class TenantService {
     if (hit && Date.now() - hit.at < INFO_TTL_MS) return hit.id
     const k = hostKind(h, env.platformDomain, env.platformAdminHost)
     let id: string | null = null
-    if (k.kind === 'admin') id = (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id ?? null
+    // O painel e o próprio domínio da plataforma (página de cadastro) são da empresa dona.
+    if (k.kind === 'admin' || h === env.platformDomain || h === `www.${env.platformDomain}`) id = (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id ?? null
     else if (k.kind === 'slug') id = (await this.prisma.tenant.findUnique({ where: { slug: k.slug }, select: { id: true } }))?.id ?? null
     else if (k.kind === 'custom') id = (await this.prisma.tenantDomain.findUnique({ where: { host: k.host }, select: { tenantId: true } }))?.tenantId ?? null
     else if (k.kind === 'none' && (h === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(h))) id = await this.defaultId().catch(() => null)
@@ -80,7 +81,7 @@ export class TenantService {
       paidUntil: t.paidUntil,
       planId: t.planId,
       planName: t.plan?.name ?? null,
-      systems: t.plan?.systems ?? [],
+      systems: [...new Set([...(t.plan?.systems ?? []), ...t.extraSystems])],
       maxUsers: (t.plan?.maxUsers ?? 0) + t.extraUsers,
       maxWhatsapp: (t.plan?.maxWhatsapp ?? 0) + t.extraWhatsapp,
       domain: t.domains[0]?.host ?? null,

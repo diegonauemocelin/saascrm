@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { can, fullPermissions } from '../src/common/permissions'
-import { accessOf, allowedModules, cleanSlug, filterPermissions, hostKind, nextStatus } from '../src/plataforma/sistemas'
+import { paidUntilAfter, paymentStatus } from '../src/plataforma/asaas'
+import { accessOf, allowedModules, cleanSlug, filterPermissions, hostKind, nextStatus, onRequestModules, validDocument } from '../src/plataforma/sistemas'
 
 const DAY = 86_400_000
 const now = Date.parse('2026-11-10T12:00:00Z')
@@ -66,5 +67,33 @@ describe('plataforma: endereço da empresa', () => {
     expect(hostKind('sgmulticonecta.com.br', P, null)).toEqual({ kind: 'none' })
     expect(hostKind('a.b.sgmulticonecta.com.br', P, null)).toEqual({ kind: 'none' })
     expect(hostKind('localhost:5173', P, null)).toEqual({ kind: 'none' })
+  })
+})
+
+
+describe('plataforma: cobrança', () => {
+  it('confere CPF e CNPJ pelos dígitos', () => {
+    expect(validDocument('529.982.247-25')).toBe(true)
+    expect(validDocument('529.982.247-26')).toBe(false)
+    expect(validDocument('11.222.333/0001-81')).toBe(true)
+    expect(validDocument('11.111.111/1111-11')).toBe(false)
+  })
+
+  it('pago até: o mesmo dia no mês seguinte, sem voltar para trás', () => {
+    expect(paidUntilAfter('2026-11-10', null).toISOString()).toBe('2026-12-11T02:59:00.000Z')
+    expect(paidUntilAfter('2027-01-31', null).toISOString().slice(0, 10)).toBe('2027-03-01')
+    const later = new Date('2027-05-01T00:00:00Z')
+    expect(paidUntilAfter('2026-11-10', later)).toBe(later)
+  })
+
+  it('situação da cobrança em português', () => {
+    expect(paymentStatus('RECEIVED')).toBe('RECEBIDA')
+    expect(paymentStatus('OVERDUE')).toBe('VENCIDA')
+    expect(paymentStatus('PENDING')).toBe('PENDENTE')
+  })
+
+  it('integrações sob consulta ficam no menu de quem não tem', () => {
+    expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['whatsapp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'consulta_produtos'])
+    expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['erp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce'])
   })
 })

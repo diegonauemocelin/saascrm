@@ -49,6 +49,7 @@ interface Company {
   whatsapp: number
   extraUsers: number
   extraWhatsapp: number
+  extraSystems: string[]
   document: string | null
   contactName: string | null
   contactEmail: string | null
@@ -57,6 +58,11 @@ interface Company {
   domains: { host: string; verifiedAt: string | null }[]
   createdAt: string
   access: { blocked: boolean; reason: string | null; warning: string | null }
+}
+interface System {
+  key: string
+  label: string
+  onRequest: boolean
 }
 interface Summary {
   total: number
@@ -94,7 +100,7 @@ export function PlataformaPage() {
   usePageTitle('Plataforma')
   const [tab, setTab] = useState('empresas')
   const summary = useQuery({ queryKey: ['plataforma-resumo'], queryFn: () => api.get<Summary>('/plataforma/resumo') })
-  const systems = useQuery({ queryKey: ['plataforma-sistemas'], queryFn: () => api.get<{ key: string; label: string }[]>('/plataforma/sistemas'), staleTime: Infinity })
+  const systems = useQuery({ queryKey: ['plataforma-sistemas'], queryFn: () => api.get<System[]>('/plataforma/sistemas'), staleTime: Infinity })
   const plans = useQuery({ queryKey: ['plataforma-planos'], queryFn: () => api.get<Plan[]>('/plataforma/planos') })
   const s = summary.data
   return (
@@ -124,7 +130,7 @@ export function PlataformaPage() {
           <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
         </TabsList>
         <TabsContent value="empresas">
-          <Companies plans={plans.data ?? []} />
+          <Companies plans={plans.data ?? []} systems={systems.data ?? []} />
         </TabsContent>
         <TabsContent value="planos">{plans.error ? <ErrorState error={plans.error} /> : <Plans plans={plans.data} systems={systems.data ?? []} />}</TabsContent>
         <TabsContent value="cobrancas">{tab === 'cobrancas' && <Payments />}</TabsContent>
@@ -135,7 +141,7 @@ export function PlataformaPage() {
 
 // ---------- Empresas ----------
 
-function Companies({ plans }: { plans: Plan[] }) {
+function Companies({ plans, systems }: { plans: Plan[]; systems: System[] }) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('todas')
   const [open, setOpen] = useState<Company | null>(null)
@@ -210,7 +216,7 @@ function Companies({ plans }: { plans: Plan[] }) {
         </Card>
       )}
       <NewCompanyDialog open={creating} onClose={() => setCreating(false)} plans={plans} />
-      {open && <CompanySheet company={open} plans={plans} onClose={() => setOpen(null)} />}
+      {open && <CompanySheet company={open} plans={plans} systems={systems} onClose={() => setOpen(null)} />}
     </div>
   )
 }
@@ -349,11 +355,11 @@ function NewCompanyDialog({ open, onClose, plans }: { open: boolean; onClose: ()
   )
 }
 
-function CompanySheet({ company: c, plans, onClose }: { company: Company; plans: Plan[]; onClose: () => void }) {
+function CompanySheet({ company: c, plans, systems, onClose }: { company: Company; plans: Plan[]; systems: System[]; onClose: () => void }) {
   const qc = useQueryClient()
   const { can } = useAuth()
   const edit = can('plataforma', 'edit')
-  const [f, setF] = useState({ name: c.name, planId: c.plan?.id ?? '', status: c.status, paidUntil: dateInput(c.paidUntil), trialEndsAt: dateInput(c.trialEndsAt), extraUsers: c.extraUsers, extraWhatsapp: c.extraWhatsapp, contactName: c.contactName ?? '', contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', document: c.document ?? '', notes: c.notes ?? '' })
+  const [f, setF] = useState({ name: c.name, planId: c.plan?.id ?? '', status: c.status, paidUntil: dateInput(c.paidUntil), trialEndsAt: dateInput(c.trialEndsAt), extraUsers: c.extraUsers, extraWhatsapp: c.extraWhatsapp, extraSystems: c.extraSystems, contactName: c.contactName ?? '', contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', document: c.document ?? '', notes: c.notes ?? '' })
   const [host, setHost] = useState('')
   const [domains, setDomains] = useState(c.domains)
   const refresh = () => {
@@ -368,8 +374,23 @@ function CompanySheet({ company: c, plans, onClose }: { company: Company; plans:
         paidUntil: f.paidUntil ? new Date(`${f.paidUntil}T23:59:00-03:00`).toISOString() : null,
         trialEndsAt: f.trialEndsAt ? new Date(`${f.trialEndsAt}T23:59:00-03:00`).toISOString() : null,
       }),
-    onSuccess: () => (toast.success('Empresa salva.'), refresh(), onClose()),
+    onSuccess: (r) => {
+      const w = (r as { warning?: string | null }).warning
+      if (w) toast.warning(w, { duration: 12_000 })
+      else toast.success('Empresa salva.')
+      refresh()
+      onClose()
+    },
     onError: (err) => toast.error(errorMessage(err)),
+  })
+  const charge = useMutation({
+    mutationFn: () => api.post<{ payUrl: string | null }>(`/plataforma/empresas/${c.id}/cobranca`),
+    onSuccess: (r) => {
+      toast.success(r.payUrl ? 'Cobrança no Asaas pronta. A fatura em aberto foi copiada para a área de transferência.' : 'Assinatura no Asaas conferida. Nenhuma fatura em aberto agora.')
+      if (r.payUrl) void navigator.clipboard?.writeText(r.payUrl).catch(() => undefined)
+      void qc.invalidateQueries({ queryKey: ['plataforma-cobrancas'] })
+    },
+    onError: (err) => toast.error(errorMessage(err), { duration: 12_000 }),
   })
   const invite = useMutation({
     mutationFn: () => api.post<{ message: string }>(`/plataforma/empresas/${c.id}/convite`),
@@ -487,6 +508,19 @@ function CompanySheet({ company: c, plans, onClose }: { company: Company; plans:
               <Input id="e-doc" value={f.document} onChange={(e) => set('document', e.target.value)} disabled={!edit} />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
+              <Label>Sistemas sob consulta liberados para esta empresa</Label>
+              <div className="grid gap-1.5">
+                {systems
+                  .filter((x) => x.onRequest)
+                  .map((x) => (
+                    <label key={x.key} className="flex items-center gap-2 text-sm">
+                      <Checkbox checked={f.extraSystems.includes(x.key)} onCheckedChange={(v) => set('extraSystems', v ? [...f.extraSystems, x.key] : f.extraSystems.filter((k) => k !== x.key))} disabled={!edit} /> {x.label}
+                    </label>
+                  ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Sem a liberação, o item aparece no menu da empresa com o selo “Sob consulta”.</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="e-notes">Observação interna</Label>
               <Textarea id="e-notes" rows={2} value={f.notes} onChange={(e) => set('notes', e.target.value)} disabled={!edit} />
             </div>
@@ -529,6 +563,9 @@ function CompanySheet({ company: c, plans, onClose }: { company: Company; plans:
               <Button variant="outline" onClick={() => invite.mutate()} disabled={invite.isPending}>
                 <MailIcon /> Reenviar convite ao administrador
               </Button>
+              <Button variant="outline" onClick={() => charge.mutate()} disabled={charge.isPending}>
+                {charge.isPending ? <Loader2Icon className="animate-spin" /> : <RefreshCwIcon />} Gerar ou conferir a cobrança no Asaas
+              </Button>
             </div>
           )}
         </div>
@@ -539,7 +576,7 @@ function CompanySheet({ company: c, plans, onClose }: { company: Company; plans:
 
 // ---------- Planos ----------
 
-function Plans({ plans, systems }: { plans?: Plan[]; systems: { key: string; label: string }[] }) {
+function Plans({ plans, systems }: { plans?: Plan[]; systems: System[] }) {
   const [open, setOpen] = useState<Plan | 'novo' | null>(null)
   if (!plans) return <TableSkeleton rows={3} />
   return (
@@ -582,7 +619,7 @@ function Plans({ plans, systems }: { plans?: Plan[]; systems: { key: string; lab
   )
 }
 
-function PlanDialog({ plan, systems, onClose }: { plan: Plan | null; systems: { key: string; label: string }[]; onClose: () => void }) {
+function PlanDialog({ plan, systems, onClose }: { plan: Plan | null; systems: System[]; onClose: () => void }) {
   const qc = useQueryClient()
   const [f, setF] = useState({ name: plan?.name ?? '', description: plan?.description ?? '', price: plan ? (plan.priceCents / 100).toFixed(2).replace('.', ',') : '', systems: plan?.systems ?? [], maxUsers: plan?.maxUsers ?? 5, maxWhatsapp: plan?.maxWhatsapp ?? 1, trialDays: plan?.trialDays ?? 7, public: plan?.public ?? true, active: plan?.active ?? true, sortOrder: plan?.sortOrder ?? 0 })
   const save = useMutation({
@@ -628,6 +665,7 @@ function PlanDialog({ plan, systems, onClose }: { plan: Plan | null; systems: { 
               {systems.map((s) => (
                 <label key={s.key} className="flex items-center gap-2 text-sm">
                   <Checkbox checked={f.systems.includes(s.key)} onCheckedChange={(v) => set('systems', v ? [...f.systems, s.key] : f.systems.filter((x) => x !== s.key))} /> {s.label}
+                  {s.onRequest && <span className="text-xs text-muted-foreground">(sob consulta)</span>}
                 </label>
               ))}
             </div>
