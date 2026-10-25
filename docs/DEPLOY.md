@@ -3,9 +3,9 @@
 A plataforma roda inteira em containers (`saascrm`) numa VPS **só dela**. O Caddy fica na frente, nas portas 80 e 443, e
 emite sozinho o certificado HTTPS de cada endereço no primeiro acesso:
 
-- `admin.sgmulticonecta.com.br`: painel da plataforma (empresas, planos, cobranças);
-- `sgmulticonecta.com.br/cadastro`: cadastro de empresas novas;
-- `<empresa>.sgmulticonecta.com.br`: o CRM de cada empresa;
+- `crm.sgmulticonecta.com.br`: painel da plataforma (empresas, planos, cobranças);
+- `crm.sgmulticonecta.com.br/cadastro`: cadastro de empresas novas;
+- `<empresa>.crm.sgmulticonecta.com.br`: o CRM de cada empresa;
 - domínio próprio da empresa (ex.: `crm.empresa.com.br`): cadastrado no painel da plataforma.
 
 O Caddy só emite certificado para endereços que a API confirma (`/api/public/dominio-permitido`): subdomínios de empresas
@@ -16,14 +16,15 @@ cadastradas e domínios próprios já verificados.
 
 ## 1. DNS (antes de instalar)
 
-No DNS de `sgmulticonecta.com.br`, aponte para o IP da VPS:
+No DNS de `sgmulticonecta.com.br`, aponte para o IP da VPS nova (não a da Usaparts):
 
 | Tipo | Nome | Valor |
 |---|---|---|
-| A | `sgmulticonecta.com.br` (@) | IP da VPS |
-| A | `*.sgmulticonecta.com.br` | IP da VPS |
+| A | `crm` (crm.sgmulticonecta.com.br) | IP da VPS |
+| A | `*.crm` (*.crm.sgmulticonecta.com.br) | IP da VPS |
 
-O curinga (`*`) cobre o painel (`admin.`) e o endereço de todas as empresas, sem criar registro por empresa.
+O curinga (`*.crm`) cobre o endereço de todas as empresas, sem criar registro por empresa. O site `sgmulticonecta.com.br`
+continua onde está, sem mudança.
 
 ## 2. Pré-requisitos na VPS
 
@@ -63,7 +64,7 @@ sudo git clone git@github.com:diegonauemocelin/saascrm.git /opt/saascrm
 ## 5. Instalar
 
 ```bash
-cd /opt/saascrm && sudo BACKUP_AGE_RECIPIENT="age1...sua-chave-publica" bash deploy/instalar.sh sgmulticonecta.com.br seu-email@sgmulticonecta.com.br "Seu Nome"
+cd /opt/saascrm && sudo BACKUP_AGE_RECIPIENT="age1...sua-chave-publica" bash deploy/instalar.sh crm.sgmulticonecta.com.br seu-email@sgmulticonecta.com.br "Seu Nome"
 ```
 
 O script confere o DNS e as portas, cria o `.env` com segredos aleatórios, sobe os containers e cria a empresa dona da
@@ -75,7 +76,7 @@ plataforma com o primeiro administrador (a senha provisória aparece uma única 
 Depois, confira:
 
 ```bash
-node scripts/teste-fumaca.mjs https://admin.sgmulticonecta.com.br
+node scripts/teste-fumaca.mjs https://crm.sgmulticonecta.com.br
 ```
 
 ## 6. Cobrança (Asaas)
@@ -89,7 +90,7 @@ node scripts/teste-fumaca.mjs https://admin.sgmulticonecta.com.br
    ```
 
 3. Em **Integrações → Webhooks**, cadastre:
-   - URL: `https://admin.sgmulticonecta.com.br/api/webhooks/asaas`
+   - URL: `https://crm.sgmulticonecta.com.br/api/webhooks/asaas`
    - Token de autenticação: o `ASAAS_WEBHOOK_TOKEN` do `.env`
    - Eventos: cobranças (criada, confirmada, recebida, vencida, estornada, removida).
 4. Aplique: `sudo bash deploy/deploy.sh`.
@@ -105,7 +106,7 @@ Funcionamento:
 ## 7. Domínio próprio de uma empresa
 
 1. No painel da plataforma (Empresas → a empresa → Domínios), cadastre o endereço (ex.: `crm.empresa.com.br`).
-2. A empresa cria no DNS dela um **CNAME** de `crm.empresa.com.br` para `<empresa>.sgmulticonecta.com.br`
+2. A empresa cria no DNS dela um **CNAME** de `crm.empresa.com.br` para `<empresa>.crm.sgmulticonecta.com.br`
    (ou um registro A para o IP da VPS).
 3. Clique em **Verificar**. Verificado, o primeiro acesso emite o certificado e os links dos e-mails passam a usar esse
    endereço.

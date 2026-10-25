@@ -63,6 +63,11 @@ describe('plataforma: endereço da empresa', () => {
     const P = 'sgmulticonecta.com.br'
     expect(hostKind('empresa.sgmulticonecta.com.br', P, 'admin.sgmulticonecta.com.br')).toEqual({ kind: 'slug', slug: 'empresa' })
     expect(hostKind('admin.sgmulticonecta.com.br', P, 'admin.sgmulticonecta.com.br')).toEqual({ kind: 'admin' })
+    // Painel no próprio domínio da plataforma (crm.sgmulticonecta.com.br) e empresas em <slug>.crm.sgmulticonecta.com.br.
+    const C = 'crm.sgmulticonecta.com.br'
+    expect(hostKind(C, C, C)).toEqual({ kind: 'admin' })
+    expect(hostKind('empresa.crm.sgmulticonecta.com.br', C, C)).toEqual({ kind: 'slug', slug: 'empresa' })
+    expect(hostKind('sgmulticonecta.com.br', C, C)).toEqual({ kind: 'custom', host: 'sgmulticonecta.com.br' })
     expect(hostKind('CRM.Empresa.com.br:443', P, null)).toEqual({ kind: 'custom', host: 'crm.empresa.com.br' })
     expect(hostKind('sgmulticonecta.com.br', P, null)).toEqual({ kind: 'none' })
     expect(hostKind('a.b.sgmulticonecta.com.br', P, null)).toEqual({ kind: 'none' })

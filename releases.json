@@ -9,12 +9,12 @@
         {
           "type": "novo",
           "area": "Plataforma",
-          "text": "Várias empresas na mesma instalação, com os dados separados. Cada empresa tem o seu endereço (empresa.sgmulticonecta.com.br) ou um domínio próprio, com certificado HTTPS automático."
+          "text": "Várias empresas na mesma instalação, com os dados separados. Cada empresa tem o seu endereço (empresa.crm.sgmulticonecta.com.br) ou um domínio próprio, com certificado HTTPS automático."
         },
         {
           "type": "novo",
           "area": "Plataforma",
-          "text": "Painel da plataforma (admin.sgmulticonecta.com.br): empresas, planos, sistemas liberados por plano ou extras por empresa, limites de usuários e de números de WhatsApp, domínios e cobranças."
+          "text": "Painel da plataforma (crm.sgmulticonecta.com.br): empresas, planos, sistemas liberados por plano ou extras por empresa, limites de usuários e de números de WhatsApp, domínios e cobranças."
         },
         {
           "type": "novo",

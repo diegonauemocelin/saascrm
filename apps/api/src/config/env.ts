@@ -36,9 +36,9 @@ function loadEnv() {
     githubRepo: process.env.GITHUB_REPO || null,
     githubToken: process.env.GITHUB_TOKEN || null,
     tenantSlug: optional('TENANT_SLUG', 'default'),
-    /** Domínio da plataforma SaaS (ex.: sgmulticonecta.com.br): cada empresa em <slug>.<domínio>. Vazio = uma empresa só. */
+    /** Domínio da plataforma SaaS (ex.: crm.sgmulticonecta.com.br): cada empresa em <slug>.<domínio>. Vazio = uma empresa só. */
     platformDomain: (process.env.PLATFORM_DOMAIN || '').trim().toLowerCase() || null,
-    /** Endereço do painel da plataforma (empresa dona), ex.: admin.sgmulticonecta.com.br. */
+    /** Endereço do painel da plataforma (empresa dona), ex.: crm.sgmulticonecta.com.br (pode ser o próprio domínio). */
     platformAdminHost: (process.env.PLATFORM_ADMIN_HOST || '').trim().toLowerCase() || null,
     /** Asaas (cobrança das mensalidades): chave da API, ambiente e o token que o Asaas manda nos avisos (webhook). */
     asaasApiKey: process.env.ASAAS_API_KEY || null,

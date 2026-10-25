@@ -63,7 +63,7 @@ export const TRAIL: TrailModule[] = [
     module: 'plataforma',
     routes: ['/plataforma'],
     purpose: 'Administrar a plataforma da sgmulticonecta: empresas clientes, planos, domínios próprios e cobranças.',
-    howItWorks: 'Cada empresa cliente usa o sistema no endereço dela (empresa.sgmulticonecta.com.br ou o domínio próprio), só com os sistemas do plano contratado e dentro dos limites de usuários e números de WhatsApp. A situação da assinatura libera ou bloqueia o acesso: em teste até o fim do teste, ativa enquanto paga, e bloqueada depois da tolerância sem pagamento.',
+    howItWorks: 'Cada empresa cliente usa o sistema no endereço dela (empresa.crm.sgmulticonecta.com.br ou o domínio próprio), só com os sistemas do plano contratado e dentro dos limites de usuários e números de WhatsApp. A situação da assinatura libera ou bloqueia o acesso: em teste até o fim do teste, ativa enquanto paga, e bloqueada depois da tolerância sem pagamento.',
     media: { src: '/trilha/plataforma.jpg', alt: 'Painel da plataforma' },
     lessons: [
       {

@@ -2,11 +2,12 @@
 # Primeira instalação da plataforma SaaS CRM numa VPS dedicada. Rode como root, dentro de /opt/saascrm (clone do
 # repositório):
 #
-#   sudo BACKUP_AGE_RECIPIENT="age1..." bash deploy/instalar.sh sgmulticonecta.com.br voce@sgmulticonecta.com.br "Seu Nome"
+#   sudo BACKUP_AGE_RECIPIENT="age1..." bash deploy/instalar.sh crm.sgmulticonecta.com.br voce@sgmulticonecta.com.br "Seu Nome"
 #
 # Antes, no DNS do domínio da plataforma, crie (apontando para o IP desta VPS):
-#   - registro A de  sgmulticonecta.com.br
-#   - registro A de  *.sgmulticonecta.com.br   (curinga: o painel e o endereço de cada empresa)
+#   - registro A de  crm.sgmulticonecta.com.br     (painel da plataforma e página de cadastro)
+#   - registro A de  *.crm.sgmulticonecta.com.br   (curinga: o endereço de cada empresa)
+# O painel fica no próprio domínio; para outro endereço, informe PAINEL=admin.crm.sgmulticonecta.com.br.
 #
 # O que ele faz:
 #  1. Confere pré-requisitos (Docker, Compose, portas 80 e 443 livres, DNS).
@@ -19,10 +20,10 @@ source "$(dirname "$0")/lib.sh"
 cd "$RAIZ"
 exigir_root
 
-DOMINIO="${1:?Informe o domínio da plataforma. Ex.: sgmulticonecta.com.br}"
+DOMINIO="${1:?Informe o domínio da plataforma. Ex.: crm.sgmulticonecta.com.br}"
 ADMIN_EMAIL="${2:?Informe o e-mail do primeiro administrador}"
 ADMIN_NOME="${3:-Administrador}"
-PAINEL="admin.$DOMINIO"
+PAINEL="${PAINEL:-$DOMINIO}"
 
 info "1/4 Conferindo pré-requisitos"
 command -v docker >/dev/null || fatal "Docker não instalado. Veja docs/DEPLOY.md (seção Docker) e rode de novo."
@@ -38,7 +39,7 @@ done
 ok "Portas 80 e 443 livres"
 
 IP_VPS="$(curl -4 -fsS --max-time 5 https://api.ipify.org || true)"
-for nome in "$DOMINIO" "$PAINEL" "teste-dns.$DOMINIO"; do
+for nome in $(printf "%s\n" "$DOMINIO" "$PAINEL" "teste-dns.$DOMINIO" | sort -u); do
   ip="$(getent ahostsv4 "$nome" | awk 'NR==1{print $1}')"
   if [ -z "$ip" ]; then
     fatal "$nome não resolve no DNS. Crie os registros A de $DOMINIO e de *.$DOMINIO apontando para ${IP_VPS:-o IP desta VPS}."

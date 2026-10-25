@@ -7,15 +7,15 @@ por plano, cobranças e domínios.
 | | |
 |---|---|
 | Versão atual | ver [`releases.json`](releases.json) (também na tela **Atualizações** do sistema) |
-| Painel da plataforma | https://admin.sgmulticonecta.com.br |
-| Cadastro de empresas | https://sgmulticonecta.com.br/cadastro |
+| Painel da plataforma | https://crm.sgmulticonecta.com.br |
+| Cadastro de empresas | https://crm.sgmulticonecta.com.br/cadastro |
 | Implantação | [docs/DEPLOY.md](docs/DEPLOY.md) |
 | Segurança | [docs/SEGURANCA.md](docs/SEGURANCA.md) |
 | Como publicar versões | [docs/RELEASES.md](docs/RELEASES.md) |
 
 ## Como funciona
 
-- **Empresa (tenant):** cada cliente tem os seus dados isolados e o seu endereço: `<empresa>.sgmulticonecta.com.br` ou
+- **Empresa (tenant):** cada cliente tem os seus dados isolados e o seu endereço: `<empresa>.crm.sgmulticonecta.com.br` ou
   um domínio próprio (`crm.empresa.com.br`). O endereço acessado define a empresa.
 - **Planos:** cada plano libera um conjunto de sistemas (cada módulo do CRM é um sistema), o número de usuários e de
   números de WhatsApp. Dá para liberar sistemas extras para uma empresa sem trocar o plano. Integração com e-commerce e
@@ -90,7 +90,7 @@ Acesse http://localhost:5173 (a empresa dona da plataforma; para testar outras e
 | `npm test` | Testes automatizados (permissões, bloqueio de login, 2FA, criptografia, auditoria, upload, SSRF) |
 | `npm run build` | Build de produção |
 | `npm run release:check` | Confere se a versão está igual em `releases.json` e nos `package.json` |
-| `npm run smoke -- https://admin.sgmulticonecta.com.br` | Teste de fumaça das proteções em um ambiente no ar |
+| `npm run smoke -- https://crm.sgmulticonecta.com.br` | Teste de fumaça das proteções em um ambiente no ar |
 
 ## Layouts
 
