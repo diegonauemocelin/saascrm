@@ -1,7 +1,7 @@
 import type { PrismaService } from '../prisma/prisma.service'
 
 /**
- * Liga vendedor e usuário que têm o mesmo e-mail (ex.: vendedor "Ecommerce" e o login ecommerce@usaparts.com.br).
+ * Liga vendedor e usuário que têm o mesmo e-mail (ex.: vendedor "Ecommerce" e o login ecommerce@suaempresa.com.br).
  * É esse vínculo que define a base de quem tem o perfil "somente os próprios": sem ele, o vendedor não vê nada.
  * Nunca troca um vínculo já feito à mão e nunca liga dois vendedores ao mesmo usuário.
  */

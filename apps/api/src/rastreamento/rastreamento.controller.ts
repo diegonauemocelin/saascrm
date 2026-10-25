@@ -94,7 +94,7 @@ export class TrackingController {
     const domains: string[] = []
     for (const d of dto.domains.filter((x) => x.trim())) {
       const c = cleanDomain(d)
-      if (!c) throw new BadRequestException(`Domínio inválido: ${d}. Use só o endereço, ex.: www.usaparts.com.br`)
+      if (!c) throw new BadRequestException(`Domínio inválido: ${d}. Use só o endereço, ex.: www.suaempresa.com.br`)
       if (!domains.includes(c)) domains.push(c)
     }
     if (dto.enabled && !domains.length) throw new BadRequestException('Informe ao menos um domínio do site para ligar o rastreamento.')

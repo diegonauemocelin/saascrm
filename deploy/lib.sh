@@ -29,7 +29,7 @@ env_set() {
   fi
 }
 
-prefixo_imagens() { local p; p="$(env_get CRM_IMAGE_PREFIX)"; echo "${p:-usaparts-crm}"; }
+prefixo_imagens() { local p; p="$(env_get CRM_IMAGE_PREFIX)"; echo "${p:-saascrm}"; }
 
 # Com CRM_IMAGE_PREFIX apontando para um registro (ghcr.io/...), baixa as imagens já construídas pelo GitHub Actions:
 # a VPS não compila nada (evita picos de memória que afetariam os outros sistemas do servidor).

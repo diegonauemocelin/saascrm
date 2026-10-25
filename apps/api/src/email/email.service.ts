@@ -116,7 +116,7 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
     const current = await this.config(user.tenantId)
     const raw = (d.social ?? {}) as Record<string, unknown>
     for (const n of SOCIAL_NETWORKS) {
-      if (typeof raw[n] === 'string' && (raw[n] as string).trim() && !socialUrl(n, raw[n] as string)) throw new BadRequestException(`Endereço do ${SOCIAL_LABEL[n]} inválido. Use o link da página (ex.: https://www.${n}.com/usaparts).`)
+      if (typeof raw[n] === 'string' && (raw[n] as string).trim() && !socialUrl(n, raw[n] as string)) throw new BadRequestException(`Endereço do ${SOCIAL_LABEL[n]} inválido. Use o link da página (ex.: https://www.${n}.com/suaempresa).`)
     }
     const next = { fromName: d.fromName.trim(), replyTo: d.replyTo.trim(), footerText: d.footerText.trim(), ratePerMinute: d.ratePerMinute, logoFileId: current.logoFileId, social: cleanSocial(raw), socialInFooter: d.socialInFooter ?? current.socialInFooter ?? true }
     await this.settings.set(user.tenantId, 'email_marketing', next)

@@ -648,7 +648,7 @@ export const TRAIL: TrailModule[] = [
         id: 'landing.config',
         title: 'Subdomínio e medição',
         steps: [
-          'Em Subdomínio e medição, informe o subdomínio (ex.: lp.usaparts.com.br), o GA4 e o Meta Pixel.',
+          'Em Subdomínio e medição, informe o subdomínio (ex.: lp.suaempresa.com.br), o GA4 e o Meta Pixel.',
           'O TI aponta o DNS e roda o script do servidor (deploy/LANDING-PAGES.md).',
         ],
       },

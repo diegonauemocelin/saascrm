@@ -60,6 +60,20 @@ export class TenantService {
     return id
   }
 
+  /**
+   * O servidor pode emitir certificado HTTPS para este endereço? Só o domínio da plataforma, o painel, o subdomínio de
+   * uma empresa cadastrada e o domínio próprio cadastrado (evita certificados para nomes que alguém aponte por engano).
+   */
+  async certificateAllowed(host: string): Promise<boolean> {
+    if (!env.platformDomain) return false
+    const h = host.toLowerCase().replace(/\.$/, '')
+    if (h === env.platformDomain || h === `www.${env.platformDomain}` || h === env.platformAdminHost) return true
+    const k = hostKind(h, env.platformDomain, env.platformAdminHost)
+    if (k.kind === 'slug') return !!(await this.prisma.tenant.findUnique({ where: { slug: k.slug }, select: { id: true } }))
+    if (k.kind === 'custom') return !!(await this.prisma.tenantDomain.findUnique({ where: { host: k.host }, select: { id: true } }))
+    return false
+  }
+
   /** Empresa do endereço, ou erro 404 quando o endereço não é de nenhuma empresa. */
   async requireFromHost(host: string | undefined): Promise<string> {
     const id = await this.idFromHost(host)

@@ -1,6 +1,6 @@
 // Mercado Livre Ads (Product Ads e Display Ads): constantes, configuração e leitura das respostas da API, sem banco.
 // Documentação: developers.mercadolivre.com.br — "Autenticação e Autorização" e "Product Ads" (api-version 2, Ad Groups).
-// Veio do Usaparts BI (src/lib/integrations/mercadolivre.ts e ml-calc.ts), com os mesmos cálculos.
+// Veio do BI antigo (src/lib/integrations/mercadolivre.ts e ml-calc.ts), com os mesmos cálculos.
 
 export const ML_API = 'https://api.mercadolibre.com'
 export const ML_AUTH_URL = 'https://auth.mercadolivre.com.br/authorization'

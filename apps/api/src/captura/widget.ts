@@ -48,7 +48,7 @@ export const CAPTURE_JS = `
   function pageOk(inc, exc) {
     var p = (location.pathname + location.search).toLowerCase(), hs = location.hostname.toLowerCase();
     function pathHit(x) { return x.slice(-1) === '*' ? p.indexOf(x.slice(0, -1)) === 0 : p === x || p.indexOf(x) >= 0; }
-    // Aceita caminho ("/produto/*") ou domínio com caminho opcional ("teste.usaparts.com.br/ofertas*").
+    // Aceita caminho ("/produto/*") ou domínio com caminho opcional ("teste.suaempresa.com.br/ofertas*").
     function hit(x) {
       x = String(x || '').trim().toLowerCase(); if (!x) return false;
       var m = x.charAt(0) !== '/' && /^(?:https?:\\/\\/)?([a-z0-9-]+(?:\\.[a-z0-9-]+)+)(\\/.*)?$/.exec(x);

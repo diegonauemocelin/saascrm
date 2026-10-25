@@ -1,7 +1,8 @@
-# CRM - stack isolada. Nome de projeto, rede, volumes e banco próprios: não toca em nada que já exista na VPS.
-# A única porta publicada é a do frontend, e só em 127.0.0.1 (o Nginx do servidor faz o HTTPS e repassa para ela).
+# Plataforma SaaS CRM (sgmulticonecta) - VPS dedicada. O Caddy (portas 80 e 443) faz o HTTPS automático do domínio da
+# plataforma, dos subdomínios das empresas e dos domínios próprios, e repassa para o frontend. Banco e API não têm porta
+# publicada.
 
-name: usaparts-crm
+name: saascrm
 
 x-hardening: &hardening
   restart: unless-stopped
@@ -45,7 +46,7 @@ services:
   # Sem o prefixo (desenvolvimento e CI), o compose constrói localmente.
   api:
     <<: *hardening
-    image: ${CRM_IMAGE_PREFIX:-usaparts-crm}-api:${CRM_VERSION:-latest}
+    image: ${CRM_IMAGE_PREFIX:-saascrm}-api:${CRM_VERSION:-latest}
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -61,7 +62,15 @@ services:
       NODE_OPTIONS: --max-old-space-size=384
       HOME: /tmp
       CHECKPOINT_DISABLE: "1"
-      APP_URL: https://${CRM_DOMAIN:?defina CRM_DOMAIN no .env}
+      # Painel da plataforma (empresa dona); cada empresa usa <endereço>.PLATFORM_DOMAIN ou o domínio próprio.
+      APP_URL: https://${PLATFORM_ADMIN_HOST:?defina PLATFORM_ADMIN_HOST no .env}
+      PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:?defina PLATFORM_DOMAIN no .env}
+      PLATFORM_ADMIN_HOST: ${PLATFORM_ADMIN_HOST}
+      TENANT_SLUG: ${TENANT_SLUG:-sgmulticonecta}
+      # Asaas (mensalidades): chave da API, ambiente (sandbox ou producao) e o token dos avisos (webhook).
+      ASAAS_API_KEY: ${ASAAS_API_KEY:-}
+      ASAAS_ENV: ${ASAAS_ENV:-sandbox}
+      ASAAS_WEBHOOK_TOKEN: ${ASAAS_WEBHOOK_TOKEN:-}
       DATABASE_URL: postgresql://crm:${POSTGRES_PASSWORD}@db:5432/crm
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?defina JWT_ACCESS_SECRET no .env}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?defina APP_ENCRYPTION_KEY no .env}
@@ -70,12 +79,12 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-}
-      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-Usaparts}
+      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-sgmulticonecta}
       # WhatsApp (Evolution API). Vazio = módulo desligado. Gerados por deploy/whatsapp.sh ativar.
       EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
       EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:-}
-      WHATSAPP_MAX_NUMBERS: ${WHATSAPP_MAX_NUMBERS:-10}
-      WHATSAPP_MAX_CONNECTED: ${WHATSAPP_MAX_CONNECTED:-3}
+      WHATSAPP_MAX_NUMBERS: ${WHATSAPP_MAX_NUMBERS:-100}
+      WHATSAPP_MAX_CONNECTED: ${WHATSAPP_MAX_CONNECTED:-10}
     volumes:
       - uploads:/data/uploads
     depends_on:
@@ -89,7 +98,7 @@ services:
 
   web:
     <<: *hardening
-    image: ${CRM_IMAGE_PREFIX:-usaparts-crm}-web:${CRM_VERSION:-latest}
+    image: ${CRM_IMAGE_PREFIX:-saascrm}-web:${CRM_VERSION:-latest}
     build:
       context: .
       dockerfile: apps/web/Dockerfile
@@ -106,10 +115,36 @@ services:
       resources:
         limits: { memory: 64m }
 
+  # Servidor da frente: HTTPS automático (Let's Encrypt). O certificado de cada endereço novo é emitido no primeiro
+  # acesso, só se a API confirmar que é da plataforma (painel, subdomínio de empresa cadastrada ou domínio próprio).
+  caddy:
+    <<: *hardening
+    image: caddy:2.10-alpine
+    cap_add: [NET_BIND_SERVICE]
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?defina ACME_EMAIL no .env (avisos do Let's Encrypt)}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_started
+    networks: [egress]
+    deploy:
+      resources:
+        limits: { memory: 128m }
+
   # Backup diário criptografado (pg_dump -> gzip -> age com chave pública). A chave privada fica FORA do servidor.
   backup:
     <<: *hardening
-    image: ${CRM_IMAGE_PREFIX:-usaparts-crm}-backup:${CRM_VERSION:-latest}
+    image: ${CRM_IMAGE_PREFIX:-saascrm}-backup:${CRM_VERSION:-latest}
     build:
       context: deploy/backup
     environment:
@@ -186,7 +221,7 @@ services:
       CACHE_REDIS_PREFIX_KEY: evolution
       CACHE_REDIS_SAVE_INSTANCES: "false"
       CACHE_LOCAL_ENABLED: "false"
-      CONFIG_SESSION_PHONE_CLIENT: CRM Usaparts
+      CONFIG_SESSION_PHONE_CLIENT: sgmulticonecta CRM
       CONFIG_SESSION_PHONE_NAME: Chrome
       QRCODE_LIMIT: "30"
       WEBHOOK_GLOBAL_ENABLED: "false"
@@ -229,5 +264,8 @@ networks:
 volumes:
   pgdata:
   uploads:
+  # Certificados HTTPS do Caddy (apagar = emitir todos de novo).
+  caddy-data:
+  caddy-config:
   # Sessões do WhatsApp (os aparelhos conectados). Apagar = ler o QR Code de novo em todos os números.
   evolution:

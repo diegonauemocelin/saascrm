@@ -34,6 +34,7 @@ interface AiSettings {
   request_info_mode: 'enviar' | 'revisar'
   forward_when: string
   allowed_categories: string[]
+  company_profile?: string
   custom_instructions: string
   provider: 'claude' | 'gemini' | 'sem_ia'
   gemini_model: string
@@ -386,6 +387,9 @@ function SettingsForm({ part }: { part: 'respostas' | 'motor' }) {
           <Field label="Encaminhar para a equipe quando">
             <Textarea rows={3} value={s.forward_when} onChange={(e) => set('forward_when', e.target.value)} disabled={!edit} />
           </Field>
+          <Field label="Sobre a empresa (ramo, produtos, diferenciais)">
+            <Textarea rows={3} maxLength={1000} placeholder="Ex.: distribuidora de peças para máquinas agrícolas, com entrega para todo o Brasil." value={s.company_profile ?? ''} onChange={(e) => set('company_profile', e.target.value)} disabled={!edit} />
+          </Field>
           <Field label="Instruções extras para a IA">
             <Textarea rows={3} value={s.custom_instructions} onChange={(e) => set('custom_instructions', e.target.value)} disabled={!edit} />
           </Field>
@@ -606,7 +610,7 @@ function IntegracaoTab() {
           <CardDescription>
             {d.taken
               ? `O CRM assumiu${d.settings.activatedBy ? ` (${d.settings.activatedBy}` : ''}${d.settings.activatedAt ? ` em ${formatDateTime(d.settings.activatedAt)})` : d.settings.activatedBy ? ')' : ''}: lê as perguntas, responde conforme as configurações e liga as vendas.`
-              : 'Enquanto o CRM não assume, o painel antigo (painel.usaparts.com.br) continua lendo e respondendo as perguntas. O CRM só mostra os dados importados e permite testar.'}
+              : 'Enquanto o CRM não assume, o painel antigo continua lendo e respondendo as perguntas. O CRM só mostra os dados importados e permite testar.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">

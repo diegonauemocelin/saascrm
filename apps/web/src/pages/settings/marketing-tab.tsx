@@ -170,7 +170,7 @@ function IntegrationsCards({ initial, sync }: { initial: Integrations; sync: Syn
         fields={[{ key: 'adAccountIds', label: 'Contas de anúncio (act_…)', placeholder: 'act_1234567890', multiline: true }]}
         help={
           <ol className="list-decimal space-y-0.5 pl-5">
-            <li>No Business Manager da Usaparts: Configurações do negócio › Usuários do sistema › Adicionar (função Administrador ou Funcionário).</li>
+            <li>No Business Manager da empresa: Configurações do negócio › Usuários do sistema › Adicionar (função Administrador ou Funcionário).</li>
             <li>Atribua as contas de anúncio ao usuário do sistema (permissão “Ver desempenho”).</li>
             <li>No app da empresa (developers.facebook.com › Casos de uso › API de Marketing › Personalizar), adicione a permissão ads_read.</li>
             <li>Gerar token no usuário do sistema: escolha o app, validade “Nunca” e marque ads_read. Cole o token aqui com o número de cada conta (Gerenciador de Anúncios, no topo: act_…).</li>
@@ -205,7 +205,7 @@ function IntegrationsCards({ initial, sync }: { initial: Integrations; sync: Syn
         hasToken={i.tiktok.hasToken}
         tokenLabel="Token de acesso (Marketing API)"
         fields={[{ key: 'advertiserIds', label: 'ID do anunciante', placeholder: '7123456789012345678', multiline: true }]}
-        help={<p>No TikTok for Developers, crie o app (Marketing API) e autorize a conta de anúncios da Usaparts. Cole o token de longa duração e o ID do anunciante (TikTok Ads Manager, no topo).</p>}
+        help={<p>No TikTok for Developers, crie o app (Marketing API) e autorize a conta de anúncios da empresa. Cole o token de longa duração e o ID do anunciante (TikTok Ads Manager, no topo).</p>}
       />
       <Integration
         k="searchConsole"
@@ -216,7 +216,7 @@ function IntegrationsCards({ initial, sync }: { initial: Integrations; sync: Syn
         lastTest={i.searchConsole.lastTest}
         onSaved={(v) => setI(v)}
         initialValues={{ siteUrl: i.searchConsole.siteUrl }}
-        fields={[{ key: 'siteUrl', label: 'Propriedade', placeholder: 'https://www.usaparts.com.br/ ou sc-domain:usaparts.com.br' }]}
+        fields={[{ key: 'siteUrl', label: 'Propriedade', placeholder: 'https://www.suaempresa.com.br/ ou sc-domain:suaempresa.com.br' }]}
         help={<p>No Search Console, em Configurações › Usuários e permissões › Adicionar usuário, coloque o e-mail da conta de serviço (o mesmo de Configurações › Google Analytics) com permissão Restrita.</p>}
       />
     </>
@@ -341,7 +341,7 @@ function MetaFinder({ fill }: { fill: (v: Record<string, string>) => void }) {
         {find.isPending ? <Loader2Icon className="animate-spin" /> : <SearchIcon />} Buscar página e Instagram
       </Button>
       {pages && pages.length === 0 && (
-        <p className="text-xs text-muted-foreground">Nenhuma página encontrada. No Gerenciador de Negócios, atribua a página da Usaparts ao usuário do sistema (Atribuir ativos › Páginas) e busque de novo.</p>
+        <p className="text-xs text-muted-foreground">Nenhuma página encontrada. No Gerenciador de Negócios, atribua a página da empresa ao usuário do sistema (Atribuir ativos › Páginas) e busque de novo.</p>
       )}
       {pages && pages.length > 0 && (
         <ul className="divide-y rounded-md border text-sm">

@@ -1,27 +1,36 @@
-# CRM Usaparts
+# sgmulticonecta CRM (SaaS)
 
-CRM, automação de marketing e painel de pré e pós-vendas, whitelabel, em português do Brasil.
-
-> Desenvolvido e mantido por **Diego Naue Mocelin**.
+CRM, atendimento por WhatsApp, automação de marketing e postagens, vendido por assinatura para várias empresas,
+em português do Brasil. A sgmulticonecta controla tudo pelo painel da plataforma: empresas, planos, sistemas liberados
+por plano, cobranças e domínios.
 
 | | |
 |---|---|
 | Versão atual | ver [`releases.json`](releases.json) (também na tela **Atualizações** do sistema) |
-| Produção | https://crm.usaparts.com.br |
+| Painel da plataforma | https://admin.sgmulticonecta.com.br |
+| Cadastro de empresas | https://sgmulticonecta.com.br/cadastro |
 | Implantação | [docs/DEPLOY.md](docs/DEPLOY.md) |
 | Segurança | [docs/SEGURANCA.md](docs/SEGURANCA.md) |
 | Como publicar versões | [docs/RELEASES.md](docs/RELEASES.md) |
-| O que falta | [docs/ROADMAP.md](docs/ROADMAP.md) |
+
+## Como funciona
+
+- **Empresa (tenant):** cada cliente tem os seus dados isolados e o seu endereço: `<empresa>.sgmulticonecta.com.br` ou
+  um domínio próprio (`crm.empresa.com.br`). O endereço acessado define a empresa.
+- **Planos:** cada plano libera um conjunto de sistemas (cada módulo do CRM é um sistema), o número de usuários e de
+  números de WhatsApp. Dá para liberar sistemas extras para uma empresa sem trocar o plano. Integração com e-commerce e
+  ERP aparecem no menu como **sob consulta**.
+- **Assinatura:** cadastro pelo site, com teste grátis (3 ou 7 dias, definido no plano) ou liberação após o pagamento da
+  primeira mensalidade. Cobrança mensal pelo Asaas (Pix, boleto ou cartão); sem pagamento, o acesso é bloqueado.
 
 ## Arquitetura
 
 ```
-Internet ─► Nginx da VPS (vhost só do CRM + Let's Encrypt)
-              │ 127.0.0.1:8180
-              ▼
-   ┌──────────── docker compose "usaparts-crm" ────────────┐
+Internet ─► Caddy (HTTPS automático: domínio, curinga e domínios próprios das empresas)
+              │
+   ┌──────────── docker compose "saascrm" ──────────────────┐
    │ web     Nginx sem root: frontend React + proxy /api     │
-   │ api     NestJS 12 (Node 24), REST + OpenAPI             │
+   │ api     NestJS 12 (Node 24), REST + OpenAPI, multiempresa│
    │ db      PostgreSQL 18 (rede interna, sem porta pública) │
    │ backup  pg_dump diário criptografado com age            │
    └────────────────────────────────────────────────────────┘
@@ -32,14 +41,15 @@ Internet ─► Nginx da VPS (vhost só do CRM + Let's Encrypt)
 | Backend | NestJS 12, TypeScript 6, Prisma 7 (PostgreSQL), class-validator, Swagger |
 | Frontend | React 19, Vite 8, Tailwind CSS 4, shadcn/ui (componentes + block `sidebar-07`), TanStack Query, React Router 8 |
 | Segurança | Argon2id, TOTP (otplib), JWT HS256 em cookie HttpOnly, refresh token rotativo, CSRF double-submit, Helmet, rate limit |
-| Infra | Docker Compose, Nginx, Let's Encrypt, backups com `age` |
+| Cobrança | Asaas (assinatura mensal, webhook com token) |
+| Infra | Docker Compose, Caddy (on-demand TLS), backups com `age` |
 
 Repositório em *npm workspaces*:
 
 ```
-apps/api      API NestJS (src/, prisma/, test/)
+apps/api      API NestJS (src/, prisma/, test/; src/plataforma: empresas, planos e cobrança)
 apps/web      Frontend React (src/pages, src/components, src/lib)
-deploy/       Scripts da VPS: inventário, instalação, deploy, rollback, backup, restauração
+deploy/       Scripts da VPS: instalação, Caddy, deploy, rollback, backup, restauração, WhatsApp
 scripts/      Verificação de versão, teste de fumaça, banco local de desenvolvimento
 releases.json Fonte única da versão e do histórico exibido na tela Atualizações
 ```
@@ -70,7 +80,7 @@ npm run db:migrate -w @crm/api && npm run db:seed -w @crm/api && npm run dev:api
 npm run dev:web
 ```
 
-Acesse http://localhost:5173. O seed mostra a senha provisória do administrador no terminal. A documentação da API fica em http://localhost:3000/api/docs.
+Acesse http://localhost:5173 (a empresa dona da plataforma; para testar outras empresas, use `TENANT_SLUG`/`PLATFORM_DOMAIN` no `apps/api/.env`). O seed mostra a senha provisória do administrador no terminal. A documentação da API fica em http://localhost:3000/api/docs.
 
 ## Comandos
 
@@ -80,7 +90,7 @@ Acesse http://localhost:5173. O seed mostra a senha provisória do administrador
 | `npm test` | Testes automatizados (permissões, bloqueio de login, 2FA, criptografia, auditoria, upload, SSRF) |
 | `npm run build` | Build de produção |
 | `npm run release:check` | Confere se a versão está igual em `releases.json` e nos `package.json` |
-| `npm run smoke -- https://crm.usaparts.com.br` | Teste de fumaça das proteções em um ambiente no ar |
+| `npm run smoke -- https://admin.sgmulticonecta.com.br` | Teste de fumaça das proteções em um ambiente no ar |
 
 ## Layouts
 

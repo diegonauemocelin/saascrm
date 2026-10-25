@@ -205,7 +205,7 @@ const SECTIONS: Section[] = [
     id: 'marketplaces-conexoes',
     group: 'Marketplaces',
     title: 'Conexões dos marketplaces',
-    description: 'Conta do Mercado Livre (anúncios e Mercado Livre Ads), sincronização e o histórico trazido do Usaparts BI.',
+    description: 'Conta do Mercado Livre (anúncios e Mercado Livre Ads), sincronização.',
     icon: PlugIcon,
     module: 'marketplaces',
     ownHeader: true,

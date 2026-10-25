@@ -4,7 +4,7 @@
 #   sudo bash deploy/whatsapp.sh reiniciar                   -> reinicia a Evolution: os números voltam sozinhos, sem QR Code
 #   sudo bash deploy/whatsapp.sh ativar [--forcar]           -> gera as chaves, cria o banco e sobe a Evolution
 #   sudo bash deploy/whatsapp.sh desativar                   -> para a Evolution (as sessões ficam guardadas)
-#   sudo bash deploy/whatsapp.sh limite 5                    -> números conectados ao mesmo tempo (depois do upgrade da VPS)
+#   sudo bash deploy/whatsapp.sh limite 20                   -> números conectados ao mesmo tempo, somando todas as empresas
 #   sudo bash deploy/whatsapp.sh atualizar                   -> instala a versão estável mais nova da Evolution (só 2.x), com volta automática
 #   sudo bash deploy/whatsapp.sh atualizacao-automatica ligar|desligar  -> confere toda semana (domingo, 4h)
 #
@@ -20,7 +20,7 @@ IMAGEM="evoapicloud/evolution-api"
 VERSAO_PADRAO="v2.3.7"
 # Memória livre mínima para ligar (Evolution + Redis com 3 números conectados usam por volta de 400-600 MB).
 MEMORIA_MINIMA_MB=700
-CRON="/etc/cron.d/usaparts-crm-whatsapp"
+CRON="/etc/cron.d/saascrm-whatsapp"
 
 memoria_livre_mb() { awk '/MemAvailable/ { printf "%d", $2 / 1024 }' /proc/meminfo; }
 
@@ -126,12 +126,14 @@ cmd_desativar() {
 
 cmd_limite() {
   local n="${1:-}"
-  [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] && [ "$n" -le 10 ] || fatal "Informe de 1 a 10. Ex.: sudo bash deploy/whatsapp.sh limite 5"
+  [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] && [ "$n" -le 200 ] || fatal "Informe de 1 a 200. Ex.: sudo bash deploy/whatsapp.sh limite 20"
   if [ "$n" -gt 3 ]; then
     aviso "Cada número conectado usa memória. Com $n conectados, recomendo a VPS com 4 GB ou mais (livre agora: $(memoria_livre_mb) MB)."
     [ "$n" -le 5 ] || env_set EVOLUTION_MEMORY "$((n * 150 + 200))m"
   fi
   env_set WHATSAPP_MAX_CONNECTED "$n"
+  # Cadastrados (todas as empresas) nunca abaixo dos conectados.
+  [ "$(env_get WHATSAPP_MAX_NUMBERS)" -ge "$n" ] 2>/dev/null || env_set WHATSAPP_MAX_NUMBERS "$((n * 2))"
   recarregar_api
   ok "Limite de números conectados ao mesmo tempo: $n."
 }

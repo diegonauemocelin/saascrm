@@ -275,7 +275,7 @@ export function adsFirstLast(touches: { t: TouchLike | null | undefined; at: Dat
   return { first: touchAdsInfo(first.t!, first.at, names), last: touchAdsInfo(last.t!, last.at, names) }
 }
 
-/** Página de entrada para mostrar: domínio + caminho, sem "www", sem parâmetros. Ex.: lp.usaparts.com.br/hyundai */
+/** Página de entrada para mostrar: domínio + caminho, sem "www", sem parâmetros. Ex.: lp.suaempresa.com.br/hyundai */
 export function pageLabel(url: unknown): string | null {
   if (typeof url !== 'string' || !url) return null
   try {
@@ -336,7 +336,7 @@ export function cleanCampaignList(raw: unknown): CampaignSync | { error: string 
 
 /** Script para colar em Google Ads → Ferramentas → Ações em massa → Scripts (programar: diariamente). */
 export function campaignsScript(url: string) {
-  return `/** CRM Usaparts: envia ao CRM o número e o nome de todas as campanhas desta conta (programe para rodar diariamente). */
+  return `/** CRM: envia ao CRM o número e o nome de todas as campanhas desta conta (programe para rodar diariamente). */
 function main() {
   var lista = [];
   var fontes = ['campaigns', 'performanceMaxCampaigns', 'shoppingCampaigns', 'videoCampaigns'];

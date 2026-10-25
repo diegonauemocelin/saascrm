@@ -587,7 +587,7 @@ function Integracoes() {
             {edit && (
               <section className="space-y-2">
                 <p className="font-medium">3. Autorizar a conta</p>
-                <p className="text-muted-foreground">Abre o Mercado Livre para entrar com a conta da Usaparts e autorizar. Quando o CRM conectar, a sincronização do sistema anterior para (o Mercado Livre aceita uma conexão por aplicativo).</p>
+                <p className="text-muted-foreground">Abre o Mercado Livre para entrar com a conta da empresa e autorizar. Quando o CRM conectar, a sincronização do sistema anterior para (o Mercado Livre aceita uma conexão por aplicativo).</p>
                 <Button size="sm" onClick={() => connect.mutate()} disabled={connect.isPending || !c.hasSecret || !c.clientId}>
                   {connect.isPending ? <Loader2Icon className="animate-spin" /> : <PlugIcon />} {c.connected ? 'Reconectar' : 'Conectar o Mercado Livre'}
                 </Button>

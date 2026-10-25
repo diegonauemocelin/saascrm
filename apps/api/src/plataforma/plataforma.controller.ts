@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, ForbiddenException, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, Res } from '@nestjs/common'
+import type { Response } from 'express'
 import { ApiTags } from '@nestjs/swagger'
-import { Throttle } from '@nestjs/throttler'
+import { SkipThrottle, Throttle } from '@nestjs/throttler'
 import { Type } from 'class-transformer'
 import { IsArray, IsBoolean, IsEmail, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator'
 import { AllowBlocked, CurrentUser, Public, ReqContext, type RequestCtx } from '../common/decorators'
 import { can } from '../common/permissions'
+import { TenantService } from '../prisma/prisma.module'
 import { CobrancaService } from './cobranca.service'
 import type { AuthUser } from '../common/types'
 import { PlataformaService } from './plataforma.service'
@@ -247,5 +249,21 @@ export class AssinaturaController {
   pay(@CurrentUser() user: AuthUser, @ReqContext() ctx: RequestCtx) {
     this.assertAdmin(user)
     return this.billing.payNow(user, ctx)
+  }
+}
+
+/**
+ * O Caddy (servidor da frente) pergunta aqui antes de emitir o certificado HTTPS de um endereço novo: 200 libera,
+ * 404 recusa. O Caddy chama a API direto pela rede interna; pelo site, o endereço é bloqueado no nginx do frontend.
+ */
+@Controller('public/dominio-permitido')
+export class DominioPermitidoController {
+  constructor(private readonly tenants: TenantService) {}
+
+  @Public()
+  @SkipThrottle()
+  @Get()
+  async allowed(@Query('domain') domain = '', @Res() res: Response) {
+    res.status((await this.tenants.certificateAllowed(domain.slice(0, 253))) ? 200 : 404).end()
   }
 }

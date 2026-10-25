@@ -47,7 +47,7 @@ export function CompanyRenameCard() {
           <ReplaceIcon className="size-4" /> Trocar o nome da empresa nos textos
         </CardTitle>
         <CardDescription>
-          Troca o nome antigo pelo novo em tudo o que já foi escrito: pop-ups, formulários e botões da Captura, campanhas de e-mail ainda não enviadas, automações, respostas rápidas, etiquetas, listas e configurações. Endereços de site e e-mail (ex.: usaparts.com.br) não mudam. Conversas, histórico e e-mails já enviados ficam como foram.
+          Troca o nome antigo pelo novo em tudo o que já foi escrito: pop-ups, formulários e botões da Captura, campanhas de e-mail ainda não enviadas, automações, respostas rápidas, etiquetas, listas e configurações. Endereços de site e e-mail (ex.: suaempresa.com.br) não mudam. Conversas, histórico e e-mails já enviados ficam como foram.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -58,7 +58,7 @@ export function CompanyRenameCard() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="rn-to" required>Nome novo</Label>
-            <Input id="rn-to" placeholder="ex.: Usaparts" maxLength={80} value={to} onChange={(e) => (setTo(e.target.value), setPreview(null))} />
+            <Input id="rn-to" placeholder="ex.: Nome novo da empresa" maxLength={80} value={to} onChange={(e) => (setTo(e.target.value), setPreview(null))} />
           </div>
         </div>
         {!ready && <p className="text-xs text-muted-foreground">Preencha o nome antigo (mínimo 3 caracteres) e o novo para ver o que muda.</p>}

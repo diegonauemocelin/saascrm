@@ -112,7 +112,7 @@ export function recommendations(x: RecInput): Recommendation[] {
       problem: `“${c.name}” trouxe ${c.leads} leads e nenhuma venda.`,
       evidence: [`Leads: ${c.leads}`, 'Vendas: 0', `Conversão média do período: ${pc(avgConv)}`, ...(c.mediaCost ? [`Investimento: ${brl(c.mediaCost)}`] : [])],
       impact: 'Leads que não viram venda: pode ser público fora do perfil ou atendimento que não avançou.',
-      action: 'Ler os motivos de perda desses atendimentos e o tipo de peça pedido; ajustar palavras-chave/público se o lead não for o cliente da Usaparts.',
+      action: 'Ler os motivos de perda desses atendimentos e o tipo de peça pedido; ajustar palavras-chave/público se o lead não for o cliente da empresa.',
       metric: 'Taxa de conversão da campanha',
       validate: 'Acompanhar as vendas da campanha no próximo período.',
       source: ads,

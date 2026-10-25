@@ -191,6 +191,7 @@ class AiSettingsDto {
   @IsIn(['enviar', 'revisar']) request_info_mode!: 'enviar' | 'revisar'
   @IsString() @MaxLength(2000) forward_when!: string
   @IsArray() @ArrayMaxSize(60) @IsString({ each: true }) @MaxLength(100, { each: true }) allowed_categories!: string[]
+  @IsOptional() @IsString() @MaxLength(1000) company_profile?: string
   @IsString() @MaxLength(4000) custom_instructions!: string
   @IsIn(Object.keys(PROVIDERS)) provider!: 'claude' | 'gemini' | 'sem_ia'
   @Matches(/^gemini-[a-z0-9.-]{1,60}$/) gemini_model!: string

@@ -17,7 +17,7 @@ import { TEMPLATES } from './modelos'
 import { renderLanding, type RenderInput } from './render'
 
 export interface LandingSettings {
-  /** Subdomínio das páginas (ex.: lp.usaparts.com.br). Vazio = só pelo endereço do CRM (/lp/...). */
+  /** Subdomínio das páginas (ex.: lp.suaempresa.com.br). Vazio = só pelo endereço do CRM (/lp/...). */
   domain: string
   /** GA4: ID de medição (G-XXXXXXX). */
   ga4Id: string
@@ -75,7 +75,7 @@ export class LandingService {
     this.assertCan(user, 'edit')
     const cur = await this.config(user.tenantId)
     const domain = (d.domain ?? cur.domain).trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
-    if (domain && !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(domain)) throw new BadRequestException('Subdomínio inválido. Ex.: lp.usaparts.com.br')
+    if (domain && !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(domain)) throw new BadRequestException('Subdomínio inválido. Ex.: lp.suaempresa.com.br')
     const ga4Id = (d.ga4Id ?? cur.ga4Id).trim().toUpperCase()
     if (ga4Id && !/^G-[A-Z0-9]{4,15}$/.test(ga4Id)) throw new BadRequestException('ID de medição do GA4 inválido. Ele começa com G- (ex.: G-ABC123XYZ).')
     const pixelId = (d.pixelId ?? cur.pixelId).trim()

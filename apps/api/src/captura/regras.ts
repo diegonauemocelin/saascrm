@@ -149,8 +149,8 @@ export function pageMatches(url: string, include: string[], exclude: string[]) {
   const hit = (pattern: string) => {
     let p = pattern.trim().toLowerCase()
     if (!p) return false
-    // Domínio (com ou sem caminho): "teste.usaparts.com.br" ou "https://teste.usaparts.com.br/ofertas*".
-    // Vale o próprio domínio e o "www." dele; subdomínios diferentes não contam (usaparts.com.br ≠ teste.usaparts.com.br).
+    // Domínio (com ou sem caminho): "teste.suaempresa.com.br" ou "https://teste.suaempresa.com.br/ofertas*".
+    // Vale o próprio domínio e o "www." dele; subdomínios diferentes não contam (suaempresa.com.br ≠ teste.suaempresa.com.br).
     const m = /^(?:https?:\/\/)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)(\/.*)?$/.exec(p)
     if (m && !p.startsWith('/')) {
       const dom = m[1]!.replace(/^www\./, '')

@@ -607,7 +607,7 @@ function SettingsEditor({ initial }: { initial: EmailSettings }) {
                 <Input id="em-from" maxLength={80} placeholder="Nome da empresa" value={s.fromName} onChange={(e) => setS({ ...s, fromName: e.target.value })} />
               </Row>
               <Row label="Responder para" htmlFor="em-reply" hint="Para onde vão as respostas dos clientes.">
-                <Input id="em-reply" type="email" placeholder="comercial@usaparts.com.br" value={s.replyTo} onChange={(e) => setS({ ...s, replyTo: e.target.value })} />
+                <Input id="em-reply" type="email" placeholder="comercial@suaempresa.com.br" value={s.replyTo} onChange={(e) => setS({ ...s, replyTo: e.target.value })} />
               </Row>
             </div>
             <Row label="Rodapé (dados da empresa)" htmlFor="em-footer" hint="Razão social, endereço e telefone: os provedores de e-mail exigem e passa confiança.">

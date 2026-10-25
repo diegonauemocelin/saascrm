@@ -106,7 +106,7 @@ export function newBlock(type: BlockType, accent = '#1d4ed8'): Block {
     case 'formulario':
       return { id, type, columns: 1, showLabels: true, labelColor: '#111111', inputBg: '#ffffff', inputBorder: '#cbd5e1', inputRadius: 8, buttonText: null, buttonBg: accent, buttonColor: '#ffffff', buttonRadius: 8, buttonFull: true }
     case 'cupom':
-      return { id, type, code: 'USAPARTS10', label: 'Use o cupom na finalização da compra', bg: '#fef3c7', color: '#92400e', afterSubmit: true }
+      return { id, type, code: 'DESCONTO10', label: 'Use o cupom na finalização da compra', bg: '#fef3c7', color: '#92400e', afterSubmit: true }
     case 'espaco':
       return { id, type, height: 12 }
     case 'divisor':
@@ -171,7 +171,7 @@ export const TEMPLATES: Template[] = [
         title('Ganhe 10% OFF na primeira compra', { size: 26, align: 'centro', color: '#facc15' }),
         para('Cadastre-se e receba o cupom na hora.', { align: 'centro', color: '#e2e8f0' }),
         form({ showLabels: false, labelColor: '#ffffff', inputBorder: '#334155', buttonText: 'Quero meu cupom', buttonBg: '#facc15', buttonColor: '#111111', buttonRadius: 999 }),
-        { id: uid(), type: 'cupom', code: 'USAPARTS10', label: 'Seu cupom de desconto', bg: '#1e293b', color: '#facc15', afterSubmit: true },
+        { id: uid(), type: 'cupom', code: 'DESCONTO10', label: 'Seu cupom de desconto', bg: '#1e293b', color: '#facc15', afterSubmit: true },
         decline('Não, obrigado', '#94a3b8'),
       ]),
     }),

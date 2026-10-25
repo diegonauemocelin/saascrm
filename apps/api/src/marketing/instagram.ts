@@ -32,7 +32,7 @@ export interface Competitor {
 const r1 = (n: number) => Math.round(n * 10) / 10
 const r2 = (n: number) => Math.round(n * 100) / 100
 
-/** "@usaparts", link do perfil ou nome: vira o nome de usuário (letras, números, ponto e _). */
+/** "@suaempresa", link do perfil ou nome: vira o nome de usuário (letras, números, ponto e _). */
 export function cleanUsername(v: unknown) {
   const s = String(v ?? '')
     .trim()

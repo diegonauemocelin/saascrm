@@ -1,5 +1,5 @@
 /**
- * Traz o painel antigo (painel.usaparts.com.br, banco SQLite) para dentro do CRM, sem alterar o painel.
+ * Traz o painel antigo (painel.suaempresa.com.br, banco SQLite) para dentro do CRM, sem alterar o painel.
  * Roda dentro do container da API (o deploy/importar-painel.sh faz tudo):
  *   node dist/assistente/importar-painel.js /tmp/painel.db [id-da-empresa] < segredos.json
  * segredos.json (pela entrada padrão, nunca em arquivo): chave de criptografia e credenciais do .env do painel.

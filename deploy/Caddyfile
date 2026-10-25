@@ -1,0 +1,22 @@
+# Servidor da frente da plataforma SaaS. Um site só para todos os endereços: o Caddy emite o certificado de cada
+# endereço no primeiro acesso (on demand), depois de perguntar à API se ele é da plataforma.
+{
+	email {$ACME_EMAIL}
+	on_demand_tls {
+		ask http://api:3000/api/public/dominio-permitido
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=31536000"
+	# O endereço acessado (Host) segue para o sistema: é ele que define a empresa.
+	reverse_proxy web:8080
+}
+
+http:// {
+	redir https://{host}{uri} 308
+}

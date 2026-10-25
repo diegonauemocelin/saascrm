@@ -148,7 +148,7 @@ export class MarketingService {
     } else {
       const raw = String(input.siteUrl ?? '').trim()
       const siteUrl = raw ? cleanSiteUrl(raw) : ''
-      if (siteUrl === null) throw new BadRequestException('Propriedade inválida: use o endereço do site (https://www.usaparts.com.br/) ou sc-domain:usaparts.com.br.')
+      if (siteUrl === null) throw new BadRequestException('Propriedade inválida: use o endereço do site (https://www.suaempresa.com.br/) ou sc-domain:suaempresa.com.br.')
       next.searchConsole = { ...next.searchConsole, enabled, siteUrl }
       if (enabled && !siteUrl) throw new BadRequestException('Informe a propriedade do Search Console.')
     }

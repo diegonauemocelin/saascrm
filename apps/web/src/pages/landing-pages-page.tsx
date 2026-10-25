@@ -50,7 +50,7 @@ export function LandingPagesPage() {
       />
       {opts.data && !opts.data.config.domain && (
         <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-          O subdomínio ainda não está configurado: as páginas ficam no endereço do CRM ({opts.data.base}). Configure em <b>Subdomínio e medição</b> (ex.: lp.usaparts.com.br).
+          O subdomínio ainda não está configurado: as páginas ficam no endereço do CRM ({opts.data.base}). Configure em <b>Subdomínio e medição</b> (ex.: lp.suaempresa.com.br).
         </p>
       )}
       {list.error ? (
@@ -309,12 +309,12 @@ function ConfigDialog({ initial, onClose }: { initial: LandingConfig; onClose: (
         >
           <div className="space-y-1.5">
             <Label htmlFor="cfg-domain">Subdomínio das páginas</Label>
-            <Input id="cfg-domain" value={c.domain} onChange={(e) => set({ domain: e.target.value })} placeholder="lp.usaparts.com.br" />
+            <Input id="cfg-domain" value={c.domain} onChange={(e) => set({ domain: e.target.value })} placeholder="lp.suaempresa.com.br" />
             <p className="text-xs text-muted-foreground">O TI aponta o DNS deste subdomínio para o servidor do CRM e instala o certificado (passo a passo em deploy/LANDING-PAGES.md). Enquanto isso, as páginas funcionam no endereço do CRM, em /lp/.</p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cfg-home">Quem abrir o subdomínio sem página vai para</Label>
-            <Input id="cfg-home" value={c.homeUrl} onChange={(e) => set({ homeUrl: e.target.value })} placeholder="https://www.usaparts.com.br" />
+            <Input id="cfg-home" value={c.homeUrl} onChange={(e) => set({ homeUrl: e.target.value })} placeholder="https://www.suaempresa.com.br" />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">

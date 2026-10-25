@@ -80,7 +80,7 @@ export class MarketingInstagramService {
     const integ = { ...DEFAULT_INTEGRATIONS, ...(await this.settings.get<IntegrationsConfig>(tenantId, INTEGRATIONS_KEY, DEFAULT_INTEGRATIONS)) }
     const official = integ.metaOrganic.instagramId
     const extra = cleanIgAccounts((await this.settings.get<{ list?: unknown }>(tenantId, IG_ACCOUNTS_KEY, {})).list, official)
-    const all = [...(official ? [{ id: official, username: '', label: 'Usaparts (oficial)', owner: 'empresa' as const, sellerId: null, official: true }] : []), ...extra.map((a) => ({ ...a, official: false }))]
+    const all = [...(official ? [{ id: official, username: '', label: 'Perfil oficial', owner: 'empresa' as const, sellerId: null, official: true }] : []), ...extra.map((a) => ({ ...a, official: false }))]
     return { integ, official, all, connected: all.filter((a) => a.id) }
   }
 
@@ -318,7 +318,7 @@ export class MarketingInstagramService {
   async saveAccounts(user: AuthUser, input: unknown, ctx: RequestCtx) {
     const raw = Array.isArray(input) ? (input as Record<string, unknown>[]) : []
     if (raw.length > MAX_IG_ACCOUNTS) throw new BadRequestException(`Até ${MAX_IG_ACCOUNTS} perfis.`)
-    if (raw.some((x) => !/^\d{5,30}$/.test(String(x?.id ?? '').trim()) && !cleanUsername(x?.username))) throw new BadRequestException('Cada perfil precisa do @ (ex.: @vendedor.usaparts) ou do número da conta conectada.')
+    if (raw.some((x) => !/^\d{5,30}$/.test(String(x?.id ?? '').trim()) && !cleanUsername(x?.username))) throw new BadRequestException('Cada perfil precisa do @ (ex.: @vendedor.suaempresa) ou do número da conta conectada.')
     const { official } = await this.accounts(user.tenantId)
     const sellers = new Set((await this.prisma.seller.findMany({ where: { tenantId: user.tenantId }, select: { id: true } })).map((x) => x.id))
     const list = cleanIgAccounts(raw, official).map((a) => ({ ...a, sellerId: a.sellerId && sellers.has(a.sellerId) ? a.sellerId : null }))

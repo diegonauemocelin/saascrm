@@ -57,7 +57,7 @@ UPLOADS="$DIR/crm-uploads-$STAMP.tar.gz.age"
 if [ -f "$UPLOADS" ]; then
   info "Restaurando arquivos enviados"
   docker run --rm -i -v "$(realpath "$CHAVE")":/chave:ro alpine:3 sh -c "apk add --no-cache age >/dev/null && age -d -i /chave" < "$UPLOADS" \
-    | docker run --rm -i -v usaparts-crm_uploads:/data/uploads alpine:3 sh -c "rm -rf /data/uploads/* && tar -C /data -xz && chown -R 1000:1000 /data/uploads"
+    | docker run --rm -i -v saascrm_uploads:/data/uploads alpine:3 sh -c "rm -rf /data/uploads/* && tar -C /data -xz && chown -R 1000:1000 /data/uploads"
 fi
 
 dc up -d --wait

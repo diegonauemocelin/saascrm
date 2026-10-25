@@ -15,7 +15,7 @@ import { type CartItem, cartEmailItems, cartItems, cleanBaseUrl, cleanHttpsBase,
 
 export interface MagazordSettings {
   enabled: boolean
-  /** Endereço do painel da loja, ex.: https://usaparts.painel.magazord.com.br */
+  /** Endereço do painel da loja, ex.: https://suaempresa.painel.magazord.com.br */
   baseUrl: string
   tokenEnc: string | null
   passwordEnc: string | null
@@ -301,7 +301,7 @@ export class MagazordService implements OnApplicationBootstrap, OnModuleDestroy 
     const storeId = s.storeId || 1
     let code = derivationCode
     let d = await this.detail(s, code)
-    // O catálogo pode trazer o código do produto pai (na Usaparts, o da derivação seguido de "P"): busca as
+    // O catálogo pode trazer o código do produto pai (em algumas lojas, o da derivação seguido de "P"): busca as
     // derivações dele e lê a primeira.
     const parents = /p$/i.test(derivationCode) ? [derivationCode] : [`${derivationCode}P`, derivationCode]
     for (const parent of parents) {

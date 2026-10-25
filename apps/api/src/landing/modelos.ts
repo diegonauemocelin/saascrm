@@ -22,7 +22,7 @@ const BENEFITS = {
   type: 'beneficios',
   variant: 'cartoes',
   background: 'suave',
-  title: 'Por que comprar com a Usaparts',
+  title: 'Por que comprar com a gente',
   subtitle: 'Peças para máquinas da linha amarela com quem trabalha com isso há mais de 25 anos.',
   items: [
     { icon: 'mundo', title: 'Importação direta', text: 'Trazemos as peças direto dos fabricantes e fornecedores, sem intermediários.' },
@@ -108,7 +108,7 @@ export const TEMPLATES: LandingTemplate[] = [
     description: 'Uma página por marca (ex.: Caterpillar): bom para anúncios com a marca na busca.',
     goal: 'marca',
     theme: { header: 'logo-botao', headerCta: 'Pedir orçamento' },
-    seo: { title: 'Peças para [marca] | Usaparts', description: 'Peças para máquinas [marca]: motor, material rodante, hidráulico, filtros e vedações.' },
+    seo: { title: 'Peças para [marca] | [Sua empresa]', description: 'Peças para máquinas [marca]: motor, material rodante, hidráulico, filtros e vedações.' },
     blocks: [
       { type: 'hero', variant: 'imagem-direita', eyebrow: 'Peças para [marca]', title: 'Peças para máquinas [marca]', subtitle: 'Motor, material rodante, hidráulico, filtros, vedações, elétrico e transmissão. Diga o modelo e a peça.', image: '', ctaText: 'Pedir orçamento', action: 'formulario', note: 'Originais, paralelas e equivalentes' },
       { type: 'beneficios', variant: 'cartoes', background: 'suave', title: 'Linhas de peças', subtitle: '', items: [{ icon: 'raio', title: 'Motor', text: 'Peças e reparos para motores.' }, { icon: 'caminhao', title: 'Material rodante', text: 'Correntes, roletes, rodas e sapatas.' }, { icon: 'suporte', title: 'Hidráulico', text: 'Bombas, cilindros, vedações e reparos.' }, { icon: 'estoque', title: 'Filtros', text: 'Óleo, combustível, ar e hidráulico.' }] },
@@ -124,7 +124,7 @@ export const TEMPLATES: LandingTemplate[] = [
     description: 'Apresentar uma linha nova de produtos: imagem de impacto, galeria e WhatsApp.',
     goal: 'lancamento',
     theme: { header: 'logo', mode: 'escuro' },
-    seo: { title: '[Nome da linha] | Usaparts', description: '[Descreva a nova linha.]' },
+    seo: { title: '[Nome da linha] | [Sua empresa]', description: '[Descreva a nova linha.]' },
     blocks: [
       { type: 'hero', variant: 'imagem-fundo', eyebrow: 'Novidade', title: '[Nome da nova linha]', subtitle: '[Descreva em uma frase o que a linha resolve para quem trabalha com máquinas pesadas.]', image: '', ctaText: 'Conhecer a linha', action: 'formulario', note: '' },
       { type: 'imagem-texto', variant: 'imagem-direita', background: 'padrao', title: 'O que muda para você', text: '[Explique os diferenciais com dados confirmados pelo fornecedor.]', image: '', ctaText: '', action: 'formulario', url: '' },
@@ -139,9 +139,9 @@ export const TEMPLATES: LandingTemplate[] = [
     description: 'Convite para visitar o estande ou participar de um evento, com contagem regressiva.',
     goal: 'evento',
     theme: { header: 'logo-botao', headerCta: 'Confirmar presença' },
-    seo: { title: 'Usaparts na [nome do evento]', description: 'Visite o nosso estande na [nome do evento].' },
+    seo: { title: '[Sua empresa] na [nome do evento]', description: 'Visite o nosso estande na [nome do evento].' },
     blocks: [
-      { type: 'hero', variant: 'centro', eyebrow: '[Data e local]', title: 'Encontre a Usaparts na [nome do evento]', subtitle: '[Estande, horários e o que vai ter de especial.]', image: '', ctaText: 'Confirmar presença', action: 'formulario', note: '' },
+      { type: 'hero', variant: 'centro', eyebrow: '[Data e local]', title: 'Encontre a [Sua empresa] na [nome do evento]', subtitle: '[Estande, horários e o que vai ter de especial.]', image: '', ctaText: 'Confirmar presença', action: 'formulario', note: '' },
       { type: 'oferta', background: 'padrao', title: 'Faltam poucos dias', text: '[Detalhes do evento.]', endsAt: '', ctaText: 'Confirmar presença', action: 'formulario', url: '' },
       { type: 'texto', background: 'suave', title: 'Como chegar', text: '[Endereço do evento, estacionamento e horários.]' },
       { ...FORM('Confirme sua presença', 'Deixe seus dados para receber a confirmação e novidades do evento.'), variant: 'cartao', bullets: '' },
@@ -168,7 +168,7 @@ export const TEMPLATES: LandingTemplate[] = [
     seo: { title: 'Repuestos para maquinaria pesada | Cotización', description: 'Repuestos para excavadoras, retroexcavadoras, cargadores y tractores. Importación directa.' },
     blocks: [
       { type: 'hero', variant: 'imagem-direita', eyebrow: 'Importación directa desde 1997', title: 'Repuestos para maquinaria pesada', subtitle: 'Excavadoras, retroexcavadoras, cargadores frontales, tractores de oruga y motoniveladoras. Indíquenos el modelo de la máquina y el repuesto.', image: '', ctaText: 'Solicitar cotización', action: 'formulario', note: 'Atendemos Brasil y América Latina' },
-      { type: 'beneficios', variant: 'cartoes', background: 'suave', title: '¿Por qué Usaparts?', subtitle: '', items: [{ icon: 'mundo', title: 'Importación directa', text: 'Repuestos directo de fabricantes y proveedores.' }, { icon: 'estoque', title: 'Amplio stock', text: 'Motor, tren de rodaje, hidráulico, filtros y más.' }, { icon: 'suporte', title: 'Soporte técnico', text: 'Le ayudamos a identificar el repuesto correcto.' }, { icon: 'caminhao', title: 'América Latina', text: 'Enviamos a toda América Latina.' }] },
+      { type: 'beneficios', variant: 'cartoes', background: 'suave', title: '¿Por qué elegirnos?', subtitle: '', items: [{ icon: 'mundo', title: 'Importación directa', text: 'Repuestos directo de fabricantes y proveedores.' }, { icon: 'estoque', title: 'Amplio stock', text: 'Motor, tren de rodaje, hidráulico, filtros y más.' }, { icon: 'suporte', title: 'Soporte técnico', text: 'Le ayudamos a identificar el repuesto correcto.' }, { icon: 'caminhao', title: 'América Latina', text: 'Enviamos a toda América Latina.' }] },
       { type: 'marcas', background: 'padrao', title: 'Marcas que atendemos', items: BRANDS },
       { ...FORM('Solicite su cotización', 'Indique la marca, el modelo y la serie de la máquina y el repuesto que necesita.'), bullets: 'Respuesta del equipo comercial\nVerificación de la aplicación\nCotización sin compromiso' },
       { type: 'cta', background: 'destaque', title: 'Su máquina no puede parar', text: 'Hable con nuestro equipo.', ctaText: 'Solicitar cotización', action: 'formulario', url: '' },

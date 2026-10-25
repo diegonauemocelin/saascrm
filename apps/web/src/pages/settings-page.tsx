@@ -215,7 +215,7 @@ function BrandingEditor({ data }: { data: Branding }) {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="b-info">Dados da empresa nos relatórios (opcional)</Label>
-              <Input id="b-info" maxLength={200} placeholder="Ex.: usaparts.com.br · (49) 3664-0888 · Maravilha/SC" value={form.companyInfo ?? ''} onChange={(e) => set('companyInfo', e.target.value)} disabled={!canEdit} />
+              <Input id="b-info" maxLength={200} placeholder="Ex.: suaempresa.com.br · (49) 3664-0888 · Maravilha/SC" value={form.companyInfo ?? ''} onChange={(e) => set('companyInfo', e.target.value)} disabled={!canEdit} />
               <p className="text-xs text-muted-foreground">Vai no rodapé do PDF e do e-mail dos relatórios, junto com o logo e a cor da marca.</p>
             </div>
             <div className="sm:col-span-2">
@@ -413,7 +413,7 @@ function SmtpEditor({ initial }: { initial: SmtpView }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="s-user">Usuário</Label>
-                <Input id="s-user" autoComplete="off" placeholder="contato@usaparts.com.br" value={form.username} onChange={(e) => set('username', e.target.value.trim())} disabled={!canEdit} />
+                <Input id="s-user" autoComplete="off" placeholder="contato@suaempresa.com.br" value={form.username} onChange={(e) => set('username', e.target.value.trim())} disabled={!canEdit} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="s-pass">Senha</Label>

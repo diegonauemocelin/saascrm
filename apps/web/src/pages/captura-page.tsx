@@ -402,7 +402,7 @@ function FormEditor({ form, onClose }: { form: CaptureForm | null; onClose: () =
             </Field>
             {f.afterSubmit === 'redirect' && (
               <Field label="Endereço" htmlFor="cf-url" className="space-y-1.5 sm:col-span-2">
-                <Input id="cf-url" placeholder="https://www.usaparts.com.br/obrigado" value={f.redirectUrl ?? ''} onChange={(e) => set('redirectUrl', e.target.value)} />
+                <Input id="cf-url" placeholder="https://www.suaempresa.com.br/obrigado" value={f.redirectUrl ?? ''} onChange={(e) => set('redirectUrl', e.target.value)} />
               </Field>
             )}
           </div>
@@ -699,10 +699,10 @@ function PopupEditor({ popup, forms, onClose }: { popup: CapturePopup | null; fo
             <Field label="Não repetir por (dias)" htmlFor="pp-freq">
               <Input id="pp-freq" type="number" min={0} max={365} value={p.frequencyDays} onChange={(e) => set('frequencyDays', Number(e.target.value))} />
             </Field>
-            <Field label="Mostrar só nas páginas" htmlFor="pp-inc" hint="Uma por linha: caminho (/produto/*) ou domínio (teste.usaparts.com.br). Vazio = todas.">
+            <Field label="Mostrar só nas páginas" htmlFor="pp-inc" hint="Uma por linha: caminho (/produto/*) ou domínio (teste.suaempresa.com.br). Vazio = todas.">
               <Textarea id="pp-inc" rows={3} value={include} onChange={(e) => setInclude(e.target.value)} />
             </Field>
-            <Field label="Nunca mostrar em" htmlFor="pp-exc" hint="Uma por linha: caminho (/checkout) ou domínio (www.usaparts.com.br).">
+            <Field label="Nunca mostrar em" htmlFor="pp-exc" hint="Uma por linha: caminho (/checkout) ou domínio (www.suaempresa.com.br).">
               <Textarea id="pp-exc" rows={3} value={exclude} onChange={(e) => setExclude(e.target.value)} />
             </Field>
             <p className="text-xs text-muted-foreground sm:col-span-2">Vendedor, tipo de cliente e marca deste pop-up (opcionais; vazio = usa os do formulário):</p>
@@ -930,7 +930,7 @@ export function PrivacyCard() {
         <CardDescription>Link mostrado abaixo de todos os formulários, pop-ups e botões (LGPD).</CardDescription>
       </CardHeader>
       <CardContent>
-        <Input aria-label="Link da política de privacidade" placeholder="https://www.usaparts.com.br/politica-de-privacidade" value={value ?? q.data.privacyUrl} onChange={(e) => setValue(e.target.value)} disabled={!can('captura', 'edit')} />
+        <Input aria-label="Link da política de privacidade" placeholder="https://www.suaempresa.com.br/politica-de-privacidade" value={value ?? q.data.privacyUrl} onChange={(e) => setValue(e.target.value)} disabled={!can('captura', 'edit')} />
       </CardContent>
       {can('captura', 'edit') && (
         <CardFooter>
@@ -1061,10 +1061,10 @@ function WhatsappEditor({ button, onClose }: { button: WhatsappButton | null; on
               <Input id="wa-tags" value={tags} onChange={(e) => setTags(e.target.value)} />
             </Field>
             <TypeAndBrands idPrefix="wa" customerTypeId={w.customerTypeId} brandIds={w.brandIds} onChange={(v) => setW((x) => ({ ...x, ...v }))} />
-            <Field label="Mostrar só nas páginas" htmlFor="wa-inc" hint="Uma por linha: caminho (/produto/*) ou domínio (teste.usaparts.com.br). Vazio = todas.">
+            <Field label="Mostrar só nas páginas" htmlFor="wa-inc" hint="Uma por linha: caminho (/produto/*) ou domínio (teste.suaempresa.com.br). Vazio = todas.">
               <Textarea id="wa-inc" rows={2} value={include} onChange={(e) => setInclude(e.target.value)} />
             </Field>
-            <Field label="Nunca mostrar em" htmlFor="wa-exc" hint="Uma por linha: caminho (/checkout) ou domínio (www.usaparts.com.br).">
+            <Field label="Nunca mostrar em" htmlFor="wa-exc" hint="Uma por linha: caminho (/checkout) ou domínio (www.suaempresa.com.br).">
               <Textarea id="wa-exc" rows={2} value={exclude} onChange={(e) => setExclude(e.target.value)} />
             </Field>
             <Field label="Posição" htmlFor="wa-pos">

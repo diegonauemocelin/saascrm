@@ -24,7 +24,7 @@ env_set CRM_VERSION 0.1.3
 [ "$(env_get CRM_DOMAIN)" = "crm.exemplo.com.br" ] || falha "env_set alterou outra variável"
 
 [ "$(porta_http)" = "8180" ] || falha "porta padrão deveria ser 8180"
-[ "$(prefixo_imagens)" = "usaparts-crm" ] || falha "prefixo padrão incorreto"
+[ "$(prefixo_imagens)" = "saascrm" ] || falha "prefixo padrão incorreto"
 env_set CRM_IMAGE_PREFIX ghcr.io/dono/crm
 [ "$(prefixo_imagens)" = "ghcr.io/dono/crm" ] || falha "prefixo do .env não lido"
 

@@ -109,12 +109,12 @@ function TrackingEditor({ initial }: { initial: TrackingConfig }) {
                 id="t-domains"
                 rows={3}
                 className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
-                placeholder={'usaparts.com.br\nwww.usaparts.com.br'}
+                placeholder={'suaempresa.com.br\nwww.suaempresa.com.br'}
                 value={domainsText}
                 onChange={(e) => setDomainsText(e.target.value)}
                 disabled={!canEdit}
               />
-              <p className="text-xs text-muted-foreground">Um por linha. Subdomínios entram junto (usaparts.com.br aceita www.usaparts.com.br). Visitas de outros endereços são ignoradas.</p>
+              <p className="text-xs text-muted-foreground">Um por linha. Subdomínios entram junto (suaempresa.com.br aceita www.suaempresa.com.br). Visitas de outros endereços são ignoradas.</p>
             </div>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -127,7 +127,7 @@ function TrackingEditor({ initial }: { initial: TrackingConfig }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="t-app">Identificação do app da loja (opcional)</Label>
-              <Input id="t-app" placeholder="ex.: UsaPartsApp" value={appText} onChange={(e) => setAppText(e.target.value)} disabled={!canEdit} />
+              <Input id="t-app" placeholder="ex.: SuaEmpresaApp" value={appText} onChange={(e) => setAppText(e.target.value)} disabled={!canEdit} />
               <p className="text-xs text-muted-foreground">
                 O app é reconhecido automaticamente quando abre o site por dentro (WebView). Se o fornecedor do app informar um texto próprio no navegador dele, coloque aqui (separe por vírgula).
               </p>

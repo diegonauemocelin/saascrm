@@ -1,7 +1,7 @@
 // Teste de fumaça das proteções de segurança contra um ambiente no ar (local ou produção).
 // Não cria usuários nem altera dados: só verifica respostas que não exigem login.
 //
-//   node scripts/teste-fumaca.mjs https://crm.usaparts.com.br
+//   node scripts/teste-fumaca.mjs https://admin.sgmulticonecta.com.br
 //   node scripts/teste-fumaca.mjs http://localhost:5173
 
 const BASE = (process.argv[2] ?? 'http://localhost:5173').replace(/\/$/, '')

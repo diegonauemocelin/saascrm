@@ -12,7 +12,7 @@ import { AssistPipelineService } from './pipeline.service'
 import { AssistSalesService } from './vendas.service'
 
 /**
- * Assistente das perguntas do Mercado Livre (veio do painel.usaparts.com.br): perguntas, respostas com IA ou regras,
+ * Assistente das perguntas do Mercado Livre (veio do painel.suaempresa.com.br): perguntas, respostas com IA ou regras,
  * frete pela Magazord, base de conhecimento, aplicações peça × máquina, anúncios da loja e vendas ligadas às perguntas.
  */
 @Module({

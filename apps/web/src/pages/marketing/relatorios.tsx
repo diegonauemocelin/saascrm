@@ -270,7 +270,7 @@ function ScheduleDialog({ initial, view, onClose, onSaved }: { initial: Partial<
             <Label htmlFor="rep-emails">
               <MailIcon className="size-4" /> E-mails que recebem
             </Label>
-            <Textarea id="rep-emails" rows={3} placeholder={'diretoria@usaparts.com.br\nmarketing@usaparts.com.br'} value={emails} onChange={(e) => setEmails(e.target.value)} />
+            <Textarea id="rep-emails" rows={3} placeholder={'diretoria@suaempresa.com.br\nmarketing@suaempresa.com.br'} value={emails} onChange={(e) => setEmails(e.target.value)} />
             <p className="text-xs text-muted-foreground">Um por linha (ou separados por vírgula). Até 20.</p>
           </div>
           <div className="space-y-1.5">
@@ -726,7 +726,7 @@ function AlertDialogForm({ initial, types, onClose, onSaved }: { initial: Partia
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="al-emails">E-mails que recebem o aviso</Label>
-            <Textarea id="al-emails" rows={3} value={emails} onChange={(e) => setEmails(e.target.value)} placeholder="marketing@usaparts.com.br" />
+            <Textarea id="al-emails" rows={3} value={emails} onChange={(e) => setEmails(e.target.value)} placeholder="marketing@suaempresa.com.br" />
             <p className="text-xs text-muted-foreground">Vazio: o aviso só aparece na tela (Últimos avisos e Visão geral).</p>
           </div>
         </div>

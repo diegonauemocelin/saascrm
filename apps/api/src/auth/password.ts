@@ -22,7 +22,7 @@ export function dummyVerify(plain: string) {
   return dummyHash.then((h) => verifyPassword(h, plain))
 }
 
-const COMMON = ['123456789012', 'senha1234567', 'password1234', 'qwertyuiop12', 'usaparts1234', 'administrador']
+const COMMON = ['123456789012', 'senha1234567', 'password1234', 'qwertyuiop12', 'sgmulticonecta', 'administrador']
 
 /** Política de senha (ASVS 2.1): mínimo de 12 caracteres, sem limite de composição, bloqueando senhas óbvias. */
 export function passwordProblems(password: string, email?: string): string | null {

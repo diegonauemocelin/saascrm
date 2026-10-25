@@ -119,7 +119,7 @@ function MagazordEditor({ initial }: { initial: MagazordConfig }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="mz-url">Endereço do painel</Label>
-              <Input id="mz-url" placeholder="https://usaparts.painel.magazord.com.br" value={form.baseUrl} onChange={(e) => set('baseUrl', e.target.value)} disabled={!canEdit} />
+              <Input id="mz-url" placeholder="https://suaempresa.painel.magazord.com.br" value={form.baseUrl} onChange={(e) => set('baseUrl', e.target.value)} disabled={!canEdit} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="mz-token">Token</Label>
@@ -160,7 +160,7 @@ function MagazordEditor({ initial }: { initial: MagazordConfig }) {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="mz-site">Endereço do site (opcional)</Label>
-                  <Input id="mz-site" placeholder="https://www.usaparts.com.br" value={form.siteUrl} onChange={(e) => set('siteUrl', e.target.value)} disabled={!canEdit} />
+                  <Input id="mz-site" placeholder="https://www.suaempresa.com.br" value={form.siteUrl} onChange={(e) => set('siteUrl', e.target.value)} disabled={!canEdit} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="mz-img">Endereço das imagens (opcional)</Label>

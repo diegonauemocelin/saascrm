@@ -103,10 +103,10 @@ export type SocialLinks = Partial<Record<SocialNetwork, string>>
 export const SOCIAL_NETWORKS: SocialNetwork[] = ['facebook', 'instagram', 'youtube', 'tiktok']
 export const SOCIAL_LABEL: Record<SocialNetwork, string> = { facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube', tiktok: 'TikTok' }
 export const SOCIAL_PLACEHOLDER: Record<SocialNetwork, string> = {
-  facebook: 'https://www.facebook.com/usaparts',
-  instagram: 'https://www.instagram.com/usaparts',
-  youtube: 'https://www.youtube.com/@usaparts',
-  tiktok: 'https://www.tiktok.com/@usaparts',
+  facebook: 'https://www.facebook.com/suaempresa',
+  instagram: 'https://www.instagram.com/suaempresa',
+  youtube: 'https://www.youtube.com/@suaempresa',
+  tiktok: 'https://www.tiktok.com/@suaempresa',
 }
 /** Ícone servido pelo CRM (o mesmo que vai no e-mail). */
 export const socialIcon = (n: SocialNetwork, style: 'cor' | 'cinza') => `/api/public/e/icones/${n}-${style}.png`
@@ -153,7 +153,7 @@ export function newBlock(type: BlockType, whatsappPhone = '', social: SocialLink
     case 'video':
       return { type, url: '', label: '▶️ Assistir ao vídeo' }
     case 'botao':
-      return { type, text: 'Ver ofertas', url: 'https://www.usaparts.com.br', align: 'center' }
+      return { type, text: 'Ver ofertas', url: 'https://www.suaempresa.com.br', align: 'center' }
     case 'whatsapp':
       return { type, text: 'Falar no WhatsApp', phone: whatsappPhone, message: 'Olá! Vim pelo e-mail e quero saber mais.', align: 'center' }
     case 'produtos':

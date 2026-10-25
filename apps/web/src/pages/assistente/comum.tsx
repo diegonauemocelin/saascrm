@@ -1,4 +1,4 @@
-// Partes comuns das telas do assistente das perguntas do Mercado Livre (veio do painel.usaparts.com.br).
+// Partes comuns das telas do assistente das perguntas do Mercado Livre.
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'

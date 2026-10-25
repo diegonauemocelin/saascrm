@@ -81,6 +81,8 @@ export interface AiSettings {
   request_info_mode: 'enviar' | 'revisar'
   forward_when: string
   allowed_categories: string[]
+  /** Quem é a empresa (ramo, produtos, diferenciais): entra no começo das instruções da IA. */
+  company_profile: string
   custom_instructions: string
   provider: 'claude' | 'gemini' | 'sem_ia'
   gemini_model: string
@@ -100,7 +102,7 @@ export interface AiSettings {
 }
 
 export const AI_DEFAULTS: AiSettings = {
-  assistant_name: 'Assistente Usaparts',
+  assistant_name: 'Assistente virtual',
   tone: 'consultivo',
   formality: 'formal',
   greeting_by_time: true,
@@ -116,6 +118,7 @@ export const AI_DEFAULTS: AiSettings = {
   forward_when:
     'Quando envolver descontos, negociação, prazos ou condições não cadastradas; quando houver dados conflitantes; quando a compatibilidade não estiver confirmada na base; reclamações, garantia ou pós-venda.',
   allowed_categories: KNOWLEDGE_CATEGORIES,
+  company_profile: '',
   custom_instructions: '',
   provider: 'sem_ia',
   gemini_model: 'gemini-3.8-flash',

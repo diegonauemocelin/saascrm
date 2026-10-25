@@ -73,10 +73,10 @@ export class LeadImportService implements OnApplicationBootstrap {
     const rd = isRdExport(headers)
     const mapping = suggestMapping(headers, fields)
 
-    // Modelo do RD Station: tags de importações antigas descartadas e responsável = Pré-Vendas (comercial@usaparts.com.br).
+    // Modelo do RD Station: tags de importações antigas descartadas e responsável = Pré-Vendas (comercial@suaempresa.com.br).
     const options: ImportOptions = { duplicates: 'update', discardTags: rd ? '^importacao-' : null, defaultStage: 'LEAD' }
     if (rd) {
-      const owner = await this.prisma.seller.findFirst({ where: { tenantId: user.tenantId, email: 'comercial@usaparts.com.br' } })
+      const owner = await this.prisma.seller.findFirst({ where: { tenantId: user.tenantId, email: 'comercial@suaempresa.com.br' } })
       if (owner) options.forceOwnerId = owner.id
     }
 

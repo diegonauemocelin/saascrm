@@ -82,7 +82,7 @@ export class MagazordController {
   @RequirePermission('configuracoes', 'edit')
   async save(@CurrentUser() user: AuthUser, @Body() dto: MagazordDto, @ReqContext() ctx: RequestCtx) {
     const base = dto.baseUrl.trim() ? cleanBaseUrl(dto.baseUrl) : ''
-    if (base === null) throw new BadRequestException('Endereço inválido. Use o do painel da loja, ex.: https://usaparts.painel.magazord.com.br')
+    if (base === null) throw new BadRequestException('Endereço inválido. Use o do painel da loja, ex.: https://suaempresa.painel.magazord.com.br')
     const current = await this.magazord.config(user.tenantId)
     const { token, password, importProducts, productsHour, storeId, siteUrl, imageBaseUrl, ...rest } = dto
     for (const [label, v] of [['site', siteUrl], ['imagens', imageBaseUrl]] as const) {

@@ -492,7 +492,7 @@ function Profiles() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">Perfil oficial da Usaparts e os perfis dos vendedores, com o mesmo cálculo para todos. Engajamento por publicação = (curtidas + comentários) ÷ seguidores.</p>
+        <p className="text-sm text-muted-foreground">Perfil oficial da empresa e os perfis dos vendedores, com o mesmo cálculo para todos. Engajamento por publicação = (curtidas + comentários) ÷ seguidores.</p>
         {can('mi_social', 'edit') && (
           <Button size="sm" onClick={() => setEditing(true)}>
             <PencilIcon /> Perfis da empresa
@@ -616,7 +616,7 @@ function ProfilesDialog({ d, onClose }: { d: ProfilesData; onClose: () => void }
             <div key={i} className="grid gap-2 rounded-md border p-3 sm:grid-cols-[1fr_1fr_8rem_12rem_auto] sm:items-end">
               <div className="space-y-1">
                 <Label className="text-xs">@ do Instagram</Label>
-                <Input value={x.username} onChange={(e) => set(i, { username: e.target.value })} placeholder="@vendedor.usaparts" disabled={!!x.id} />
+                <Input value={x.username} onChange={(e) => set(i, { username: e.target.value })} placeholder="@vendedor.suaempresa" disabled={!!x.id} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Nome na tela</Label>
@@ -738,7 +738,7 @@ function Competitors() {
   const d = q.data
   if (q.error) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
   if (!d) return <TableSkeleton rows={4} />
-  const label = (r: CompetitorRow) => (r.own ? 'Usaparts (oficial)' : r.name || `@${r.username}`)
+  const label = (r: CompetitorRow) => (r.own ? 'Perfil oficial' : r.name || `@${r.username}`)
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">

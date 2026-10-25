@@ -1,29 +1,20 @@
-import { ArrowRightIcon, CheckCircle2Icon, CircleDashedIcon, ShieldCheckIcon } from 'lucide-react'
+import { ArrowRightIcon, CircleDashedIcon, GraduationCapIcon, ShieldCheckIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { useVersion } from '@/components/layout/app-footer'
 import { formatDateTime, PageHeader } from '@/components/page'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { MinhaFila } from './minha-fila'
 
-const PHASES = [
-  { n: 1, title: 'Fundação', text: 'Acesso seguro, 2FA, perfis, whitelabel, auditoria, layouts e atualizações.' },
-  { n: 2, title: 'Pré e Pós-Vendas', text: 'Registro de atendimentos, cadastros, importação da planilha, alertas e dashboard de vendedores.' },
-  { n: 3, title: 'Base de leads', text: 'Leads, campos personalizados, importação do RD Station, lead scoring e LGPD. Rastreamento do site em seguida.' },
-  { n: 4, title: 'Captura', text: 'Formulários, pop-ups, botão de WhatsApp e landing pages.' },
-  { n: 5, title: 'Email marketing', text: 'Catálogo, Magazord, editor de e-mail, IA com aprovação e segmentação.' },
-  { n: 6, title: 'Automações', text: 'Fluxos de automação e atribuição de receita.' },
-  { n: 7, title: 'Análise', text: 'Dashboards, GA4 e construtor de relatórios.' },
-  { n: 8, title: 'Hardening', text: 'Testes de carga, revisão de segurança, backup validado e documentação final.' },
-  { n: 9, title: 'Chat WhatsApp', text: 'Atendimento pelo WhatsApp dentro do sistema (Evolution API), com acesso por usuário.' },
+/** Primeiros passos de uma empresa nova: cada um aparece só para quem tem acesso ao módulo. */
+const STEPS = [
+  { module: 'configuracoes', title: 'Sua marca', text: 'Nome, logo e cores da empresa no sistema e nos e-mails.', to: '/configuracoes' },
+  { module: 'usuarios', title: 'Equipe', text: 'Convide os usuários e defina o que cada perfil pode acessar.', to: '/usuarios' },
+  { module: 'whatsapp', title: 'WhatsApp', text: 'Conecte os números de atendimento lendo o QR Code no celular.', to: '/configuracoes?secao=whatsapp-numeros' },
+  { module: 'leads', title: 'Contatos', text: 'Importe a sua base de leads e clientes por planilha.', to: '/leads' },
 ]
-
-const CURRENT_PHASE = 8
-/** Fase sendo entregue por etapas (já em uso). */
-const IN_PROGRESS = 9
 
 function greeting() {
   const h = Number(new Intl.DateTimeFormat('pt-BR', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }).format(new Date()))
@@ -100,31 +91,31 @@ export function HomePage() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Roteiro de implantação</CardTitle>
-          <CardDescription>O sistema é entregue em fases. Cada fase concluída aparece aqui e na tela Atualizações.</CardDescription>
+          <CardTitle>Primeiros passos</CardTitle>
+          <CardDescription>O básico para começar a usar. A Trilha de conhecimento explica cada tela em detalhes.</CardDescription>
         </CardHeader>
         <CardContent>
           <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {PHASES.map((p) => {
-              const done = p.n <= CURRENT_PHASE
-              const doing = p.n === IN_PROGRESS
-              return (
-                <li key={p.n} className={cn('rounded-lg border p-3', done && 'border-emerald-500/40 bg-emerald-500/5', doing && 'border-sky-500/40 bg-sky-500/5')}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-1.5 text-sm font-medium">
-                      {done ? <CheckCircle2Icon className="size-4 text-emerald-600" /> : <CircleDashedIcon className="size-4 text-muted-foreground" />}
-                      Fase {p.n}
-                    </span>
-                    <Badge variant={done ? 'secondary' : 'outline'} className="text-xs">
-                      {done ? 'Entregue' : doing ? 'Em andamento' : 'Planejada'}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 font-medium">{p.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{p.text}</p>
-                </li>
-              )
-            })}
+            {STEPS.filter((s) => can(s.module)).map((s, i) => (
+              <li key={s.to} className="rounded-lg border p-3">
+                <span className="flex items-center gap-1.5 text-sm font-medium">
+                  <CircleDashedIcon className="size-4 text-muted-foreground" /> Passo {i + 1}
+                </span>
+                <p className="mt-1 font-medium">{s.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{s.text}</p>
+                <Button asChild variant="link" size="sm" className="h-auto px-0">
+                  <Link to={s.to}>
+                    Abrir <ArrowRightIcon />
+                  </Link>
+                </Button>
+              </li>
+            ))}
           </ol>
+          <Button asChild variant="outline" size="sm" className="mt-3">
+            <Link to="/trilha">
+              <GraduationCapIcon /> Trilha de conhecimento
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,6 @@
 # Marketing Inteligente: documentação técnica
 
-Primeira entrega: versão 0.74.0 (etapas E1 e E2 do [levantamento](LEVANTAMENTO.md)). Versão 0.75.0: o restante do projeto (Google Ads detalhado, Meta, TikTok, redes sociais, SEO, planejamento, alertas, PDF/Excel e resumo pela IA). Versão 0.76.0: tela Instagram (perfis da empresa e dos vendedores, stories, público, melhores horários, tráfego, leads de formulário e concorrentes).
+Primeira entrega: versão 0.74.0 (etapas E1 e E2). Versão 0.75.0: o restante do projeto (Google Ads detalhado, Meta, TikTok, redes sociais, SEO, planejamento, alertas, PDF/Excel e resumo pela IA). Versão 0.76.0: tela Instagram (perfis da empresa e dos vendedores, stories, público, melhores horários, tráfego, leads de formulário e concorrentes).
 
 ## O que não muda
 

@@ -99,7 +99,7 @@ const SOCIAL_HOSTS: Record<SocialNetwork, string[]> = {
   tiktok: ['tiktok.com'],
 }
 
-/** Endereço da rede social: https e do domínio da própria rede (ex.: https://www.instagram.com/usaparts). */
+/** Endereço da rede social: https e do domínio da própria rede (ex.: https://www.instagram.com/suaempresa). */
 export function socialUrl(network: SocialNetwork, raw: string | undefined | null): string | null {
   const v = raw?.trim()
   if (!v) return null
@@ -136,7 +136,7 @@ export interface Brand {
   social?: SocialLinks
   /** Ícones das redes no rodapé de todo e-mail (quando o e-mail não tem o bloco de redes). */
   socialInFooter?: boolean
-  /** Endereço público dos ícones (ex.: https://crm.usaparts.com.br/api/public/e/icones). */
+  /** Endereço público dos ícones (ex.: https://crm.suaempresa.com.br/api/public/e/icones). */
   iconBase?: string
 }
 
@@ -781,7 +781,7 @@ export function cleanBlocks(raw: unknown): { blocks: Block[] } | { error: string
       case 'redes': {
         const links = (b.links ?? {}) as Record<string, unknown>
         for (const n of SOCIAL_NETWORKS) {
-          if (typeof links[n] === 'string' && (links[n] as string).trim() && !socialUrl(n, links[n] as string)) return { error: `Endereço do ${SOCIAL_LABEL[n]} inválido (ex.: https://www.${n}.com/usaparts).` }
+          if (typeof links[n] === 'string' && (links[n] as string).trim() && !socialUrl(n, links[n] as string)) return { error: `Endereço do ${SOCIAL_LABEL[n]} inválido (ex.: https://www.${n}.com/suaempresa).` }
         }
         out.push({ type: 'redes', links: cleanSocial(links), style: b.style === 'cinza' ? 'cinza' : 'cor', align: alignOf(b.align, 'center') })
         break

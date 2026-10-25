@@ -52,7 +52,7 @@ A versão do sistema tem **uma única fonte**: o arquivo [`releases.json`](../re
 6. Na VPS:
 
    ```bash
-   cd /opt/usaparts-crm && sudo bash deploy/deploy.sh
+   cd /opt/saascrm && sudo bash deploy/deploy.sh
    ```
 
 Cada servidor registra quando instalou cada versão (exibido na tela Atualizações), independentemente da data de publicação.
