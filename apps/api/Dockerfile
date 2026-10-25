@@ -40,6 +40,8 @@ COPY --from=build --chown=node:node /app/apps/api/dist ./dist
 COPY --from=build --chown=node:node /app/apps/api/src/generated ./src/generated
 COPY --chown=node:node apps/api/package.json apps/api/prisma.config.ts ./
 COPY --chown=node:node apps/api/prisma ./prisma
+# O seed (prisma db seed) cria os perfis padrão da empresa dona com o mesmo código do painel da plataforma.
+COPY --chown=node:node apps/api/src/plataforma/perfis-padrao.ts ./src/plataforma/perfis-padrao.ts
 COPY --chown=node:node releases.json /app/releases.json
 USER node
 EXPOSE 3000

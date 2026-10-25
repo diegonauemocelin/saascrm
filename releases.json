@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.1",
+      "date": "2026-10-25",
+      "title": "Correção na primeira instalação",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "Instalação",
+          "text": "A primeira instalação parava ao criar a empresa dona da plataforma e o primeiro administrador (faltava na imagem da API o arquivo dos perfis padrão)."
+        }
+      ]
+    },
+    {
       "version": "1.0.0",
       "date": "2026-10-25",
       "title": "Primeira versão da plataforma sgmulticonecta CRM (SaaS)",
