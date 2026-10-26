@@ -31,6 +31,7 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 | Implantação e consultoria | Implantação e acompanhamento grátis em todos; consultoria em Marketing, CRM, Marketplaces e E-commerce à parte, negociada com o cliente (sem pacote) |
 | E-mail do sistema (SMTP) | Gmail `sgmulticonecta@gmail.com` com senha de app; os registros MX `.` e SPF `-all` do domínio ficam |
 | Contato comercial | WhatsApp (49) 99993-1041 e `sgmulticonecta@gmail.com` (Plataforma → Site) |
+| Atualizações do CRM da Usaparts | **Toda** versão nova do CRM da Usaparts (novidades, correções, tudo) também entra aqui, adaptada ao SaaS (empresa pelo endereço, plano, textos genéricos). Decisão de 26/10/2026; até a 0.99.0 já foi trazida (1.0.8 a 1.0.10) |
 | Contador "aguardando retorno" no chat | Vale a regra do CRM 0.91.0: para quando o atendente responde (decisão de 25/10/2026) |
 
 ## Cronologia (25/10/2026)
