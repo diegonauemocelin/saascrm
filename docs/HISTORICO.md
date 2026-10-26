@@ -58,6 +58,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 11. **1.0.8**: mapa de vendas no Dashboard executivo (`/marketing/mapa`, `src/marketing/mapa.ts`, desenho
    `@svg-maps/brazil` CC BY 4.0) e Vendas em tempo real (`/vendas-ao-vivo`, `/marketing/ao-vivo`,
    `src/marketing/ao-vivo.ts`). O Diego pediu os dois também no CRM da Usaparts.
+12. **1.0.9** (26/10/2026, vindo do CRM da Usaparts 0.98.1 e 0.98.2): WhatsApp com Desconectar/Novo QR Code que trocam a
+   instância na Evolution (a sessão antiga não religa o número; instâncias órfãs apagadas pela conferência), envio que
+   espera a reconexão em vez de reiniciar, histórico (messages.set) recuperado ao conectar por QR Code, até 10 arquivos
+   por envio no chat, menu de robô com um botão só clicável, e a Action "Criar tag da versão".
 
 ## Como está no ar
 
@@ -76,7 +80,7 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 
 ## Pendências
 
-1. **Publicar a 1.0.8**: tag `v1.0.8` (o Diego cria no PC), Action verde, `sudo bash deploy/deploy.sh` na VPS.
+1. **Publicar a 1.0.9**: tag pela Action "Criar tag da versão", Action verde, `sudo bash deploy/deploy.sh` na VPS.
 2. **Configurar a plataforma**: SMTP com o Gmail (senha de app) em Configurações; planos de verdade; Asaas (sandbox
    para testar, depois `ASAAS_ENV=producao`) com o webhook `https://crm.sgmulticonecta.com.br/api/webhooks/asaas` e o
    token do `.env`; contato em Plataforma → Site (se ainda não gravado).

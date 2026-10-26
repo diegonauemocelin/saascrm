@@ -2,6 +2,48 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.9",
+      "date": "2026-10-26",
+      "title": "WhatsApp: QR Code novo garantido, menos quedas, mensagens recuperadas e chat melhor",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "WhatsApp",
+          "text": "Desconectar encerra a sessão de verdade, mesmo caída: o número não volta mais sozinho para \"Conectado\" e o Conectar sempre mostra um QR Code novo."
+        },
+        {
+          "type": "novo",
+          "area": "WhatsApp",
+          "text": "Botão Novo QR Code nos números conectados, para quando o número aparece conectado mas as mensagens não saem."
+        },
+        {
+          "type": "correcao",
+          "area": "WhatsApp",
+          "text": "Quando um envio pega o WhatsApp reconectando, o sistema espera a reconexão e envia de novo, em vez de reiniciar a conexão (o que derrubava a reconexão e marcava o número como desconectado sem precisar)."
+        },
+        {
+          "type": "correcao",
+          "area": "WhatsApp",
+          "text": "Mensagens que os clientes mandaram enquanto o número estava desconectado entram no chat quando ele é conectado de novo pelo QR Code (últimas 48 horas, com a data original), sem resposta automática, sem lead e sem pré-venda."
+        },
+        {
+          "type": "melhoria",
+          "area": "Chat",
+          "text": "Envio de até 10 arquivos de uma vez (escolher, arrastar ou colar); cada um sai como uma mensagem e a legenda vai no primeiro."
+        },
+        {
+          "type": "correcao",
+          "area": "Chat",
+          "text": "Menu de robô com um botão só também vira botão clicável; título em negrito; botões de formulário ou link aparecem como aviso (só funcionam no celular)."
+        },
+        {
+          "type": "infra",
+          "area": "Publicação",
+          "text": "Publicar uma versão sem Git no PC: Actions › Criar tag da versão › Run workflow cria a tag da versão atual e dispara a Publicar versão."
+        }
+      ]
+    },
+    {
       "version": "1.0.8",
       "date": "2026-10-25",
       "title": "Mapa de vendas e vendas em tempo real",

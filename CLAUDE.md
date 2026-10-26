@@ -14,8 +14,9 @@ está pendente.
 - **Nada vai para o GitHub sem a permissão dele.** Antes de enviar, diga o que vai subir e espere o "pode".
 - Mudanças grandes (que mudam o produto ou a instalação): proponha antes de fazer.
 - Nunca invente preço, prazo ou dado comercial em textos do site ou do sistema.
-- O ambiente do Claude não consegue enviar **tags** ao GitHub: quem cria a tag é o Diego (Git no PC ou
-  GitHub → Releases → nova release). Passe o número exato da versão do `releases.json`.
+- O ambiente do Claude não consegue enviar **tags** pelo Git. Depois do push da versão (com permissão), crie a tag
+  pela Action **Criar tag da versão** (Run workflow na `main`): ela cria `vX.Y.Z` do `releases.json` e dispara a
+  "Publicar versão". O Diego também pode criar a tag pelo Git no PC.
 
 ## Versões e publicação
 
@@ -23,7 +24,7 @@ está pendente.
    ensure_ascii=False)`), versão igual em `package.json`, `apps/api/package.json`, `apps/web/package.json` e no
    `package-lock.json` (raiz, `""`, `apps/api` e `apps/web`; confira com `grep -n '"name": "@crm/' -A1 package-lock.json`).
 2. `node scripts/check-release.mjs`, `npx tsc --noEmit` (api e web), `npx vitest run` (api), `npm run lint`.
-3. Commit na `main`, push (com permissão), e o Diego cria a tag `vX.Y.Z` no commit da versão.
+3. Commit na `main`, push (com permissão) e a Action "Criar tag da versão" (ou o Diego, pelo Git no PC).
 4. A Action "Publicar versão" gera as imagens `ghcr.io/diegonauemocelin/saascrm-{api,web,backup}:X.Y.Z`.
 5. Na VPS: `cd /opt/saascrm && sudo bash deploy/deploy.sh` (instala a maior tag).
 
