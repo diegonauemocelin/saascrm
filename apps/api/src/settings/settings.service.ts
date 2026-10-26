@@ -17,6 +17,8 @@ export interface BrandingSettings {
   logoPath?: string | null
   logoDarkPath?: string | null
   faviconPath?: string | null
+  /** Ícone do app na tela inicial do celular (quadrado, PNG). Vazio = o ícone padrão. */
+  appIconFileId?: string | null
   loginTitle: string
   loginSubtitle: string
   defaultLayout: 'MODERN' | 'CLASSIC'
@@ -104,11 +106,12 @@ export class SettingsService {
 }
 
 export function publicBranding(b: BrandingSettings) {
-  const { logoFileId, logoDarkFileId, faviconFileId, logoPath, logoDarkPath, faviconPath, ...rest } = b
+  const { logoFileId, logoDarkFileId, faviconFileId, appIconFileId, logoPath, logoDarkPath, faviconPath, ...rest } = b
   return {
     ...rest,
     logoUrl: logoFileId ? `/api/files/public/${logoFileId}` : (logoPath ?? null),
     logoDarkUrl: logoDarkFileId ? `/api/files/public/${logoDarkFileId}` : (logoDarkPath ?? null),
     faviconUrl: faviconFileId ? `/api/files/public/${faviconFileId}` : (faviconPath ?? null),
+    appIconUrl: appIconFileId ? `/api/files/public/${appIconFileId}` : null,
   }
 }

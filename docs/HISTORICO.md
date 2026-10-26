@@ -62,6 +62,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    instância na Evolution (a sessão antiga não religa o número; instâncias órfãs apagadas pela conferência), envio que
    espera a reconexão em vez de reiniciar, histórico (messages.set) recuperado ao conectar por QR Code, até 10 arquivos
    por envio no chat, menu de robô com um botão só clicável, e a Action "Criar tag da versão".
+13. **1.0.10** (26/10/2026, vindo do CRM da Usaparts 0.99.0): app no celular (PWA em `/app`, `apps/web/src/pages/app`)
+   com o chat no layout do WhatsApp, painéis pela permissão e conta; notificações Web Push (`apps/api/src/app-movel`,
+   chaves VAPID por empresa na configuração `web_push`); manifesto e ícone pela empresa do endereço; horário de acesso
+   por perfil (`roles.loginHours`, Administrador sem limite); Configurações › Marca › Ícone do app no celular.
 
 ## Como está no ar
 
@@ -80,7 +84,7 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 
 ## Pendências
 
-1. **Publicar a 1.0.9**: tag pela Action "Criar tag da versão", Action verde, `sudo bash deploy/deploy.sh` na VPS.
+1. **Publicar a 1.0.9 e a 1.0.10**: tag pela Action "Criar tag da versão", Action verde, `sudo bash deploy/deploy.sh` na VPS.
 2. **Configurar a plataforma**: SMTP com o Gmail (senha de app) em Configurações; planos de verdade; Asaas (sandbox
    para testar, depois `ASAAS_ENV=producao`) com o webhook `https://crm.sgmulticonecta.com.br/api/webhooks/asaas` e o
    token do `.env`; contato em Plataforma → Site (se ainda não gravado).
