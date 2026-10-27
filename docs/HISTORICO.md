@@ -67,6 +67,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    com o chat no layout do WhatsApp, painéis pela permissão e conta; notificações Web Push (`apps/api/src/app-movel`,
    chaves VAPID por empresa na configuração `web_push`); manifesto e ícone pela empresa do endereço; horário de acesso
    por perfil (`roles.loginHours`, Administrador sem limite); Configurações › Marca › Ícone do app no celular.
+14. **1.0.11 a 1.0.16**: as versões 0.99.1 a 0.101.0 do CRM da Usaparts (app no celular, chat, Assistente ML e Instagram); veja o `releases.json`.
+15. **1.0.17** (27/10/2026, vindo do CRM da Usaparts 0.101.1): o backup guarda no máximo 7 cópias (`BACKUP_KEEP`), além
+   do limite de dias; na Usaparts os backups das atualizações chegaram a 44 GB e travaram o deploy.
 
 ## Como está no ar
 
