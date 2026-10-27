@@ -70,6 +70,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 14. **1.0.11 a 1.0.16**: as versões 0.99.1 a 0.101.0 do CRM da Usaparts (app no celular, chat, Assistente ML e Instagram); veja o `releases.json`.
 15. **1.0.17** (27/10/2026, vindo do CRM da Usaparts 0.101.1): o backup guarda no máximo 7 cópias (`BACKUP_KEEP`), além
    do limite de dias; na Usaparts os backups das atualizações chegaram a 44 GB e travaram o deploy.
+16. **1.0.18** (27/10/2026, vindo do CRM da Usaparts 0.102.0): código e vendedor do cliente no chat e na base de leads
+   (`leads.customerCode`, `clientSellerId`, `walletOnly`: cliente da carteira não abre pré-venda), mensagem depois do
+   repasse (`apps/api/src/whatsapp/repasse.service.ts`), motivo de perda sem pós-venda, prazos no horário comercial com
+   almoço, filtros novos na base de leads e resumo do vendedor semanal, quinzenal ou mensal.
 
 ## Como está no ar
 
