@@ -99,6 +99,12 @@ export interface AiSettings {
   frete_ask_cep_text: string
 }
 
+/** Texto padrão anterior das regras de venda adicional (trocado pelo novo ao carregar as configurações). */
+export const OLD_UPSELL_RULES =
+  'Ofereça apenas itens com compatibilidade confirmada para o mesmo modelo e relacionados ao produto da pergunta (complementos, acessórios ou itens usados junto). A oferta deve ser opcional e breve.'
+const UPSELL_RULES =
+  'Ofereça itens para o mesmo modelo, de preferência usados junto com o produto da pergunta ou na mesma manutenção (complementos, acessórios, peças do mesmo conjunto). A oferta deve ser opcional e breve.'
+
 export const AI_DEFAULTS: AiSettings = {
   assistant_name: 'Assistente virtual',
   tone: 'consultivo',
@@ -109,7 +115,7 @@ export const AI_DEFAULTS: AiSettings = {
   min_confidence: 0.8,
   upsell_enabled: true,
   upsell_rules:
-    'Ofereça apenas itens com compatibilidade confirmada para o mesmo modelo e relacionados ao produto da pergunta (complementos, acessórios ou itens usados junto). A oferta deve ser opcional e breve.',
+    UPSELL_RULES,
   max_complementary: 2,
   request_info_when: 'Quando faltar um dado do cliente necessário para indicar o produto certo ou confirmar a compatibilidade (por exemplo modelo, versão, ano, tamanho, medida ou código do produto).',
   request_info_mode: 'enviar',
