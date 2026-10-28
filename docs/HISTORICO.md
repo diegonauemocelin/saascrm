@@ -82,6 +82,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    direto no ML) marcada "Fora do CRM" com o texto (`assist_questions.externalAnswer`) e sempre aprendida na base, já ativa.
 20. **1.0.22** (28/10/2026, vindo do CRM da Usaparts 0.104.1): venda adicional do Assistente ML reconhece modelo curto logo
    depois da marca (ex.: JCB 3C).
+21. **1.0.23** (28/10/2026, vindo do CRM da Usaparts 1.0.0): pós-venda não abre mais sozinho (envio em massa pela
+   lista de Pré-Vendas), fechar pré e pós-venda em massa (finaliza o chat; `service_records.closedAt`), mapa do Brasil
+   no "Por estado", situação do cliente no resumo do dia do vendedor, enviar o contato do cliente ao vendedor e, em
+   Instagram/Postagens: análise dos posts contra o normal do perfil, prévia do feed e conferência da legenda, roteiro
+   de Reels com nota do gancho e plano da semana. Textos da IA de Postagens genéricos (sem o ramo da Usaparts).
 
 ## Como está no ar
 
