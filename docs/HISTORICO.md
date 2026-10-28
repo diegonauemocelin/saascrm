@@ -90,6 +90,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 22. **1.0.24** (28/10/2026, vindo do CRM da Usaparts 1.0.1): comparativo do mês no Dashboard executivo (mês anterior x
    atual, acumulado por dia, projeção pelo ritmo, por canal ou total; `/marketing/comparativo`), áudio do chat em 1x,
    1,5x e 2x e marcar conversa como não lida.
+23. **1.0.25** (28/10/2026, vindo do CRM da Usaparts 1.0.2): mensagem do repasse ao vendedor sai na hora (padrão 0 min;
+   a migração zera o tempo de quem já tinha configurado) e pergunta nova "O vendedor já entrou em contato?" 30 min depois
+   do repasse (`contactCheck` nas configurações de atendimento, campos `contactCheckAt/Status`), desligada por padrão.
 
 ## Como está no ar
 
