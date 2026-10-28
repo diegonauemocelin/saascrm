@@ -74,6 +74,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`leads.customerCode`, `clientSellerId`, `walletOnly`: cliente da carteira não abre pré-venda), mensagem depois do
    repasse (`apps/api/src/whatsapp/repasse.service.ts`), motivo de perda sem pós-venda, prazos no horário comercial com
    almoço, filtros novos na base de leads e resumo do vendedor semanal, quinzenal ou mensal.
+17. **1.0.19** (28/10/2026, vindo do CRM da Usaparts 0.103.0): número de perguntas do Mercado Livre pendentes ao lado de
+   "Perguntas pendentes" no menu (`/assistente/perguntas/pendentes/contagem`).
 
 ## Como está no ar
 
