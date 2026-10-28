@@ -76,6 +76,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    almoço, filtros novos na base de leads e resumo do vendedor semanal, quinzenal ou mensal.
 17. **1.0.19** (28/10/2026, vindo do CRM da Usaparts 0.103.0): número de perguntas do Mercado Livre pendentes ao lado de
    "Perguntas pendentes" no menu (`/assistente/perguntas/pendentes/contagem`).
+18. **1.0.20** (28/10/2026, vindo do CRM da Usaparts 0.103.1): resposta ao Mercado Livre só fica "enviada" quando a
+   pergunta aparece respondida lá (consulta depois do envio); pergunta fechada no CRM e aberta no ML volta para as pendentes.
 
 ## Como está no ar
 
