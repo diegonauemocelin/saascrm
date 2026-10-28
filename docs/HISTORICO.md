@@ -80,6 +80,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    pergunta aparece respondida lá (consulta depois do envio); pergunta fechada no CRM e aberta no ML volta para as pendentes.
 19. **1.0.21** (28/10/2026, vindo do CRM da Usaparts 0.104.0): pergunta respondida fora do CRM (integração de e-commerce ou
    direto no ML) marcada "Fora do CRM" com o texto (`assist_questions.externalAnswer`) e sempre aprendida na base, já ativa.
+20. **1.0.22** (28/10/2026, vindo do CRM da Usaparts 0.104.1): venda adicional do Assistente ML reconhece modelo curto logo
+   depois da marca (ex.: JCB 3C).
 
 ## Como está no ar
 
