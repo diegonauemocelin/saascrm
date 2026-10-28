@@ -78,6 +78,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    "Perguntas pendentes" no menu (`/assistente/perguntas/pendentes/contagem`).
 18. **1.0.20** (28/10/2026, vindo do CRM da Usaparts 0.103.1): resposta ao Mercado Livre só fica "enviada" quando a
    pergunta aparece respondida lá (consulta depois do envio); pergunta fechada no CRM e aberta no ML volta para as pendentes.
+19. **1.0.21** (28/10/2026, vindo do CRM da Usaparts 0.104.0): pergunta respondida fora do CRM (integração de e-commerce ou
+   direto no ML) marcada "Fora do CRM" com o texto (`assist_questions.externalAnswer`) e sempre aprendida na base, já ativa.
 
 ## Como está no ar
 
