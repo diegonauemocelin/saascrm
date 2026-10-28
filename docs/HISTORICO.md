@@ -87,6 +87,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    no "Por estado", situação do cliente no resumo do dia do vendedor, enviar o contato do cliente ao vendedor e, em
    Instagram/Postagens: análise dos posts contra o normal do perfil, prévia do feed e conferência da legenda, roteiro
    de Reels com nota do gancho e plano da semana. Textos da IA de Postagens genéricos (sem o ramo da Usaparts).
+22. **1.0.24** (28/10/2026, vindo do CRM da Usaparts 1.0.1): comparativo do mês no Dashboard executivo (mês anterior x
+   atual, acumulado por dia, projeção pelo ritmo, por canal ou total; `/marketing/comparativo`), áudio do chat em 1x,
+   1,5x e 2x e marcar conversa como não lida.
 
 ## Como está no ar
 
