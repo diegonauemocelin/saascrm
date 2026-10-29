@@ -93,6 +93,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 23. **1.0.25** (28/10/2026, vindo do CRM da Usaparts 1.0.2): mensagem do repasse ao vendedor sai na hora (padrão 0 min;
    a migração zera o tempo de quem já tinha configurado) e pergunta nova "O vendedor já entrou em contato?" 30 min depois
    do repasse (`contactCheck` nas configurações de atendimento, campos `contactCheckAt/Status`), desligada por padrão.
+24. **1.0.26** (29/10/2026, vindo do CRM da Usaparts 1.0.3): chamar o cliente de novo depois que a pré-venda fecha
+   (`reactivation` nas configurações de atendimento, `ReativacaoService`): até 3 mensagens sem venda e 3 de recompra, por
+   um número fixo, contadas de `resultAt`; para quando o cliente responde ou abre pré-venda nova. Textos padrão genéricos.
 
 ## Como está no ar
 
