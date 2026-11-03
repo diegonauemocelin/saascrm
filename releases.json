@@ -2,6 +2,28 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.29",
+      "date": "2026-11-03",
+      "title": "Novo visual em todas as telas e dashboards",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Aparência",
+          "text": "O visual Por sistema agora vale para todas as telas: menu lateral na cor do menu da marca com a tela aberta em destaque, fundo claro, cartões planos de cantos arredondados, títulos mais fortes e gráficos nas cores da marca."
+        },
+        {
+          "type": "novo",
+          "area": "Dashboards",
+          "text": "Vendas em tempo real no visual Por sistema: painel escuro para deixar numa TV, com o total do dia em destaque, os canais, hora a hora contra ontem, as últimas vendas e o botão Tela cheia."
+        },
+        {
+          "type": "novo",
+          "area": "Dashboards",
+          "text": "Dashboard do WhatsApp com o bloco Atendimento agora (visual Por sistema): quem está esperando resposta, com amarelo depois de 15 minutos e vermelho depois de 30, e a situação de cada número."
+        }
+      ]
+    },
+    {
       "version": "1.0.28",
       "date": "2026-11-03",
       "title": "Visual Por sistema e setas nas fotos do chat",
