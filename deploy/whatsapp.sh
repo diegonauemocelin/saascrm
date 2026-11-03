@@ -134,6 +134,7 @@ cmd_limite() {
   env_set WHATSAPP_MAX_CONNECTED "$n"
   # Cadastrados (todas as empresas) nunca abaixo dos conectados.
   [ "$(env_get WHATSAPP_MAX_NUMBERS)" -ge "$n" ] 2>/dev/null || env_set WHATSAPP_MAX_NUMBERS "$((n * 2))"
+  [ "$n" -le 5 ] || { info "Reiniciando a Evolution com a memória nova ($(env_get EVOLUTION_MEMORY))"; dc up -d evolution; }
   recarregar_api
   ok "Limite de números conectados ao mesmo tempo: $n."
 }
