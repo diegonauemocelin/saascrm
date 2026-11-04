@@ -49,6 +49,7 @@ import {
   SendIcon,
   BookOpenIcon,
   TruckIcon,
+  MonitorIcon,
   MapPinnedIcon,
   CalculatorIcon,
   TableIcon,
@@ -183,6 +184,7 @@ export const NAVIGATION: NavGroup[] = [
     title: 'Fretes',
     items: [
       { title: 'Painel de fretes', to: '/fretes', icon: GaugeIcon, module: 'fretes_painel' },
+      { title: 'Painel de coletas (TV)', to: '/fretes/painel-tv', icon: MonitorIcon, module: 'fretes_painel' },
       { title: 'Cotação de frete', to: '/fretes/cotacao', icon: CalculatorIcon, module: 'fretes_cotacao', action: 'create' },
       { title: 'Histórico de cotações', to: '/fretes/cotacoes', icon: HistoryIcon, module: 'fretes_cotacao' },
       { title: 'Pedidos e expedição', to: '/fretes/pedidos', icon: PackageIcon, module: 'fretes_pedidos' },
