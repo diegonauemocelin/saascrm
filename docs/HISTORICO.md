@@ -103,6 +103,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `users.extraUnitIds`). Ficou de fora o que era só da Usaparts: o botão que cadastrava as lojas dela e o ICMS padrão
    tirado de um CT-e dela (a empresa cadastra as UFs ou o CRM aprende pelos CT-es). Perfis prontos de fretes pelo botão
    em Fretes › Filiais (só o Administrador).
+26. **1.0.42** (04/11/2026, vindo do CRM da Usaparts 2.0.13): captura de **CT-e na SEFAZ** (Distribuição DF-e,
+   `fretes/sefaz.ts`, `sefaz.service.ts`, models `FreightSefazConfig`/`FreightSefazRun`, migração `20261105100000`):
+   certificado A1 da matriz (unidade principal da empresa) e senha criptografados, consulta por último NSU com o CNPJ
+   dela (vale para as filiais), busca automática a cada 4/8/12/24 h ou "Buscar agora", CT-es dos últimos 1 a 7 dias,
+   pausa de 1 hora depois de 137/656. Por empresa (tenantId), sem rota pública. Não testado contra a SEFAZ real.
 
 ## Como está no ar
 
