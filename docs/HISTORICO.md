@@ -96,6 +96,13 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 24. **1.0.26** (29/10/2026, vindo do CRM da Usaparts 1.0.3): chamar o cliente de novo depois que a pré-venda fecha
    (`reactivation` nas configurações de atendimento, `ReativacaoService`): até 3 mensagens sem venda e 3 de recompra, por
    um número fixo, contadas de `resultAt`; para quando o cliente responde ou abre pré-venda nova. Textos padrão genéricos.
+25. **1.0.37** (04/11/2026, vindo do CRM da Usaparts 2.0.x): módulo de **fretes** (`apps/api/src/fretes`, models
+   `Freight*`, migrações `20261104150000/150100/150200`), liberado pelo sistema `fretes` do plano (`sistemas.ts`):
+   cotação, tabelas versionadas com importação da planilha da transportadora, taxas TDA/TDE/TDC/TVD por destinatário,
+   pedidos e expedição, CT-e, conciliação, faturas, relatórios, alertas e painel, por filial (`units.cnpj/zip/address`,
+   `users.extraUnitIds`). Ficou de fora o que era só da Usaparts: o botão que cadastrava as lojas dela e o ICMS padrão
+   tirado de um CT-e dela (a empresa cadastra as UFs ou o CRM aprende pelos CT-es). Perfis prontos de fretes pelo botão
+   em Fretes › Filiais (só o Administrador).
 
 ## Como está no ar
 

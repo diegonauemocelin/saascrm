@@ -2,6 +2,43 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.37",
+      "date": "2026-11-04",
+      "title": "Módulo de fretes",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Novo sistema Fretes, liberado pelo plano: cotação de frete com todas as transportadoras de uma vez, mostrando o valor, o prazo e a mais barata."
+        },
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Tabelas de frete por transportadora, com versões: importe a planilha que a transportadora mandou, escolha o que é cada coluna, confira e publique."
+        },
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Taxas por destinatário (TDA, TDE, TDC e TVD) pelas listas da transportadora, cobradas na cotação quando o CPF ou CNPJ do destinatário está na lista."
+        },
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Pedidos e expedição, importação dos XMLs de CT-e e conciliação com a cotação (o que a transportadora cobrou contra o que a tabela dava), com contestação."
+        },
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Faturas das transportadoras, relatórios, alertas e o painel de fretes, por filial: cada pessoa vê as filiais dela, e quem tem acesso a todas vê a visão global."
+        },
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Filiais com CNPJ e CEP de expedição, outras filiais por usuário e perfis prontos de fretes (Gestor de logística, Operador de expedição e outros) com um clique."
+        }
+      ]
+    },
+    {
       "version": "1.0.36",
       "date": "2026-11-04",
       "title": "Importação das listas de taxas e da tabela da transportadora",

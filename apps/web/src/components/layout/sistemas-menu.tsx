@@ -11,6 +11,7 @@ import {
   ShoppingCartIcon,
   StoreIcon,
   UsersRoundIcon,
+  TruckIcon,
 } from 'lucide-react'
 import { Link } from 'react-router'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -27,6 +28,7 @@ export const SISTEMA_ICONES: Record<string, LucideIcon> = {
   mi: BrainCircuitIcon,
   ecommerce: ShoppingCartIcon,
   marketplaces: StoreIcon,
+  fretes: TruckIcon,
   admin: SettingsIcon,
 }
 

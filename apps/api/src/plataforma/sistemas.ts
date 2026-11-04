@@ -18,6 +18,7 @@ export const SYSTEMS = [
   { key: 'relatorios', label: 'Relatórios e Google Ads', modules: ['relatorios', 'google_ads'] },
   { key: 'marketing_inteligente', label: 'Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
   { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads e assistente de perguntas)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config'] },
+  { key: 'fretes', label: 'Fretes (cotação, tabelas das transportadoras, CT-e, faturas e conciliação)', modules: ['fretes_painel', 'fretes_cotacao', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais'] },
 ] as const
 
 export type SystemKey = (typeof SYSTEMS)[number]['key']
