@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.36",
+      "date": "2026-11-04",
+      "title": "Importação das listas de taxas e da tabela da transportadora",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Postagens",
+          "text": "Ao conectar uma conta do Instagram, a tela explica o que fazer quando o Instagram diz que a conta não é desenvolvedora ou testadora (convite de testador no app da Meta)."
+        }
+      ]
+    },
+    {
       "version": "1.0.35",
       "date": "2026-11-04",
       "title": "Painéis do app sem rolar para o lado, Monitoramento WhatsApp e ligar pelo app",
