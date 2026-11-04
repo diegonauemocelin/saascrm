@@ -108,7 +108,7 @@ describe('fretes: validação das linhas', () => {
 })
 
 describe('fretes: layouts reais das transportadoras', () => {
-  it('Atual Cargas (modelo Frete Gestão): "Destino: Região", fração até 1 kg, componentes numerados e pedágio "7,49/100"', () => {
+  it('modelo Frete Gestão: "Destino: Região", fração até 1 kg, componentes numerados e pedágio "7,49/100"', () => {
     const headers = ['Destino: Região', 'Fração: ATE 1 KG (R$)', 'Acima: KG EXTRA (R$)', 'Frete Minimo (R$)', 'Comp 1: ADVALOREM NF (%)', 'Comp 1: ADVALOREM Minimo (R$)', 'Comp 2: GRIS NF (%)', 'Comp 2: GRIS Minimo (R$)', 'Comp 10: TAS (R$)', 'Comp 3: Pedagio (R$/Fração)', 'Comp 4: Reentrega (%)', 'Comp 4: Reentrega Minimo (R$)', 'Comp 5: Devolucao (%)', 'Dias', '(U)teis / (C)orridos']
     const data = [['GO1P', 1.00066, 1.00066, 124.19, 0.48, 7.97, 0.2, 8.79, 5.5, '7,49/100', 50, 83.11, 100, null, null]]
     const m = suggestMapping(headers, data)
