@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common'
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
@@ -348,8 +348,8 @@ export class FretesController {
   @Public()
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Get('tv/:token')
-  async publicTvBoard(@ReqHost() host: string | undefined, @Param('token') token: string) {
-    const link = await this.tv.resolve(token, 'COLETAS', host)
+  async publicTvBoard(@ReqHost() host: string | undefined, @Param('token') token: string, @Headers('x-tv-key') key: string | undefined) {
+    const link = await this.tv.resolve(token, 'COLETAS', key, host)
     return this.carriers.publicBoard(link.tenantId, link.unitId)
   }
 
