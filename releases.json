@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.60",
+      "date": "2026-11-05",
+      "title": "Cotação com as tabelas de filiais do mesmo lugar",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Fretes",
+          "text": "Cotação: filiais com o mesmo CNPJ ou na mesma cidade usam as mesmas tabelas e transportadoras, como já acontece na conciliação."
+        }
+      ]
+    },
+    {
       "version": "1.0.59",
       "date": "2026-11-05",
       "title": "Conciliação com a tabela de outra filial do mesmo lugar",
