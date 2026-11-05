@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.66",
+      "date": "2026-11-05",
+      "title": "Orçamento ou pré-nota do ERP na cotação",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Cotação de frete: campo para o orçamento ou a pré-nota do ERP. O número fica guardado na cotação e passa para o pedido, para comparar depois o frete cobrado no ERP com o CT-e. A importação automática dos dados depende da integração com o ERP da empresa."
+        }
+      ]
+    },
+    {
       "version": "1.0.65",
       "date": "2026-11-05",
       "title": "Coleta ou despacho nas transportadoras",
