@@ -812,7 +812,7 @@ export class CotacaoService {
    * nenhuma tabela calcula.
    */
   /**
-   * Filiais que saem do mesmo lugar valem juntas: mesmo CNPJ (ex.: E-commerce e Matriz, mesmo CNPJ em Maravilha) ou a
+   * Filiais que saem do mesmo lugar valem juntas: mesmo CNPJ (ex.: loja virtual e matriz com o mesmo CNPJ) ou a
    * mesma cidade de origem. A tabela cadastrada para uma vale para as outras, na cotação e na conciliação.
    */
   private async siblingUnits(tenantId: string, unitId: string, originCity?: string | null, originUf?: string | null) {
@@ -828,13 +828,14 @@ export class CotacaoService {
     const input: QuoteInput = { unitId: d.unitId, destZip: d.destZip, destCity: d.destCity, destUf: d.destUf, personType: d.personType, cargoValue: d.cargoValue, weight: d.weight, quoteDate: d.date.toISOString().slice(0, 10) }
     let p: Awaited<ReturnType<CotacaoService['prepare']>>
     try {
-      p = await this.prepare(user, input)
-    } catch {
-      return null
+      // A origem é a do CT-e: a filial não precisa ter o CEP de expedição cadastrado para conferir.
+      p = await this.prepare(user, input, true)
+    } catch (e) {
+      return { reasons: [{ table: 'Dados do CT-e', reason: (e as Error).message }], noTables: false }
     }
     const all = await this.prisma.freightTable.findMany({ where: { tenantId: user.tenantId, carrierId: d.carrierId, status: { not: 'RASCUNHO' } }, include: { carrier: true } })
-    // Filiais que saem do mesmo lugar valem juntas: mesmo CNPJ (ex.: E-commerce faturado pela Matriz) ou a mesma cidade de
-    // origem do CT-e. Assim a tabela cadastrada para a Matriz confere o CT-e que caiu no E-commerce.
+    // Filiais que saem do mesmo lugar valem juntas: mesmo CNPJ (ex.: loja virtual faturada pela matriz) ou a mesma cidade de
+    // origem do CT-e. Assim a tabela cadastrada para a matriz confere o CT-e que caiu na outra filial.
     const siblings = new Set(await this.siblingUnits(user.tenantId, d.unitId, d.originCity, d.originUf))
     const tables = all.filter((t) => !t.unitIds.length || t.unitIds.some((id) => siblings.has(id)))
     const fees = await this.feesFor([d.carrierId], { doc: d.recipientDoc, destZip: p.destZip, destCity: p.destCity, destUf: p.destUf })
