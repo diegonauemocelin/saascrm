@@ -5,6 +5,7 @@ import {
   ClipboardListIcon,
   EyeIcon,
   FileClockIcon,
+  GiftIcon,
   GraduationCapIcon,
   HeadsetIcon,
   HistoryIcon,
@@ -117,6 +118,7 @@ export const NAVIGATION: NavGroup[] = [
       { title: 'Agenda de contatos', to: '/agenda', icon: BookUserIcon, module: 'whatsapp' },
       { title: 'Monitorar conversas', to: '/chat?monitorar=1', icon: EyeIcon, module: 'monitoramento' },
       { title: 'Consulta de produtos (ERP)', to: '/consulta-produtos', icon: PackageSearchIcon, module: 'consulta_produtos' },
+      { title: 'Meus brindes', to: '/meus-brindes', icon: GiftIcon, anyOf: ['pre_vendas', 'pos_vendas', 'chat', 'brindes'] },
     ],
   },
   {
@@ -141,6 +143,7 @@ export const NAVIGATION: NavGroup[] = [
       { title: 'Landing pages', to: '/landing-pages', icon: LayoutTemplateIcon, module: 'email_marketing' },
       { title: 'Postagens', to: '/postagens', icon: CalendarClockIcon, module: 'postagens' },
       { title: 'Automações', to: '/automacoes', icon: BotIcon, module: 'automacoes' },
+      { title: 'Controle de brindes', to: '/brindes', icon: GiftIcon, module: 'brindes' },
     ],
   },
   {

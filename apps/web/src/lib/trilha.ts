@@ -931,6 +931,55 @@ export const TRAIL: TrailModule[] = [
     ],
   },
   {
+    key: 'meus-brindes',
+    title: 'Meus brindes',
+    routes: ['/meus-brindes'],
+    purpose: 'O vendedor consulta os brindes que tem livres no mês, quantos já usou e para quais clientes.',
+    lessons: [
+      {
+        id: 'meus-brindes.consultar',
+        title: 'Consultar meus brindes',
+        steps: [
+          'Abra Atendimento Comercial → Meus brindes.',
+          'Cada cartão mostra quantos brindes de cada tipo ainda estão livres no mês e quantos você já usou.',
+          'Em "Para quem foi", veja a data, o código do cliente e o brinde de cada entrega. Troque o mês no alto da tela para ver meses anteriores.',
+        ],
+        tip: 'A retirada é registrada pelo marketing em Controle de brindes. Se algo estiver diferente, fale com eles.',
+      },
+    ],
+  },
+  {
+    key: 'brindes',
+    title: 'Controle de brindes',
+    module: 'brindes',
+    routes: ['/brindes'],
+    purpose: 'Brindes do marketing (copo, chaveiro, chapéu...) com estoque, cota mensal de cada vendedor e o registro de quem recebeu.',
+    howItWorks: 'Cada vendedor tem uma cota por mês de cada brinde (ex.: 5 copos, 3 chaveiros). A cada retirada, anote o código do cliente, a data e o brinde: o sistema baixa do estoque e do saldo do mês do vendedor, até chegar a zero. No mês seguinte o saldo volta à cota.',
+    lessons: [
+      {
+        id: 'brindes.cadastro',
+        title: 'Cadastrar brindes e cotas',
+        steps: [
+          'Abra Marketing → Controle de brindes → aba Brindes → Novo brinde: nome, estoque e valor unitário.',
+          'Quando chegar mais brinde, edite e atualize o estoque.',
+          'Na aba Cotas mensais, digite quantos de cada brinde cada vendedor tem por mês e clique em Salvar. A cota vale todo mês até ser alterada.',
+        ],
+        tip: 'Brinde que já teve retiradas não é excluído: desative para sumir das opções e manter o histórico.',
+      },
+      {
+        id: 'brindes.retirada',
+        title: 'Registrar uma retirada',
+        steps: [
+          'Clique em Registrar retirada (ou em Retirada no cartão do vendedor, na aba Saldo do mês).',
+          'Escolha o vendedor e o brinde (aparece o saldo do mês e o estoque), informe o código do cliente, a data e a quantidade.',
+          'A aba Saldo do mês mostra quanto falta de cada brinde; a aba Retiradas lista tudo o que foi entregue e exporta para planilha.',
+          'Lançou errado? Na aba Retiradas, a lixeira desfaz: o brinde volta ao estoque e ao saldo.',
+        ],
+        tip: 'Sem saldo no mês ou sem estoque, o sistema não deixa registrar.',
+      },
+    ],
+  },
+  {
     key: 'automacoes',
     title: 'Automações',
     module: 'automacoes',

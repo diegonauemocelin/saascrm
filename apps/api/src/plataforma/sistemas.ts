@@ -8,7 +8,7 @@ import { MODULE_KEYS, type PermissionSet } from '../common/permissions'
 export const BASE_MODULES = ['dashboard', 'leads', 'cadastros', 'usuarios', 'perfis', 'configuracoes', 'sugestoes', 'auditoria'] as const
 
 export const SYSTEMS = [
-  { key: 'atendimento', label: 'Atendimento (Pré-Vendas e Pós-Vendas)', modules: ['pre_vendas', 'pos_vendas'] },
+  { key: 'atendimento', label: 'Atendimento (Pré-Vendas, Pós-Vendas e controle de brindes)', modules: ['pre_vendas', 'pos_vendas', 'brindes'] },
   { key: 'whatsapp', label: 'WhatsApp (chat, números e monitoramento)', modules: ['chat', 'monitoramento', 'whatsapp'] },
   { key: 'captura', label: 'Captura de leads (formulários, pop-ups e botões)', modules: ['captura'] },
   { key: 'email_marketing', label: 'E-mail marketing, landing pages e automações', modules: ['email_marketing', 'automacoes'] },
