@@ -244,6 +244,22 @@ export interface ReactivationStep {
   days: number
   /** Texto com {nome}, {vendedor} e {marca} (marcas da máquina da pré-venda). */
   text: string
+  /** Texto próprio por tipo de cliente (id do tipo → texto), ex.: consumidor final e revenda. Sem texto: usa o padrão. */
+  byType?: Record<string, string>
+}
+
+/** Texto da mensagem para o tipo de cliente da pré-venda (o do tipo, se tiver; senão o padrão). */
+export function stepTextFor(step: ReactivationStep, customerTypeId: string | null | undefined): string {
+  return (customerTypeId && step.byType?.[customerTypeId]?.trim()) || step.text
+}
+
+function cleanByType(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>).slice(0, 30)) {
+    if (/^[0-9a-f-]{36}$/i.test(k) && typeof v === 'string' && v.trim()) out[k] = v.trim().slice(0, 1000)
+  }
+  return out
 }
 
 export interface Reactivation {
@@ -288,6 +304,7 @@ function cleanSteps(raw: unknown, fallback: ReactivationStep[]): ReactivationSte
       enabled: list[i] ? r.enabled === true : f.enabled,
       days: Number.isFinite(days) && days >= 1 && days <= 1095 ? days : f.days,
       text: typeof r.text === 'string' && r.text.trim() ? r.text.trim().slice(0, 1000) : f.text,
+      byType: cleanByType(r.byType),
     }
   })
   // Em ordem de dias: a 2ª nunca antes da 1ª.
@@ -477,6 +494,18 @@ export function autoFieldsOf(data: Record<string, unknown>): string[] {
 /** Campo alterado por uma pessoa deixa de ser "veio preenchido" e passa a ser informado manualmente. */
 export function keepAutoFields(auto: string[], changes: Record<string, unknown>): string[] {
   return auto.filter((k) => !(k in changes))
+}
+
+/** Motivos para descartar um cadastro que não serve como lead (formulário preenchido errado). */
+export const DISCARD_REASONS = ['Telefone não funciona e sem e-mail', 'Dados falsos ou de teste', 'Cadastro duplicado', 'Outro'] as const
+
+/** Motivo do descarte: um da lista (Outro pede o texto). */
+export function cleanDiscardReason(reason: unknown, note: unknown): string | null {
+  const r = typeof reason === 'string' ? reason.trim() : ''
+  const n = typeof note === 'string' ? note.trim().slice(0, 200) : ''
+  if (!(DISCARD_REASONS as readonly string[]).includes(r)) return null
+  if (r === 'Outro') return n || null
+  return n ? `${r} (${n})` : r
 }
 
 export function diffRecord(before: Record<string, unknown>, after: Record<string, unknown>) {
