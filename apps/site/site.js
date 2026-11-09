@@ -131,3 +131,32 @@
     })
     .catch(function () {})
 })()
+
+// Mapa de integrações: posiciona cada item e desenha as linhas curvas até o centro (no celular vira grade, sem linhas).
+;(function () {
+  var hub = document.getElementById('hub')
+  if (!hub) return
+  var svg = hub.querySelector('.hub-linhas')
+  var NS = 'http://www.w3.org/2000/svg'
+  var itens = hub.querySelectorAll('.hub-itens li')
+  itens.forEach(function (li, i) {
+    var x = Number(li.getAttribute('data-x'))
+    var y = Number(li.getAttribute('data-y'))
+    li.style.left = x + '%'
+    li.style.top = y + '%'
+    // Curva suave do item até o centro (50, 50); algumas linhas mostram o "dado passando".
+    var cx = (x + 50) / 2
+    var d = 'M' + x + ' ' + (y - 4) + ' C ' + cx + ' ' + (y - 4) + ', ' + cx + ' 50, 50 50'
+    var base = document.createElementNS(NS, 'path')
+    base.setAttribute('d', d)
+    svg.appendChild(base)
+    if (i % 3 === 0) {
+      var vivo = document.createElementNS(NS, 'path')
+      vivo.setAttribute('d', d)
+      vivo.setAttribute('class', 'vivo')
+      vivo.setAttribute('pathLength', '100')
+      vivo.style.animationDelay = (i * 0.35) + 's'
+      svg.appendChild(vivo)
+    }
+  })
+})()
