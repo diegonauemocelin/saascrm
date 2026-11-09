@@ -931,6 +931,39 @@ export const TRAIL: TrailModule[] = [
     ],
   },
   {
+    key: 'web-push',
+    title: 'Web Push',
+    module: 'web_push',
+    routes: ['/web-push'],
+    purpose: 'Mandar notificações no navegador (computador e Android) para quem visitou a loja virtual e aceitou receber.',
+    howItWorks: 'O script do CRM que já está na loja mostra uma caixa pedindo para ativar as notificações. Quem aceita vira inscrito. Você monta o web push (título, mensagem, link, ícone e imagem) e envia na hora ou agenda; a tela mostra disparos, entregas e cliques de cada um. Os inscritos do RD Station não passam para cá: a lista começa do zero.',
+    lessons: [
+      {
+        id: 'web-push.coleta',
+        title: 'Ativar a coleta de inscritos na loja',
+        steps: [
+          'Abra Marketing → Web Push e clique em Gerenciar coleta.',
+          'Passo 1: confira se o script do CRM está ligado no domínio da loja (Configurações › Rastreamento do site).',
+          'Passo 2: baixe o arquivo crm-push-sw.js e peça à Magazord para publicá-lo na raiz da loja (https://www.sualoja.com.br/crm-push-sw.js), sem alterar nada nele.',
+          'Clique em Verificar: fica verde quando o arquivo responde no endereço certo.',
+          'Ajuste os textos da caixa de permissão, ligue "Coleta ativa" e salve.',
+        ],
+        tip: 'No iPhone, o Safari só recebe notificações de sites instalados na tela de início: a maioria dos inscritos vem do computador e do Android.',
+      },
+      {
+        id: 'web-push.criar',
+        title: 'Criar, enviar e agendar um web push',
+        steps: [
+          'Clique em Criar Web Push. O nome é só para você achar depois.',
+          'Escreva o título (até 70 caracteres) e a mensagem (até 140), a URL https que abre no clique e, se quiser, um botão, o ícone e uma imagem grande. A prévia ao lado mostra como fica.',
+          'Clique em Enviar agora (confirma para quantos inscritos vai) ou em Agendar, com a data e a hora de Brasília. Salvar rascunho guarda para depois.',
+          'Na aba Enviados, veja disparos, entregas e cliques. Use Duplicar para repetir um envio com outro texto.',
+        ],
+        tip: 'Agendado pode ser editado ou cancelado até a hora do envio (volta para os rascunhos).',
+      },
+    ],
+  },
+  {
     key: 'meus-brindes',
     title: 'Meus brindes',
     routes: ['/meus-brindes'],
@@ -953,8 +986,8 @@ export const TRAIL: TrailModule[] = [
     title: 'Controle de brindes',
     module: 'brindes',
     routes: ['/brindes'],
-    purpose: 'Brindes do marketing (copo, chaveiro, chapéu...) com estoque, cota mensal de cada vendedor e o registro de quem recebeu.',
-    howItWorks: 'Cada vendedor tem uma cota por mês de cada brinde (ex.: 5 copos, 3 chaveiros). A cada retirada, anote o código do cliente, a data e o brinde: o sistema baixa do estoque e do saldo do mês do vendedor, até chegar a zero. No mês seguinte o saldo volta à cota.',
+    purpose: 'Brindes do marketing (copo, chaveiro, chapéu...) com estoque, cota mensal de cada vendedor ou filial, o registro de quem recebeu e um resumo do que foi entregue.',
+    howItWorks: 'Cada vendedor, e cada filial (sem vendedor), tem uma cota por mês de cada brinde (ex.: 5 copos, 3 chaveiros). A cada retirada, anote o código do cliente, a data e o brinde: o sistema baixa do estoque e do saldo do mês de quem entregou, até chegar a zero. No mês seguinte o saldo volta à cota. As filiais são as Unidades de Configurações → Listas.',
     lessons: [
       {
         id: 'brindes.cadastro',
@@ -962,7 +995,8 @@ export const TRAIL: TrailModule[] = [
         steps: [
           'Abra Marketing → Controle de brindes → aba Brindes → Novo brinde: nome, estoque e valor unitário.',
           'Quando chegar mais brinde, edite e atualize o estoque.',
-          'Na aba Cotas mensais, digite quantos de cada brinde cada vendedor tem por mês e clique em Salvar. A cota vale todo mês até ser alterada.',
+          'Na aba Cotas mensais, digite quantos de cada brinde cada vendedor ou filial tem por mês e clique em Salvar. A cota vale todo mês até ser alterada.',
+          'As filiais aparecem com a marca Filial. Para incluir uma filial, cadastre-a em Configurações → Listas → Unidades.',
         ],
         tip: 'Brinde que já teve retiradas não é excluído: desative para sumir das opções e manter o histórico.',
       },
@@ -971,11 +1005,20 @@ export const TRAIL: TrailModule[] = [
         title: 'Registrar uma retirada',
         steps: [
           'Clique em Registrar retirada (ou em Retirada no cartão do vendedor, na aba Saldo do mês).',
-          'Escolha o vendedor e o brinde (aparece o saldo do mês e o estoque), informe o código do cliente, a data e a quantidade.',
+          'Escolha o vendedor ou a filial e o brinde (aparece o saldo do mês e o estoque), informe o código do cliente, a data e a quantidade.',
           'A aba Saldo do mês mostra quanto falta de cada brinde; a aba Retiradas lista tudo o que foi entregue e exporta para planilha.',
           'Lançou errado? Na aba Retiradas, a lixeira desfaz: o brinde volta ao estoque e ao saldo.',
         ],
         tip: 'Sem saldo no mês ou sem estoque, o sistema não deixa registrar.',
+      },
+      {
+        id: 'brindes.dashboard',
+        title: 'Ver o resumo do que foi entregue',
+        steps: [
+          'Abra a aba Dashboard e escolha o período (De / Até) ou um atalho: mês, 3, 6 ou 12 meses.',
+          'Os cartões mostram quantos brindes saíram, o valor, quantos clientes receberam e quantos vendedores e filiais entregaram.',
+          'O gráfico mostra o valor mês a mês; as tabelas somam por brinde e por vendedor e filial.',
+        ],
       },
     ],
   },
@@ -1248,6 +1291,37 @@ export const TRAIL: TrailModule[] = [
           'Clique em Sincronizar agora. Na primeira vez vêm os últimos 90 dias (limite do Mercado Livre).',
         ],
         tip: 'Quando o CRM conecta, a sincronização do sistema anterior para: o Mercado Livre aceita uma conexão por aplicativo.',
+      },
+    ],
+  },
+  {
+    key: 'seo-marketplace',
+    title: 'SEO Marketplace (Mercado Livre)',
+    module: 'seo_marketplace',
+    routes: ['/marketplaces/seo'],
+    purpose: 'Melhorar a descrição (e o título, quando dá) dos anúncios do Mercado Livre para vender mais e aparecer melhor na busca.',
+    howItWorks:
+      'O CRM usa os anúncios da conta conectada (os mesmos que o Assistente ML sincroniza), dá uma nota para cada um e aponta o que falta: descrição curta ou sem seções, sem aplicação ou sem o código, título acima de 60 caracteres, atributos vazios e contato proibido (telefone, e-mail, link). A IA sugere uma descrição nova só com os dados do anúncio; nada vai para o Mercado Livre sem você revisar e clicar em Enviar. Cada envio guarda o texto anterior para desfazer. Preço e estoque nunca mudam.',
+    lessons: [
+      {
+        id: 'seoml.anuncio',
+        title: 'Melhorar a descrição de um anúncio',
+        steps: [
+          'Abra Marketplaces → SEO Marketplace e filtre pelas notas mais baixas ou por um problema.',
+          'Abra o anúncio: o CRM lê o título e a descrição atuais direto no Mercado Livre.',
+          'Clique em Sugerir com IA (se quiser, escreva um pedido) e confira o texto. Onde faltar dado, a IA pede para o cliente consultar pelo campo de perguntas.',
+          'Marque o que vai (descrição e, se o anúncio ainda não tem vendas, o título) e clique em Enviar para o Mercado Livre.',
+        ],
+        tip: 'O Mercado Livre não aceita telefone, e-mail nem link na descrição, e só deixa mudar o título de anúncio sem vendas (até 60 caracteres).',
+      },
+      {
+        id: 'seoml.lote',
+        title: 'Melhorar em lote e desfazer',
+        steps: [
+          'Na aba Anúncios, selecione até 50 e clique em Gerar sugestões com IA.',
+          'Na aba Para revisar, abra cada sugestão, ajuste e envie (ou marque várias e envie juntas).',
+          'Na aba Enviadas, veja o histórico e use Desfazer para voltar o texto anterior.',
+        ],
       },
     ],
   },

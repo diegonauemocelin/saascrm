@@ -2,6 +2,53 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.73",
+      "date": "2026-11-09",
+      "title": "Web Push, SEO Marketplace, brindes por filial e definir senha pelo administrador",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Marketing",
+          "text": "Web Push: notificações no navegador para os visitantes da loja virtual, com envio na hora ou agendado, rascunhos e o resultado de cada envio (disparos, entregas e cliques). A coleta começa depois de publicar o arquivo crm-push-sw.js na raiz da loja (Marketing › Web Push › Gerenciar coleta)."
+        },
+        {
+          "type": "novo",
+          "area": "Marketplaces",
+          "text": "SEO Marketplace: nota de cada anúncio do Mercado Livre, sugestão de descrição melhor com a IA (e do título, quando o anúncio ainda não teve vendas), revisão, envio para o Mercado Livre e desfazer. Preço e estoque nunca mudam."
+        },
+        {
+          "type": "novo",
+          "area": "Marketing",
+          "text": "Controle de brindes: as filiais (Unidades) têm cota mensal e retiradas próprias, sem vendedor, e a aba Dashboard resume o que foi entregue por período, brinde, vendedor ou filial e mês."
+        },
+        {
+          "type": "novo",
+          "area": "Sistema",
+          "text": "Usuários: o Administrador pode definir a senha de uma pessoa na hora, sem link por e-mail (com a opção de pedir a troca no próximo acesso)."
+        },
+        {
+          "type": "melhoria",
+          "area": "Sistema",
+          "text": "Meu perfil: opção de desligar os avisos do WhatsApp em pop-up; fica só o número no sino."
+        },
+        {
+          "type": "melhoria",
+          "area": "Marketing",
+          "text": "Saúde das fontes de dados com todas as integrações, separadas por área."
+        },
+        {
+          "type": "correcao",
+          "area": "Marketing",
+          "text": "Frete no Google Shopping: Preparar a conta registra o projeto do Google Cloud no Merchant Center e explica como ativar a Merchant API quando ela está desligada."
+        },
+        {
+          "type": "correcao",
+          "area": "Sistema",
+          "text": "Excluir perfil de acesso que tinha usuários já excluídos dava erro no servidor."
+        }
+      ]
+    },
+    {
       "version": "1.0.72",
       "date": "2026-11-09",
       "title": "Frete no Google Shopping, segurança reforçada, WhatsApp que avisa quando não recebe e site novo",

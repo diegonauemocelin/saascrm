@@ -11,13 +11,13 @@ export const SYSTEMS = [
   { key: 'atendimento', label: 'Atendimento (Pré-Vendas, Pós-Vendas e controle de brindes)', modules: ['pre_vendas', 'pos_vendas', 'brindes'] },
   { key: 'whatsapp', label: 'WhatsApp (chat, números e monitoramento)', modules: ['chat', 'monitoramento', 'whatsapp'] },
   { key: 'captura', label: 'Captura de leads (formulários, pop-ups e botões)', modules: ['captura'] },
-  { key: 'email_marketing', label: 'E-mail marketing, landing pages e automações', modules: ['email_marketing', 'automacoes'] },
+  { key: 'email_marketing', label: 'E-mail marketing, landing pages, automações e Web Push', modules: ['email_marketing', 'automacoes', 'web_push'] },
   { key: 'postagens', label: 'Postagens no Instagram e no Facebook', modules: ['postagens'] },
   { key: 'ecommerce', label: 'Integração com e-commerce (catálogo, carrinhos abandonados e SEO)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce'], onRequest: true },
   { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço)', modules: ['consulta_produtos'], onRequest: true },
   { key: 'relatorios', label: 'Relatórios e Google Ads', modules: ['relatorios', 'google_ads'] },
   { key: 'marketing_inteligente', label: 'Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
-  { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads e assistente de perguntas)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config'] },
+  { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads, assistente de perguntas e SEO dos anúncios)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config', 'seo_marketplace'] },
   { key: 'fretes', label: 'Fretes (cotação, tabelas das transportadoras, CT-e, faturas e conciliação)', modules: ['fretes_painel', 'fretes_cotacao', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais'] },
 ] as const
 

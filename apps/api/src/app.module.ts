@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module'
 import { CapturaModule } from './captura/captura.module'
 import { LandingModule } from './landing/landing.module'
 import { SeoModule } from './seo/seo.module'
+import { SeoMarketplaceModule } from './seo-marketplace/seo-marketplace.module'
 import { PostagensModule } from './postagens/postagens.module'
 import { PlataformaModule } from './plataforma/plataforma.module'
 import { CsrfMiddleware } from './common/csrf.middleware'
@@ -26,6 +27,7 @@ import { AssistenteModule } from './assistente/assistente.module'
 import { TcarModule } from './tcar/tcar.module'
 import { FretesModule } from './fretes/fretes.module'
 import { BrindesModule } from './brindes/brindes.module'
+import { WebPushModule } from './webpush/webpush.module'
 import { MerchantModule } from './merchant/merchant.module'
 import { WhatsappModule } from './whatsapp/whatsapp.module'
 import { AppMovelModule } from './app-movel/app-movel.module'
@@ -56,7 +58,7 @@ import { UsersService } from './users/users.service'
         serializers: {
           req: (req: { url?: string } & Record<string, unknown>) => ({ ...req, url: typeof req.url === 'string' ? maskUrl(req.url) : req.url }),
         },
-        autoLogging: { ignore: (req) => req.url === '/api/health' || !!req.url?.startsWith('/api/public/rastreamento/') || !!req.url?.startsWith('/api/public/captura/config') || !!req.url?.startsWith('/api/public/e/') || req.url === '/api/webhooks/tcar/ping' },
+        autoLogging: { ignore: (req) => req.url === '/api/health' || !!req.url?.startsWith('/api/public/rastreamento/') || !!req.url?.startsWith('/api/public/captura/config') || !!req.url?.startsWith('/api/public/e/') || !!req.url?.startsWith('/api/public/webpush/') || req.url === '/api/webhooks/tcar/ping' },
       },
     }),
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 300 }]),
@@ -72,6 +74,7 @@ import { UsersService } from './users/users.service'
     CapturaModule,
     LandingModule,
     SeoModule,
+    SeoMarketplaceModule,
     PostagensModule,
     PlataformaModule,
     EmailModule,
@@ -87,6 +90,7 @@ import { UsersService } from './users/users.service'
     TcarModule,
     FretesModule,
     BrindesModule,
+    WebPushModule,
     MerchantModule,
   ],
   controllers: [UsersController, RolesController, SystemController],

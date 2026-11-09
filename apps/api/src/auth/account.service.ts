@@ -46,6 +46,7 @@ export class AccountService {
       layout,
       screens,
       theme: row.theme,
+      chatPopups: row.chatPopups,
       allowLayoutChoice: branding.allowLayoutChoice,
       lastLoginAt: row.lastLoginAt,
       role: user.role,
@@ -71,7 +72,7 @@ export class AccountService {
     }
   }
 
-  async updatePreferences(user: AuthUser, prefs: { layout?: LayoutMode; theme?: ThemeMode; screens?: 'ATUAL' | 'NOVO' }) {
+  async updatePreferences(user: AuthUser, prefs: { layout?: LayoutMode; theme?: ThemeMode; screens?: 'ATUAL' | 'NOVO'; chatPopups?: boolean }) {
     if (prefs.layout || prefs.screens) {
       const branding = await this.settings.branding(user.tenantId)
       if (!branding.allowLayoutChoice) throw new ForbiddenException('O administrador definiu um layout fixo para todos.')

@@ -225,6 +225,8 @@ model User {
   layout LayoutMode?
   /// Modelo das telas: ATUAL (telas de sempre) ou NOVO (Minha fila, quadro de pré-vendas, chat com painel do cliente). Vazio = padrão da empresa.
   screens String?
+  /// Avisos do chat em pop-up (mensagem nova e cliente sem resposta). Desligado: só o número no sino e na aba.
+  chatPopups Boolean @default(true)
   /// Visões salvas por tela (telas novas): { leads: [{ id, name, query }], "pre-vendas": [...] }.
   savedViews Json?
   /// Como o nome aparece nas mensagens do WhatsApp enviadas pelo CRM (ex.: "Diego - Vendas"); vazio = primeiro nome.
@@ -389,6 +391,9 @@ model Unit {
   users   User[]
   records ServiceRecord[]
   leads   Lead[]
+
+  giftQuotas     GiftQuota[]
+  giftDeliveries GiftDelivery[]
 
   @@unique([tenantId, name])
   @@map("units")
@@ -2550,6 +2555,39 @@ model SeoChange {
   @@map("seo_changes")
 }
 
+/// SEO Marketplace: alterações de descrição (e título) de anúncios do Mercado Livre sugeridas pela IA ou escritas à mão,
+/// revisadas e enviadas. Guarda o texto anterior para desfazer.
+model MlSeoChange {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @db.Uuid
+  /// Anúncio do Mercado Livre (MLB...).
+  itemId        String
+  /// Título do anúncio na hora da sugestão (para as listas).
+  itemTitle     String?
+  /// Textos antes da alteração (título e descrição), para desfazer.
+  before        Json
+  /// Textos propostos.
+  proposed      Json
+  /// Campos escolhidos para enviar (description, title).
+  sendFields    String[]  @default([])
+  /// SUGERIDA, ENVIADA, ERRO, DESCARTADA ou DESFEITA.
+  status        String    @default("SUGERIDA")
+  /// ia ou manual.
+  source        String    @default("ia")
+  error         String?
+  createdById   String?   @db.Uuid
+  createdByName String?
+  sentByName    String?
+  sentAt        DateTime?
+  undoneAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, itemId])
+  @@map("ml_seo_changes")
+}
+
 /// Figurinhas salvas por cada atendente (recebidas no chat ou enviadas do computador), para mandar nas conversas.
 model WhatsappSticker {
   id        String   @id @default(uuid()) @db.Uuid
@@ -3245,6 +3283,92 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
+/// Web Push da loja virtual: situação de uma campanha.
+enum WebPushStatus {
+  RASCUNHO
+  AGENDADO
+  ENVIANDO
+  ENVIADO
+  CANCELADO
+  ERRO
+}
+
+/// Visitante da loja virtual inscrito no Web Push (Marketing › Web Push). Chaves VAPID próprias do site, separadas
+/// das do app no celular (push_subscriptions).
+model WebPushSubscriber {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @db.Uuid
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  /// Visitante do rastreamento do site (_crm_vid) e o lead dele, quando já identificado.
+  visitorId  String?
+  leadId     String?   @db.Uuid
+  active     Boolean   @default(true)
+  failCount  Int       @default(0)
+  failedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+
+  deliveries WebPushDelivery[]
+
+  @@index([tenantId, active])
+  @@index([leadId])
+  @@map("web_push_subscribers")
+}
+
+/// Campanha de Web Push: título, mensagem, link, ícone e imagem; contagem de disparos, entregas e cliques.
+model WebPushCampaign {
+  id            String        @id @default(uuid()) @db.Uuid
+  tenantId      String        @db.Uuid
+  name          String
+  title         String
+  message       String
+  url           String
+  buttonLabel   String?
+  /// Imagens enviadas pelo painel (file_assets públicos do tipo webpush-image). Sem ícone: o da empresa.
+  iconFileId    String?       @db.Uuid
+  imageFileId   String?       @db.Uuid
+  status        WebPushStatus @default(RASCUNHO)
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  finishedAt    DateTime?
+  targets       Int           @default(0)
+  sent          Int           @default(0)
+  failed        Int           @default(0)
+  delivered     Int           @default(0)
+  clicks        Int           @default(0)
+  error         String?
+  createdById   String?       @db.Uuid
+  createdByName String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  deliveries WebPushDelivery[]
+
+  @@index([tenantId, status])
+  @@index([status, scheduledAt])
+  @@map("web_push_campaigns")
+}
+
+/// Um envio de campanha para um inscrito: base das entregas e cliques únicos e da retomada depois de reiniciar.
+model WebPushDelivery {
+  id           String    @id @default(uuid()) @db.Uuid
+  campaignId   String    @db.Uuid
+  subscriberId String    @db.Uuid
+  sentAt       DateTime  @default(now())
+  shownAt      DateTime?
+  clickedAt    DateTime?
+
+  campaign   WebPushCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subscriber WebPushSubscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, subscriberId])
+  @@index([subscriberId])
+  @@map("web_push_deliveries")
+}
+
 /// Lojas concorrentes no Mercado Livre, informadas pelo link, para comparar preços pelo código de referência.
 model MlCompetitor {
   id             String    @id @default(uuid()) @db.Uuid
@@ -3311,29 +3435,34 @@ model Gift {
   @@map("gifts")
 }
 
-/// Quantos brindes de cada tipo o vendedor tem por mês para distribuir (vale todo mês até mudar).
+/// Quantos brindes de cada tipo o vendedor (ou a filial) tem por mês para distribuir (vale todo mês até mudar).
 model GiftQuota {
   id        String   @id @default(uuid()) @db.Uuid
   tenantId  String   @db.Uuid
-  sellerId  String   @db.Uuid
+  sellerId  String?  @db.Uuid
+  /// Filial (unidade) com cota própria, sem vendedor.
+  unitId    String?  @db.Uuid
   giftId    String   @db.Uuid
   monthly   Int
   updatedAt DateTime @updatedAt
 
-  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  gift   Gift   @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  seller Seller? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  unit   Unit?   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  gift   Gift    @relation(fields: [giftId], references: [id], onDelete: Cascade)
 
   @@unique([sellerId, giftId])
+  @@unique([unitId, giftId])
   @@index([tenantId])
   @@map("gift_quotas")
 }
 
-/// Brinde entregue pelo vendedor a um cliente: baixa do estoque e da cota do mês.
+/// Brinde entregue pelo vendedor (ou pela filial) a um cliente: baixa do estoque e da cota do mês.
 model GiftDelivery {
   id            String   @id @default(uuid()) @db.Uuid
   tenantId      String   @db.Uuid
   giftId        String   @db.Uuid
-  sellerId      String   @db.Uuid
+  sellerId      String?  @db.Uuid
+  unitId        String?  @db.Uuid
   customerCode  String
   customerName  String?
   date          DateTime @db.Date
@@ -3345,11 +3474,13 @@ model GiftDelivery {
   createdByName String?
   createdAt     DateTime @default(now())
 
-  gift   Gift   @relation(fields: [giftId], references: [id])
-  seller Seller @relation(fields: [sellerId], references: [id])
+  gift   Gift    @relation(fields: [giftId], references: [id])
+  seller Seller? @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  unit   Unit?   @relation(fields: [unitId], references: [id], onDelete: Restrict)
 
   @@index([tenantId, date])
   @@index([sellerId, date])
+  @@index([unitId, date])
   @@map("gift_deliveries")
 }
 
