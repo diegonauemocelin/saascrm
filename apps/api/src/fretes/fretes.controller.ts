@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common'
+import { BadRequestException, Body, ForbiddenException, Controller, Delete, Get, Headers, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common'
+import { can } from '../common/permissions'
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
@@ -33,7 +34,6 @@ import { IMPORT_MAX_BYTES, ImportacaoService, readSheets } from './importacao.se
 import { PainelService } from './painel.service'
 import { TabelasService } from './tabelas.service'
 import { TransportadorasService } from './transportadoras.service'
-import { TvService } from '../tv/tv.service'
 import { IntegracoesService } from './integracoes.service'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -316,7 +316,6 @@ export class FretesController {
     private readonly tables: TabelasService,
     private readonly imports: ImportacaoService,
     private readonly quotes: CotacaoService,
-    private readonly tv: TvService,
     private readonly online: IntegracoesService,
   ) {}
 
@@ -343,6 +342,8 @@ export class FretesController {
 
   @Get('icms')
   icms(@CurrentUser() user: AuthUser) {
+    // Alíquotas internas: de quem trabalha com cotação, tabelas ou filiais.
+    if (!(['fretes_cotacao', 'fretes_tabelas', 'fretes_filiais'] as const).some((m) => can(user.permissions, user.role.isSystem, m, 'view'))) throw new ForbiddenException('Você não tem permissão para esta ação.')
     return this.quotes.icmsRates(user.tenantId)
   }
 
@@ -397,15 +398,6 @@ export class FretesController {
   @Put('transportadoras/:id')
   updateCarrier(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: CarrierDto, @ReqContext() ctx: RequestCtx) {
     return this.carriers.update(user, id, dto, ctx)
-  }
-
-  /** Painel de coletas pelo link da TV: sem login, só leitura, pelo código do link. */
-  @Public()
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
-  @Get('tv/:token')
-  async publicTvBoard(@ReqHost() host: string | undefined, @Param('token') token: string, @Headers('x-tv-key') key: string | undefined) {
-    const link = await this.tv.resolve(token, 'COLETAS', key, host)
-    return this.carriers.publicBoard(link.tenantId, link.unitId)
   }
 
   @Get('painel-tv')

@@ -218,6 +218,8 @@ export class AuthService {
       where: { userId, revokedAt: null, ...(exceptFamilyId ? { NOT: { familyId: exceptFamilyId } } : {}) },
       data: { revokedAt: new Date() },
     })
+    // Encerrou tudo: o celular também para de receber notificações (com o nome e o texto dos clientes).
+    if (!exceptFamilyId) await this.prisma.pushSubscription.deleteMany({ where: { userId } })
   }
 
   /** Sempre responde igual, exista ou não o e-mail, para não permitir descobrir contas. */
@@ -276,7 +278,8 @@ export class AuthService {
     if (problem) throw new HttpException(problem, HttpStatus.BAD_REQUEST)
 
     await this.prisma.$transaction([
-      this.prisma.passwordResetToken.update({ where: { id: stored.id }, data: { usedAt: new Date() } }),
+      // Este e todos os outros links ainda não usados deste usuário deixam de valer.
+      this.prisma.passwordResetToken.updateMany({ where: { userId: stored.userId, usedAt: null }, data: { usedAt: new Date() } }),
       this.prisma.user.update({
         where: { id: stored.userId },
         data: {

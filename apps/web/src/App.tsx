@@ -120,8 +120,7 @@ const pages = {
   unsubscribe: () => page(() => import('@/pages/unsubscribe-page'), 'UnsubscribePage'),
   mktVisao: () => page(() => import('@/pages/marketing/paineis'), 'VisaoGeralPage'),
   mktExecutivo: () => page(() => import('@/pages/marketing/paineis'), 'ExecutivoPage'),
-  tvExecutivo: () => page(() => import('@/pages/marketing/paineis'), 'ExecutivoTvPublicPage'),
-  tvColetas: () => page(() => import('@/pages/fretes/tv'), 'FretesTvPublicPage'),
+  tvExecutivo: () => page(() => import('@/pages/marketing/paineis'), 'ExecutivoTvPage'),
   mktGoogle: () => page(() => import('@/pages/marketing/plataformas'), 'GoogleAdsMktPage'),
   mktMeta: () => page(() => import('@/pages/marketing/plataformas'), 'MetaAdsPage'),
   mktTiktok: () => page(() => import('@/pages/marketing/plataformas'), 'TikTokAdsPage'),
@@ -134,6 +133,7 @@ const pages = {
   mktCampanhas: () => page(() => import('@/pages/marketing/paineis'), 'CampanhasPage'),
   mktRecs: () => page(() => import('@/pages/marketing/paineis'), 'RecomendacoesPage'),
   mktPlano: () => page(() => import('@/pages/marketing/planejamento'), 'PlanejamentoPage'),
+  googleShopping: () => page(() => import('@/pages/marketing/google-shopping'), 'GoogleShoppingPage'),
   mktRelatorios: () => page(() => import('@/pages/marketing/relatorios'), 'RelatoriosMktPage'),
   mktIntegracoes: () => page(() => import('@/pages/marketing/paineis'), 'IntegracoesMktPage'),
   mktpVisao: () => page(() => import('@/pages/marketplaces'), 'MarketplacesVisaoPage'),
@@ -278,13 +278,12 @@ const router = createBrowserRouter([
   { path: '/redefinir-senha', element: <Lazy fullscreen>{pages.reset()}</Lazy> },
   { path: '/configurar-conta', element: <Lazy fullscreen>{pages.setup()}</Lazy> },
   { path: '/descadastro/:token', element: <Lazy fullscreen>{pages.unsubscribe()}</Lazy> },
-  // Painéis abertos pelo link da TV: sem login, só leitura (o código do link é a permissão).
-  { path: '/tv/coletas/:token', element: <Lazy fullscreen>{pages.tvColetas()}</Lazy> },
-  { path: '/tv/executivo/:token', element: <Lazy fullscreen>{pages.tvExecutivo()}</Lazy> },
   {
     element: <Protected />,
     errorElement: <RouteError />,
     children: [
+      // Dashboard executivo na TV, em tela cheia (com login; o link de TV sem login foi retirado).
+      { path: 'tv/executivo', element: <Lazy fullscreen>{pages.tvExecutivo()}</Lazy> },
       {
         // Caminhos completos (/app/...) nas telas de dentro: a trilha de ajuda cobre todas pelo começo /app.
         path: 'app',
@@ -367,6 +366,7 @@ const router = createBrowserRouter([
           { path: 'marketing/campanhas', element: <Lazy>{pages.mktCampanhas()}</Lazy> },
           { path: 'marketing/recomendacoes', element: <Lazy>{pages.mktRecs()}</Lazy> },
           { path: 'marketing/planejamento', element: <Lazy>{pages.mktPlano()}</Lazy> },
+          { path: 'marketing/google-shopping', element: <Lazy>{pages.googleShopping()}</Lazy> },
           { path: 'marketing/relatorios', element: <Lazy>{pages.mktRelatorios()}</Lazy> },
           { path: 'marketing/integracoes', element: <Lazy>{pages.mktIntegracoes()}</Lazy> },
           { path: 'marketplaces', element: <Lazy>{pages.mktpVisao()}</Lazy> },
