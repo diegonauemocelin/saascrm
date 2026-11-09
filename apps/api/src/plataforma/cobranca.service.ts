@@ -101,6 +101,8 @@ export class CobrancaService {
     const price = (cents: number) => (sale.showPrices ? { priceCents: cents } : {})
     return {
       showPrices: sale.showPrices,
+      /** Todos os sistemas (os sob consulta ficam de fora): o site mostra o que cada plano inclui e o que não. */
+      allSystems: SYSTEMS.filter((s) => !('onRequest' in s && s.onRequest)).map((s) => s.label),
       plans: rows.map((p) => ({
         id: p.id,
         name: p.name,

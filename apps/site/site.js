@@ -110,17 +110,21 @@
         cards.push({ name: 'Monte o seu', price: 'Escolha os sistemas', desc: 'Cada sistema tem um valor mensal: contrate só o que a sua empresa precisa.', items: [d.avulso.maxUsers + ' usuário(s) · ' + d.avulso.maxWhatsapp + ' número(s) de WhatsApp'].concat(d.avulso.systems.map(function (s) { return s.label + (d.showPrices && typeof s.priceCents === 'number' ? ' — ' + brl(s.priceCents) : '') })), trial: d.avulso.trialDays, consult: 'os sistemas avulsos', signup: d.signupUrl })
       }
       ;(d.plans || []).forEach(function (p) {
-        cards.push({ name: p.name, price: preco(p.priceCents), desc: p.description, items: [p.maxUsers + ' usuário(s) · ' + p.maxWhatsapp + ' número(s) de WhatsApp'].concat(p.systems || []), trial: p.trialDays, consult: 'o plano ' + p.name, signup: d.signupUrl ? d.signupUrl + '?plano=' + encodeURIComponent(p.id) : null, destaque: p.complete })
+        // O que o plano não inclui aparece riscado de leve (—), como numa comparação.
+        var faltam = (d.allSystems || []).filter(function (s) { return (p.systems || []).indexOf(s) < 0 })
+        cards.push({ name: p.name, price: preco(p.priceCents), desc: p.description, items: [p.maxUsers + ' usuário(s) · ' + p.maxWhatsapp + ' número(s) de WhatsApp'].concat(p.systems || []), off: faltam, trial: p.trialDays, consult: 'o plano ' + p.name, signup: d.signupUrl ? d.signupUrl + '?plano=' + encodeURIComponent(p.id) : null, destaque: p.complete })
       })
       if (!cards.length) return
       box.textContent = ''
       cards.forEach(function (c) {
         var card = el('article', 'plano' + (c.destaque ? ' plano-destaque' : ''))
+        if (c.destaque) card.appendChild(el('span', 'plano-selo', 'Mais completo'))
         card.appendChild(el('h3', '', c.name))
         card.appendChild(el('p', 'plano-preco', c.price))
         if (c.desc) card.appendChild(el('p', 'plano-desc', c.desc))
         var ul = el('ul', 'plano-itens')
         c.items.forEach(function (s) { ul.appendChild(el('li', '', s)) })
+        ;(c.off || []).forEach(function (s) { ul.appendChild(el('li', 'fora', s)) })
         card.appendChild(ul)
         var bt = el('div', 'plano-botoes')
         if (!d.showPrices) bt.appendChild(link('btn btn-cor', consultar(c.consult), 'Consultar valores'))
