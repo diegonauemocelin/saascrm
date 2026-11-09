@@ -2,6 +2,23 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.79",
+      "date": "2026-11-09",
+      "title": "Power BI: dados do CRM e projeto pronto",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Sistema",
+          "text": "Power BI (no sistema Relatórios): Configurações › Power BI cria chaves de acesso só de leitura para o Power BI buscar 26 tabelas do CRM (comercial, WhatsApp, loja, Mercado Livre, anúncios, e-mail, Web Push, fretes, CT-e e brindes), com atualização automática no Power BI Online. Sem dados pessoais de clientes (LGPD)."
+        },
+        {
+          "type": "novo",
+          "area": "Sistema",
+          "text": "Power BI: botão para baixar o projeto pronto (modelo, medidas, cenários com simulação e páginas com explosão de dados), já com o endereço da sua empresa."
+        }
+      ]
+    },
+    {
       "version": "1.0.78",
       "date": "2026-11-09",
       "title": "Frete no Google Shopping: respeita o limite do Google",
