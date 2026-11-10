@@ -59,6 +59,7 @@ import {
   FileCheck2Icon,
   ReceiptIcon,
   BellIcon,
+  PieChartIcon,
 } from 'lucide-react'
 import type { Action } from './types'
 
@@ -106,6 +107,7 @@ export const NAVIGATION: NavGroup[] = [
   {
     title: 'Análise',
     items: [
+      { title: 'Análises', to: '/analises', icon: PieChartIcon, anyOf: ['pre_vendas', 'leads', 'chat'] },
       { title: 'Relatórios', to: '/relatorios', icon: BarChart3Icon, module: 'relatorios' },
       { title: 'Produtos vistos', to: '/catalogo/vistos', icon: EyeIcon, module: 'catalogo' },
     ],

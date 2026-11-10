@@ -659,6 +659,8 @@ model Lead {
   @@index([tenantId, stage])
   @@index([tenantId, scoreGrade])
   @@index([ownerId])
+  // Análises: leads por período (data em que entrou na base).
+  @@index([tenantId, createdAt])
   @@map("leads")
 }
 
@@ -3499,6 +3501,8 @@ model Gift {
   stock     Int      @default(0)
   unitCost  Decimal  @default(0) @db.Decimal(12, 2)
   active    Boolean  @default(true)
+  /// Controlado por cota mensal (vendedor/filial). Desligado: qualquer um retira, só baixa o estoque.
+  hasQuota  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
