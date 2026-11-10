@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.85",
+      "date": "2026-11-10",
+      "title": "Correção no frete do Google Shopping",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "Marketing",
+          "text": "Frete no Google Shopping: a simulação de frete na loja virtual dava erro 400 porque recebia o número interno do produto; agora recebe o código do produto, como o carrinho."
+        }
+      ]
+    },
+    {
       "version": "1.0.84",
       "date": "2026-11-10",
       "title": "Frete na nota nos pedidos e peso/medidas da loja virtual",
