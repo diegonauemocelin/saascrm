@@ -10,7 +10,7 @@ const INFO: Record<string, { title: string; text: string; items: string[] }> = {
   ecommerce: {
     title: 'Integração com e-commerce',
     text: 'Liga o CRM à sua loja virtual: produtos, pedidos e carrinhos abandonados entram sozinhos, viram leads e oportunidades de venda.',
-    items: ['Catálogo de produtos com os números da loja', 'Carrinhos abandonados com o contato do cliente', 'SEO dos produtos com sugestões da IA', 'Pedidos ligados aos leads e às campanhas'],
+    items: ['Catálogo de produtos com os números da loja', 'Carrinhos abandonados com o contato do cliente', 'SEO dos produtos com sugestões da IA', 'Pedidos ligados aos leads e às campanhas', 'Programa de fidelidade com pontos pelas compras, níveis, prêmios e avaliação da compra'],
   },
   erp: {
     title: 'Integração com ERP',
@@ -18,7 +18,7 @@ const INFO: Record<string, { title: string; text: string; items: string[] }> = {
     items: ['Busca por código, referência e aplicação', 'Estoque e preço atualizados', 'Consulta direto do atendimento e do chat'],
   },
 }
-const SYSTEM_OF: Record<string, string> = { catalogo: 'ecommerce', carrinhos: 'ecommerce', seo_ecommerce: 'ecommerce', consulta_produtos: 'erp' }
+const SYSTEM_OF: Record<string, string> = { catalogo: 'ecommerce', carrinhos: 'ecommerce', seo_ecommerce: 'ecommerce', fidelidade: 'ecommerce', consulta_produtos: 'erp' }
 
 export function SobConsultaPage() {
   const [params] = useSearchParams()

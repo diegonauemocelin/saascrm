@@ -2,6 +2,33 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.83",
+      "date": "2026-11-10",
+      "title": "Fidelidade com pontos, níveis, prêmios e avaliação da compra",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Fidelidade",
+          "text": "Marketing › Fidelidade: o cliente ganha pontos pelos pedidos pagos da loja virtual integrada, sobe de nível pelas compras dos últimos 12 meses e troca os pontos por prêmios com código de resgate (brinde pelo Controle de brindes, desconto ou cashback aplicados à mão). Extrato com bônus de primeira compra e de aniversário, ajuste manual com motivo, estorno de pedido cancelado ou devolvido e validade dos pontos."
+        },
+        {
+          "type": "novo",
+          "area": "Fidelidade",
+          "text": "Avaliação depois da compra: convite por e-mail e WhatsApp (no horário comercial e com intervalo entre as mensagens), estrelas, nota de 0 a 10 (NPS) e comentário. Nota baixa avisa a equipe no celular e por e-mail e fica em Detratores até ser tratada; quem dá nota alta pode ser convidado a avaliar a empresa no Google."
+        },
+        {
+          "type": "novo",
+          "area": "Fidelidade",
+          "text": "Página Meus pontos para o cliente, sem senha, no endereço da sua empresa: entra pelo link pessoal enviado por e-mail ou WhatsApp ou pedindo um código de 6 dígitos. Mostra saldo, nível, extrato, prêmios, resgates e pedidos para avaliar, com aceite dos termos e opção de sair do programa. O link e o acesso só valem no endereço da própria empresa."
+        },
+        {
+          "type": "melhoria",
+          "area": "Planos",
+          "text": "A Fidelidade faz parte da Integração com e-commerce (sob consulta), porque os pontos vêm dos pedidos da loja virtual. As rotinas automáticas só rodam para empresas com o sistema no plano e com o acesso liberado."
+        }
+      ]
+    },
+    {
       "version": "1.0.82",
       "date": "2026-11-10",
       "title": "Conciliação do CT-e com o frete da nota fiscal",

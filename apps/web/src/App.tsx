@@ -90,6 +90,8 @@ const pages = {
   emailCampaign: () => page(() => import('@/pages/email-campaign-page'), 'EmailCampaignPage'),
   automacoes: () => page(() => import('@/pages/automacoes-page'), 'AutomacoesPage'),
   brindes: () => page(() => import('@/pages/marketing/brindes'), 'BrindesPage'),
+  fidelidade: () => page(() => import('@/pages/marketing/fidelidade'), 'FidelidadePage'),
+  meusPontos: () => page(() => import('@/pages/meus-pontos-page'), 'MeusPontosPage'),
   webPush: () => page(() => import('@/pages/marketing/web-push'), 'WebPushPage'),
   meusBrindes: () => page(() => import('@/pages/meus-brindes-page'), 'MeusBrindesPage'),
   automacao: () => page(() => import('@/pages/automacao-page'), 'AutomacaoPage'),
@@ -281,6 +283,8 @@ const router = createBrowserRouter([
   { path: '/redefinir-senha', element: <Lazy fullscreen>{pages.reset()}</Lazy> },
   { path: '/configurar-conta', element: <Lazy fullscreen>{pages.setup()}</Lazy> },
   { path: '/descadastro/:token', element: <Lazy fullscreen>{pages.unsubscribe()}</Lazy> },
+  // Página do cliente no programa de fidelidade (sem login do CRM: link assinado ou código).
+  { path: '/meus-pontos', element: <Lazy fullscreen>{pages.meusPontos()}</Lazy> },
   {
     element: <Protected />,
     errorElement: <RouteError />,
@@ -350,6 +354,7 @@ const router = createBrowserRouter([
           { path: 'assinatura', element: <Lazy>{pages.assinatura()}</Lazy> },
           { path: 'automacoes', element: <Lazy>{pages.automacoes()}</Lazy> },
           { path: 'brindes', element: <Lazy>{pages.brindes()}</Lazy> },
+          { path: 'fidelidade', element: <Lazy>{pages.fidelidade()}</Lazy> },
           { path: 'web-push', element: <Lazy>{pages.webPush()}</Lazy> },
           { path: 'meus-brindes', element: <Lazy>{pages.meusBrindes()}</Lazy> },
           { path: 'automacoes/:id', element: <Lazy>{pages.automacao()}</Lazy> },
