@@ -115,6 +115,15 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    só rodam para a empresa com o módulo no plano e o acesso liberado (`moduleActive`). Imposto aprendido das NF-e do
    Mercado Envios importadas em Fretes; IA pela chave Gemini da própria empresa.
 
+28. **Branch `trier-ml`** (11/11/2026, sem versão ainda): integração com a **Trier** (ERP de farmácias, SGF) e
+   **Publicar do ERP** no Mercado Livre (`apps/api/src/trier`, `apps/api/src/marketplaces/publicar`, migração
+   `20261111150000_trier_ml`, tabelas `trier_products` e `ml_publications`), módulos `erp_trier` (sistema `erp`) e
+   `marketplace_publicar` (sistema `marketplaces`). O CRM chama o servidor da farmácia (token criptografado, proteção
+   SSRF); IP privado só pelo "Acesso pela VPN" liberado pela plataforma (IP:porta exatos, `docs/TRIER-VPN.md`).
+   Decisão do Diego: a farmácia só anuncia higiene, perfumaria e correlatos; medicamento é sempre bloqueado e só
+   aparece para publicar o que a empresa marcar (departamento/grupo/categoria da Trier). Falta homologar com um token
+   real da Trier e uma conta do Mercado Livre.
+
 ## Como está no ar
 
 - **VPS**: `srv772376`, IP `91.108.125.234`, código em `/opt/saascrm`. Tem outro sistema rodando (não mexer).

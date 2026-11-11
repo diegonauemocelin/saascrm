@@ -4066,3 +4066,111 @@ model MlCompetitorPriceDay {
   @@index([tenantId, itemId])
   @@map("ml_competitor_price_days")
 }
+
+/// Produto da Trier (ERP de farmácias, SGF) copiado pela API da Trier: o CRM chama o servidor da farmácia (cópia
+/// completa a cada 6 h e alterados a cada poucos minutos). Custo só quando a empresa liga "Importar custo do ERP".
+model TrierProduct {
+  id                   String    @id @default(uuid()) @db.Uuid
+  tenantId             String    @db.Uuid
+  /// Código reduzido do produto na Trier.
+  code                 String
+  /// Código de barras (EAN/GTIN), só dígitos.
+  ean                  String?
+  name                 String
+  ecommerceName        String?
+  description          String?
+  /// Laboratório (marca).
+  brand                String?
+  brandCode            Int?
+  department           String?
+  groupName            String?
+  category             String?
+  classification       String?
+  /// NCM (codClaFiscal), só dígitos.
+  ncm                  String?
+  unit                 String?
+  price                Decimal?  @db.Decimal(12, 2)
+  ecommercePrice       Decimal?  @db.Decimal(12, 2)
+  stock                Int?
+  ecommerceStock       Int?
+  /// Custo médio (ou custo) da Trier: só com "Importar custo do ERP" ligado.
+  cost                 Decimal?  @db.Decimal(12, 2)
+  active               Boolean   @default(true)
+  /// Marcado para integração com e-commerce na Trier.
+  ecommerce            Boolean   @default(false)
+  widthMm              Int?
+  heightMm             Int?
+  depthMm              Int?
+  weightG              Int?
+  typeName             String?
+  typeCode             Int?
+  activeIngredient     String?
+  activeIngredientCode String?
+  /// Produto manipulado (produtoManipulado = "S").
+  compounded           Boolean   @default(false)
+  listType             String?
+  /// dataAlteracao da Trier.
+  changedAt            DateTime?
+  /// Texto sem acentos para a busca.
+  searchText           String
+  /// Última cópia completa em que o produto apareceu; removedAt preenchido = sumiu da Trier.
+  seenAt               DateTime
+  removedAt            DateTime?
+  syncedAt             DateTime
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId, ean])
+  @@map("trier_products")
+}
+
+/// Publicação de um produto do ERP (Trier) no Mercado Livre: rascunho, envio em segundo plano e o vínculo com o
+/// anúncio (MLB). Depois de publicado, preço e estoque seguem o ERP (desired* = o que o anúncio deve ter).
+model MlPublication {
+  id               String    @id @default(uuid()) @db.Uuid
+  tenantId         String    @db.Uuid
+  /// Origem do produto (trier).
+  source           String    @default("trier")
+  productCode      String
+  /// RASCUNHO, PENDENTE, ENVIANDO, PUBLICADO ou ERRO.
+  status           String    @default("RASCUNHO")
+  /// catalogo (anúncio de catálogo pelo GTIN) ou tradicional.
+  mode             String    @default("tradicional")
+  catalogProductId String?
+  catalogName      String?
+  categoryId       String?
+  categoryName     String?
+  title            String
+  description      String?
+  /// gold_special (Clássico) ou gold_pro (Premium).
+  listingType      String    @default("gold_special")
+  freeShipping     Boolean   @default(false)
+  /// Atributos enviados: [{ id, value_id?, value_name? }].
+  attributes       Json      @default("[]")
+  /// Fotos já carregadas no Mercado Livre: [{ id, url }].
+  pictures         Json      @default("[]")
+  price            Decimal?  @db.Decimal(12, 2)
+  quantity         Int?
+  itemId           String?
+  permalink        String?
+  error            String?
+  /// Preço e estoque seguem o ERP (opção da empresa; pode ser desligada por anúncio).
+  syncEnabled      Boolean   @default(true)
+  desiredPrice     Decimal?  @db.Decimal(12, 2)
+  desiredQuantity  Int?
+  sentPrice        Decimal?  @db.Decimal(12, 2)
+  sentQuantity     Int?
+  syncError        String?
+  syncedAt         DateTime?
+  publishedAt      DateTime?
+  createdById      String?   @db.Uuid
+  createdByName    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([tenantId, source, productCode])
+  @@index([tenantId, status])
+  @@index([tenantId, itemId])
+  @@map("ml_publications")
+}

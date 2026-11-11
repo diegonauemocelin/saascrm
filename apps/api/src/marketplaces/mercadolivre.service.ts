@@ -325,6 +325,28 @@ export class MercadoLivreService implements OnApplicationBootstrap, OnModuleDest
     }
   }
 
+  /** Envio de arquivo (multipart; ex.: foto em /pictures/items/upload). 429 espera e tenta de novo (até 3 vezes). */
+  async apiUpload<T>(tenantId: string, path: string, form: FormData): Promise<T> {
+    let authRetried = false
+    for (let attempt = 0; ; attempt++) {
+      const token = await this.accessToken(tenantId)
+      const res = await this.fetcher(ML_API + path, { method: 'POST', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, body: form, signal: AbortSignal.timeout(60_000), redirect: 'error' })
+      if (res.ok) return (await res.json().catch(() => ({}))) as T
+      if (res.status === 401 && !authRetried) {
+        authRetried = true
+        await this.patch(tenantId, { tokenExpiresAt: new Date(0).toISOString() })
+        continue
+      }
+      if (res.status === 429 && attempt < 3) {
+        await sleep(this.gapMs ? 2000 * 2 ** attempt : 0)
+        continue
+      }
+      const b = (await res.json().catch(() => ({}))) as { message?: string; error?: string }
+      if (res.status === 401) throw new MlError('O Mercado Livre recusou o acesso. Reconecte a conta.', 401, true)
+      throw new MlError(`O Mercado Livre respondeu ${res.status}: ${b.message ?? b.error ?? res.statusText}`, res.status)
+    }
+  }
+
   async listAdvertisers(tenantId: string, product: 'PADS' | 'DISPLAY' = 'PADS', counter?: { calls: number }) {
     const r = await this.apiGet<{ advertisers?: { advertiser_id: number; site_id: string; advertiser_name: string; account_name: string }[] }>(tenantId, '/advertising/advertisers', { product_id: product }, '1', counter)
     return (r.advertisers ?? []).map((a) => ({ advertiserId: String(a.advertiser_id), siteId: a.site_id, name: a.advertiser_name, account: a.account_name }))

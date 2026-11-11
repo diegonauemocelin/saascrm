@@ -14,10 +14,10 @@ export const SYSTEMS = [
   { key: 'email_marketing', label: 'E-mail marketing, landing pages, automações e Web Push', modules: ['email_marketing', 'automacoes', 'web_push'] },
   { key: 'postagens', label: 'Postagens no Instagram e no Facebook', modules: ['postagens'] },
   { key: 'ecommerce', label: 'Integração com e-commerce (catálogo, carrinhos abandonados, SEO e fidelidade)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'], onRequest: true },
-  { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço)', modules: ['consulta_produtos'], onRequest: true },
+  { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço; Tcar e Trier)', modules: ['consulta_produtos', 'erp_trier'], onRequest: true },
   { key: 'relatorios', label: 'Relatórios, Google Ads e Power BI', modules: ['relatorios', 'google_ads', 'bi'] },
   { key: 'marketing_inteligente', label: 'Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
-  { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads, assistente de perguntas, SEO dos anúncios, preços e promoções e planejamento)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config', 'seo_marketplace', 'marketplace_precos', 'marketplace_planejamento'] },
+  { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads, assistente de perguntas, SEO dos anúncios, preços e promoções, planejamento e publicar do ERP)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config', 'seo_marketplace', 'marketplace_precos', 'marketplace_planejamento', 'marketplace_publicar'] },
   { key: 'fretes', label: 'Fretes (cotação, tabelas das transportadoras, CT-e, faturas e conciliação)', modules: ['fretes_painel', 'fretes_cotacao', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais'] },
 ] as const
 

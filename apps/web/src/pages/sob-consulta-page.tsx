@@ -18,7 +18,7 @@ const INFO: Record<string, { title: string; text: string; items: string[] }> = {
     items: ['Busca por código, referência e aplicação', 'Estoque e preço atualizados', 'Consulta direto do atendimento e do chat'],
   },
 }
-const SYSTEM_OF: Record<string, string> = { catalogo: 'ecommerce', carrinhos: 'ecommerce', seo_ecommerce: 'ecommerce', fidelidade: 'ecommerce', consulta_produtos: 'erp' }
+const SYSTEM_OF: Record<string, string> = { catalogo: 'ecommerce', carrinhos: 'ecommerce', seo_ecommerce: 'ecommerce', fidelidade: 'ecommerce', consulta_produtos: 'erp', erp_trier: 'erp' }
 
 export function SobConsultaPage() {
   const [params] = useSearchParams()

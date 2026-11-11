@@ -98,7 +98,7 @@ describe('plataforma: cobrança', () => {
   })
 
   it('integrações sob consulta ficam no menu de quem não tem', () => {
-    expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['whatsapp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade', 'consulta_produtos'])
+    expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['whatsapp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade', 'consulta_produtos', 'erp_trier'])
     expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['erp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'])
   })
 })
