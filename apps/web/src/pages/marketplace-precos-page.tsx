@@ -153,7 +153,7 @@ const plusDays = (d: string, n: number) => new Date(Date.parse(`${d}T00:00:00Z`)
 const ITEM_STATUS: Record<string, string> = { active: 'Ativo', paused: 'Pausado', closed: 'Finalizado', under_review: 'Em revisão' }
 const KIND: Record<string, string> = { preco: 'Preço', promocao: 'Promoção', encerrar_promocao: 'Encerrar promoção', cupom: 'Cupom criado', cupom_item: 'Anúncio no cupom', encerrar_cupom: 'Cupom excluído' }
 const STATUS: Record<string, string> = { AGENDADA: 'Agendada', PENDENTE: 'Na fila', ENVIANDO: 'Enviando', ENVIADA: 'Enviada', ERRO: 'Erro', CANCELADA: 'Cancelada', DESFEITA: 'Desfeita' }
-const COST_SOURCE: Record<string, string> = { manual: 'manual', planilha: 'planilha', percentual: '% do preço', tcar: 'ERP' }
+const COST_SOURCE: Record<string, string> = { manual: 'manual', planilha: 'planilha', percentual: '% do preço', tcar: 'ERP', erp: 'ERP' }
 const MISSING: Record<string, string> = { custo: 'sem custo', tarifa: 'sem tarifa', imposto: 'sem imposto', frete: 'sem o frete' }
 
 function MarginCell({ m, min }: { m: Margin; min: number }) {

@@ -1449,7 +1449,7 @@ export const TRAIL: TrailModule[] = [
     routes: ['/marketplaces/precos'],
     purpose: 'Ver a margem de cada anúncio do Mercado Livre e mudar preço, criar desconto e cupom sem sair do CRM, sempre com revisão antes.',
     howItWorks:
-      'O CRM lê do Mercado Livre o preço de venda, a promoção ativa, a tarifa (API de custos por vender), o custo do frete grátis e as vendas dos últimos 60 dias. O imposto vem das notas de venda entregues pelo Mercado Envios (importadas em Fretes › Pedidos): primeiro a carga do SKU, depois a do NCM, a média geral e, por último, a alíquota manual. O custo é o que você informa (à mão, em massa ou por planilha): o custo contábil do ERP nunca é copiado. Margem = preço − tarifa − frete − imposto − outras taxas − custo − custo fixo. Toda alteração passa por uma revisão (antes → depois e a margem), vai em segundo plano, um anúncio por segundo, e fica no histórico com Desfazer.',
+      'O CRM lê do Mercado Livre o preço de venda, a promoção ativa, a tarifa (API de custos por vender), o custo do frete grátis e as vendas dos últimos 60 dias. O imposto vem das notas de venda entregues pelo Mercado Envios (importadas em Fretes › Pedidos): primeiro a carga do SKU, depois a do NCM, a média geral e, por último, a alíquota manual. O custo é o que você informa (à mão, em massa ou por planilha); o custo do ERP só entra se a empresa ligar "Importar custo do ERP" na integração Trier (e nunca por cima do custo digitado ou importado). Margem = preço − tarifa − frete − imposto − outras taxas − custo − custo fixo. Toda alteração passa por uma revisão (antes → depois e a margem), vai em segundo plano, um anúncio por segundo, e fica no histórico com Desfazer.',
     lessons: [
       {
         id: 'precos.custos',
@@ -1502,6 +1502,59 @@ export const TRAIL: TrailModule[] = [
           'Na aba DRE, escolha os meses, veja por mês ou por produto e exporte o CSV. Os itens com * são estimados.',
         ],
         tip: 'Sem custo cadastrado, a margem não é calculada: informe os custos em Preços e promoções.',
+      },
+    ],
+  },
+  {
+    key: 'publicar-marketplace',
+    title: 'Publicar do ERP no Mercado Livre',
+    module: 'marketplace_publicar',
+    routes: ['/marketplaces/publicar'],
+    purpose: 'Anunciar no Mercado Livre os produtos do ERP (Trier) que a empresa liberou, com preço e estoque seguindo o ERP depois de publicados.',
+    howItWorks:
+      'Só aparecem os produtos dos departamentos, grupos ou categorias marcados na Configuração da tela (e, se ligado na integração, os marcados para e-commerce na Trier). Medicamentos nunca aparecem: produto com princípio ativo, manipulado ou com tipo, classificação, grupo, departamento ou categoria de medicamento é bloqueado, porque o Mercado Livre não permite anunciá-los. Para cada produto, o CRM procura o produto no catálogo do Mercado Livre pelo EAN; se achar, o anúncio é de catálogo (com as fotos do catálogo). Senão, sugere a categoria, preenche marca (laboratório), GTIN e SKU e pede o que faltar, inclusive as fotos. O envio é em segundo plano, um anúncio por segundo. Depois, quando a Trier muda preço ou estoque, o anúncio é atualizado (estoque 0 pausa o anúncio).',
+    lessons: [
+      {
+        id: 'publicar.config',
+        title: 'Escolher o que pode ser publicado',
+        steps: [
+          'Abra Marketplaces → Publicar do ERP → Configuração.',
+          'Marque os departamentos, grupos ou categorias liberados (ex.: higiene e perfumaria). Nada marcado = nada aparece.',
+          'Defina o acréscimo sobre o preço do ERP, o tipo de anúncio padrão e se preço e estoque seguem o ERP.',
+        ],
+      },
+      {
+        id: 'publicar.anuncio',
+        title: 'Montar e publicar o anúncio',
+        steps: [
+          'Na aba Produtos, clique em Montar anúncio.',
+          'Escolha o produto do catálogo (quando o EAN existe no Mercado Livre) ou o anúncio tradicional com a categoria sugerida.',
+          'Revise o título (até o limite da categoria), os atributos obrigatórios, as medidas do pacote e envie as fotos.',
+          'Clique em Publicar. Acompanhe a situação e o erro do Mercado Livre na aba Publicações.',
+        ],
+        tip: 'Conecte a conta do Mercado Livre antes, em Configurações › Marketplaces › Conexões dos marketplaces.',
+      },
+    ],
+  },
+  {
+    key: 'integracao-trier',
+    title: 'Integração Trier (ERP de farmácias)',
+    module: 'erp_trier',
+    routes: ['/erp/trier'],
+    purpose: 'Trazer do ERP Trier os produtos, o estoque e o preço de venda para consultar e publicar nos marketplaces.',
+    howItWorks:
+      'O CRM chama o servidor da Trier na farmácia com o token fornecido pela Trier: cópia completa a cada 6 horas e produtos e estoque alterados a cada 15 minutos. Pela internet, a farmácia precisa de IP fixo ou DDNS e da porta 4647 liberada no roteador. Pela VPN, o endereço é de rede privada e só funciona depois que a SG Multiconecta libera aquele IP e porta. O token fica guardado criptografado; o custo só é guardado se "Importar custo do ERP" estiver ligado.',
+    lessons: [
+      {
+        id: 'trier.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração Trier → Configuração.',
+          'Informe o endereço do servidor (ex.: http://farmacia.ddns.net:4647) e cole o token da Trier.',
+          'Salve e clique em Testar conexão. Depois ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o estoque e o preço.',
+        ],
+        tip: 'Se aparecer "Acesso pela VPN: aguardando liberação da plataforma", fale com a SG Multiconecta.',
       },
     ],
   },

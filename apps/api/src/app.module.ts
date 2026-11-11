@@ -12,6 +12,7 @@ import { LandingModule } from './landing/landing.module'
 import { SeoModule } from './seo/seo.module'
 import { SeoMarketplaceModule } from './seo-marketplace/seo-marketplace.module'
 import { MarketplacePrecosModule } from './marketplaces/precos/precos.module'
+import { MarketplacePublicarModule } from './marketplaces/publicar/publicar.module'
 import { MarketplacePlanejamentoModule } from './marketplaces/planejamento/planejamento.module'
 import { PostagensModule } from './postagens/postagens.module'
 import { PlataformaModule } from './plataforma/plataforma.module'
@@ -27,6 +28,7 @@ import { MarketingModule } from './marketing/marketing.module'
 import { MarketplacesModule } from './marketplaces/marketplaces.module'
 import { AssistenteModule } from './assistente/assistente.module'
 import { TcarModule } from './tcar/tcar.module'
+import { TrierModule } from './trier/trier.module'
 import { FretesModule } from './fretes/fretes.module'
 import { BrindesModule } from './brindes/brindes.module'
 import { FidelidadeModule } from './fidelidade/fidelidade.module'
@@ -81,6 +83,7 @@ import { UsersService } from './users/users.service'
     SeoModule,
     SeoMarketplaceModule,
     MarketplacePrecosModule,
+    MarketplacePublicarModule,
     MarketplacePlanejamentoModule,
     PostagensModule,
     PlataformaModule,
@@ -95,6 +98,7 @@ import { UsersService } from './users/users.service'
     MarketplacesModule,
     AssistenteModule,
     TcarModule,
+    TrierModule,
     FretesModule,
     BrindesModule,
     FidelidadeModule,
