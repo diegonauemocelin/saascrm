@@ -2,6 +2,28 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.88",
+      "date": "2026-11-11",
+      "title": "Integração Trier e Publicar do ERP no Mercado Livre",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Integrações",
+          "text": "Integração com a Trier Sistemas (ERP de farmácias): produtos, estoque e preço de venda copiados automaticamente, com acesso pela internet ou pela VPN da farmácia."
+        },
+        {
+          "type": "novo",
+          "area": "Marketplaces",
+          "text": "Publicar do ERP: monte anúncios do Mercado Livre a partir dos produtos do ERP, com catálogo pelo EAN, categoria sugerida, atributos e fotos; depois de publicado, preço e estoque seguem o ERP."
+        },
+        {
+          "type": "seguranca",
+          "area": "Marketplaces",
+          "text": "Medicamentos nunca são publicados no Mercado Livre, e só aparecem para publicar as categorias liberadas pela empresa."
+        }
+      ]
+    },
+    {
       "version": "1.0.87",
       "date": "2026-11-11",
       "title": "Marketplaces: Preços e promoções e Planejamento",
