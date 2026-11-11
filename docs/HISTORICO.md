@@ -108,6 +108,12 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    certificado A1 da matriz (unidade principal da empresa) e senha criptografados, consulta por último NSU com o CNPJ
    dela (vale para as filiais), busca automática a cada 4/8/12/24 h ou "Buscar agora", CT-es dos últimos 1 a 7 dias,
    pausa de 1 hora depois de 137/656. Por empresa (tenantId), sem rota pública. Não testado contra a SEFAZ real.
+27. **1.0.87** (11/11/2026, vindo do CRM da Usaparts 3.0.2): Marketplaces › **Preços e promoções** e
+   **Planejamento** do Mercado Livre (`marketplaces/precos`, `marketplaces/planejamento`, migrações
+   `20261111100000`/`20261111140000`), módulos `marketplace_precos` e `marketplace_planejamento` no sistema
+   `marketplaces` (`sistemas.ts`). Tudo por tenantId; a leitura de pedidos (a cada 6 h) e os envios agendados de preço
+   só rodam para a empresa com o módulo no plano e o acesso liberado (`moduleActive`). Imposto aprendido das NF-e do
+   Mercado Envios importadas em Fretes; IA pela chave Gemini da própria empresa.
 
 ## Como está no ar
 
