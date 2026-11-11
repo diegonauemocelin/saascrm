@@ -18,7 +18,7 @@ import { EMAIL_IMAGE_LIMIT, FilesService } from '../files/files.service'
 import { MagazordService } from '../integracoes/magazord.service'
 import { MailService } from '../settings/mail.service'
 import { publicBranding, SettingsService } from '../settings/settings.service'
-import { type Block, type Brand, type CartContent, type CartVar, cleanBlocks, collectLinks, renderEmail, cleanSocial, SOCIAL_LABEL, SOCIAL_NETWORKS, type SocialLinks, socialUrl, topColors } from './blocos'
+import { type Block, type Brand, type CartContent, type CartVar, cleanBlocks, cleanImageName, collectLinks, renderEmail, cleanSocial, SOCIAL_LABEL, SOCIAL_NETWORKS, type SocialLinks, socialUrl, topColors } from './blocos'
 import { backoffMinutes, batchSize, isTemporary, isTemporaryText, MAX_TEMP_TRIES } from './limite'
 
 export interface EmailSettings {
@@ -39,6 +39,8 @@ export interface EmailSettings {
 
 export const DEFAULT_EMAIL: EmailSettings = { fromName: '', replyTo: '', footerText: '', ratePerMinute: 60, logoFileId: null, social: {}, socialInFooter: true }
 
+/** Configuração com os nomes das imagens do e-mail (sem migração: o arquivo não tem nome no banco). */
+const IMAGE_NAMES = 'email_image_names'
 /** Endereço público de um arquivo; base = endereço da empresa. */
 const fileUrl = (base: string, id: string) => `${base}/api/files/public/${id}`
 
@@ -276,18 +278,36 @@ export class EmailService implements OnApplicationBootstrap, OnModuleDestroy {
     return this.configView(user.tenantId)
   }
 
+  /** Nomes das imagens da biblioteca (nome do arquivo enviado), guardados nas configurações: id -> nome. */
+  private imageNames(tenantId: string) {
+    return this.settings.get<Record<string, string>>(tenantId, IMAGE_NAMES, {})
+  }
+
   async listImages(user: AuthUser) {
     this.assertCan(user, 'view')
-    const rows = await this.prisma.fileAsset.findMany({ where: { tenantId: user.tenantId, kind: 'email-image' }, orderBy: { createdAt: 'desc' }, take: 300, select: { id: true, size: true, createdAt: true } })
+    const [rows, names] = await Promise.all([
+      this.prisma.fileAsset.findMany({ where: { tenantId: user.tenantId, kind: 'email-image' }, orderBy: { createdAt: 'desc' }, take: 300, select: { id: true, size: true, mime: true, createdAt: true } }),
+      this.imageNames(user.tenantId),
+    ])
     const base = await this.tenants.url(user.tenantId)
-    return rows.map((r) => ({ ...r, url: fileUrl(base, r.id) }))
+    return rows.map((r) => ({ ...r, name: typeof names[r.id] === 'string' ? names[r.id] : null, url: fileUrl(base, r.id) }))
   }
 
   async uploadImage(user: AuthUser, file: Express.Multer.File | undefined, ctx: RequestCtx) {
     this.assertCan(user, 'edit')
     const asset = await this.files.saveImage(user.tenantId, 'email-image', file, true, { maxBytes: EMAIL_IMAGE_LIMIT, types: ['png', 'jpg', 'gif', 'webp'] })
-    await this.audit.byUser(user, ctx, 'email.image_uploaded', 'file', asset.id, { tamanho: asset.size })
-    return { id: asset.id, size: asset.size, createdAt: asset.createdAt, url: fileUrl(await this.tenants.url(user.tenantId), asset.id) }
+    const name = cleanImageName(file?.originalname)
+    if (name) {
+      const names = await this.imageNames(user.tenantId)
+      // Guarda só os nomes das imagens que ainda existem (a lista não cresce sem fim).
+      const alive = new Set((await this.prisma.fileAsset.findMany({ where: { tenantId: user.tenantId, kind: 'email-image' }, select: { id: true } })).map((r) => r.id))
+      const next: Record<string, string> = {}
+      for (const [k, v] of Object.entries(names)) if (alive.has(k) && typeof v === 'string') next[k] = v
+      next[asset.id] = name
+      await this.settings.set(user.tenantId, IMAGE_NAMES, next)
+    }
+    await this.audit.byUser(user, ctx, 'email.image_uploaded', 'file', asset.id, { tamanho: asset.size, nome: name })
+    return { id: asset.id, size: asset.size, mime: asset.mime, createdAt: asset.createdAt, name, url: fileUrl(await this.tenants.url(user.tenantId), asset.id) }
   }
 
   /** Só apaga imagem que nenhuma campanha usa (e-mails enviados precisam continuar mostrando). */
