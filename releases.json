@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.101",
+      "date": "2026-11-12",
+      "title": "Logo original da SG Multiconecta",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Marca",
+          "text": "Logo original da SG Multiconecta no site e na tela de entrada (versões clara e escura) e ícone novo da marca no navegador."
+        }
+      ]
+    },
+    {
       "version": "1.0.100",
       "date": "2026-11-12",
       "title": "Site: todas as logos das integrações",
