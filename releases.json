@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.100",
+      "date": "2026-11-12",
+      "title": "Site: todas as logos das integrações",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Integrações do site com as logos de todas as ferramentas: Mercado Livre, Magazord, Google Merchant, SEFAZ, Correios, Melhor Envio, Braspress, Jadlog, Trier e Tecinco."
+        }
+      ]
+    },
+    {
       "version": "1.0.99",
       "date": "2026-11-11",
       "title": "Site: logos das integrações",
