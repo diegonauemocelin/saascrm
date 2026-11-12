@@ -30,7 +30,7 @@ img, video { display: block; max-width: 100%; }
 
 .topo { position: sticky; top: 0; z-index: 10; background: rgba(255, 255, 255, .92); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--borda); }
 .topo-in { display: flex; align-items: center; gap: 24px; height: 72px; }
-.marca img { height: 44px; width: auto; }
+.marca img { height: 52px; width: auto; }
 .menu { display: flex; gap: 22px; margin-left: auto; }
 .menu a { color: var(--tinta); text-decoration: none; font-weight: 500; font-size: 15px; }
 .menu a:hover { color: var(--roxo); }
