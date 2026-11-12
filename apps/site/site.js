@@ -94,6 +94,9 @@
         return '#contato'
       }
 
+      // O contato fixo da página só fica quando a plataforma não manda o contato comercial.
+      if (c.whatsapp || c.email) document.querySelectorAll('[data-fallback]').forEach(function (n) { n.parentNode.removeChild(n) })
+      if (c.whatsapp) document.querySelectorAll('[data-link=whats]').forEach(function (a) { a.href = consultar('') })
       var acoes = document.getElementById('contato-acoes')
       if (c.whatsapp) acoes.insertBefore(link('btn btn-whats btn-grande', consultar(''), 'Falar no WhatsApp'), acoes.firstChild)
       if (c.email) acoes.appendChild(link('btn btn-claro btn-grande', 'mailto:' + c.email, c.email))
@@ -162,5 +165,23 @@
       vivo.style.animationDelay = (i * 0.35) + 's'
       svg.appendChild(vivo)
     }
+  })
+})()
+
+// Menu no celular: o botão abre e fecha a lista de seções; escolher uma seção (ou Esc) fecha.
+;(function () {
+  var topo = document.getElementById('topo')
+  var botao = document.getElementById('menu-botao')
+  var menu = document.getElementById('menu')
+  if (!topo || !botao || !menu) return
+  function abrir(sim) {
+    topo.classList.toggle('menu-aberto', sim)
+    botao.setAttribute('aria-expanded', sim ? 'true' : 'false')
+    botao.setAttribute('aria-label', sim ? 'Fechar o menu' : 'Abrir o menu')
+  }
+  botao.addEventListener('click', function () { abrir(botao.getAttribute('aria-expanded') !== 'true') })
+  menu.addEventListener('click', function (e) { if (e.target.closest('a')) abrir(false) })
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && botao.getAttribute('aria-expanded') === 'true') { abrir(false); botao.focus() }
   })
 })()

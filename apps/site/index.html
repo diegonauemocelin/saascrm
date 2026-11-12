@@ -3,200 +3,273 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SG Multiconecta · Atendimento omnichannel com IA</title>
-    <meta name="description" content="WhatsApp com vários atendentes, CRM de pré e pós-vendas, gestão de fretes com conciliação de CT-e, marketplaces com IA, painéis de Meta, Google e TikTok Ads, e-mail marketing e postagens com IA em um só sistema." />
-    <meta property="og:title" content="SG Multiconecta · Atendimento omnichannel com IA" />
-    <meta property="og:description" content="WhatsApp, CRM, marketing e postagens com IA em um só lugar." />
+    <title>SG Multiconecta · CRM e atendimento em um só sistema</title>
+    <meta name="description" content="11 sistemas prontos em um só lugar: WhatsApp com vários atendentes, pré e pós-vendas, captura de leads, e-mail marketing, postagens, relatórios, marketing inteligente, marketplaces e fretes. Contrate completo ou por módulos." />
+    <meta property="og:title" content="SG Multiconecta · CRM e atendimento em um só sistema" />
+    <meta property="og:description" content="Um sistema completo, não várias ferramentas soltas. Contrate completo ou por módulos." />
     <meta property="og:image" content="/video/autopecas-chat.jpg" />
-    <meta name="theme-color" content="#16133a" />
-    <link rel="icon" type="image/png" href="/img/favicon.png" />
+    <meta name="theme-color" content="#0F1222" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/sg-multiconecta-icone-app-escuro-32.png" />
+    <link rel="icon" type="image/svg+xml" href="/img/sg-multiconecta-icone-app-escuro.svg" />
+    <link rel="apple-touch-icon" href="/img/sg-multiconecta-icone-app-escuro-180.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/site.css" />
   </head>
   <body>
-    <header class="topo">
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+    <!-- Ícones de traço usados na página -->
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-funil" viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" /></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /><path d="M8 12h.01M12 12h.01M16 12h.01" /></symbol>
+      <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol>
+      <symbol id="i-email" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" /></symbol>
+      <symbol id="i-post" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.5 6.5h.01" /></symbol>
+      <symbol id="i-carrinho" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></symbol>
+      <symbol id="i-dados" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" /></symbol>
+      <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M3 3v18h18" /><path d="M8 17v-5M13 17V7M18 17v-8" /></symbol>
+      <symbol id="i-tendencia" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17" /><path d="M16 7h6v6" /></symbol>
+      <symbol id="i-loja" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9" /><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /><path d="M5 12v9h14v-9" /><path d="M10 21v-5h4v5" /></symbol>
+      <symbol id="i-caminhao" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" /><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14" /><circle cx="17" cy="18" r="2" /><circle cx="7" cy="18" r="2" /></symbol>
+      <symbol id="i-grade" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></symbol>
+      <symbol id="i-camadas" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z" /><path d="m2 12 10 5 10-5" /><path d="m2 17 10 5 10-5" /></symbol>
+      <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4" /></symbol>
+      <symbol id="i-caixa" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></symbol>
+      <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></symbol>
+      <symbol id="i-apoio" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="m16 11 2 2 4-4" /></symbol>
+      <symbol id="i-globo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20" /></symbol>
+      <symbol id="i-celular" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3" /><path d="M12 18h.01" /></symbol>
+      <symbol id="i-pessoas" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></symbol>
+      <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" /></symbol>
+      <symbol id="i-seta" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></symbol>
+    </svg>
+
+    <header class="topo" id="topo">
       <div class="wrap topo-in">
-        <a href="/" class="marca" aria-label="SG Multiconecta, início"><img src="/img/sg-logo.png" alt="SG Multiconecta" /></a>
-        <nav class="menu" aria-label="Seções">
-          <a href="#recursos">Recursos</a>
-          <a href="#fretes">Fretes</a>
-          <a href="#marketplaces">Marketplaces e Ads</a>
-          <a href="#integracoes">Integrações</a>
-          <a href="#funcionando">Veja funcionando</a>
-          <a href="#planos">Planos</a>
+        <a href="/" class="marca" aria-label="SG Multiconecta, início"><img src="/img/sg-multiconecta-reduzida-cor.svg" alt="SG Multiconecta" width="616" height="183" /></a>
+        <nav class="menu" id="menu" aria-label="Seções">
+          <a href="#sistemas">Sistemas</a>
+          <a href="#segmentos">Segmentos</a>
+          <a href="#planos">Como contratar</a>
           <a href="#contato">Contato</a>
+          <a class="menu-entrar" data-link="login" href="https://crm.sgmulticonecta.com.br/login">Entrar</a>
         </nav>
         <div class="acoes">
           <a class="btn btn-linha" data-link="login" href="https://crm.sgmulticonecta.com.br/login">Entrar</a>
-          <a class="btn btn-cor" data-link="signup" href="https://crm.sgmulticonecta.com.br/cadastro">Criar conta</a>
+          <a class="btn btn-cor" data-link="signup" href="https://crm.sgmulticonecta.com.br/cadastro">Teste grátis</a>
+          <button class="menu-botao" id="menu-botao" type="button" aria-controls="menu" aria-expanded="false" aria-label="Abrir o menu"><svg class="ico" aria-hidden="true"><use href="#i-menu" /></svg></button>
         </div>
       </div>
     </header>
 
-    <main>
+    <main id="conteudo">
       <section class="hero">
         <div class="wrap hero-in">
           <div class="hero-texto">
-            <p class="selo">Atendimento omnichannel com IA</p>
-            <h1>WhatsApp, CRM e marketing da sua empresa em um só lugar.</h1>
-            <p class="lead">Vários atendentes no mesmo número de WhatsApp, funil de pré e pós-vendas, gestão de fretes com conciliação de CT-e, captura de leads, e-mail marketing e postagens no Instagram e no Facebook com inteligência artificial.</p>
+            <p class="selo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>CRM e atendimento em um só sistema</p>
+            <h1>Um sistema completo, não várias ferramentas soltas.</h1>
+            <p class="lead">São 11 sistemas prontos no mesmo lugar: WhatsApp com vários atendentes, pré e pós-vendas, captura de leads, e-mail marketing, postagens, relatórios, marketplaces e fretes. Contrate completo ou por módulos e pague só o que usar. Sem enrolação.</p>
             <div class="hero-cta">
-              <a class="btn btn-cor btn-grande" data-link="signup" href="https://crm.sgmulticonecta.com.br/cadastro">Criar minha conta</a>
-              <a class="btn btn-claro btn-grande" href="#funcionando">Ver o sistema funcionando</a>
+              <a class="btn btn-cor btn-grande" data-link="signup" href="https://crm.sgmulticonecta.com.br/cadastro">Testar grátis por 3 dias</a>
+              <a class="btn btn-linha btn-grande" data-link="whats" href="https://wa.me/5549999931041?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20a%20SG%20Multiconecta." target="_blank" rel="noopener">Falar no WhatsApp</a>
             </div>
             <ul class="hero-itens">
-              <li>Acesso pelo navegador e app do chat no celular: o WhatsApp da empresa na palma da mão</li>
-              <li>Endereço próprio para a sua empresa</li>
-              <li>Cada pessoa vê só o que o perfil dela permite</li>
-              <li>Monte o seu plano: pague só pelos sistemas que usar</li>
+              <li>Teste grátis de 3 dias</li>
               <li>Implantação e acompanhamento grátis</li>
+              <li>Completo ou por módulos</li>
             </ul>
           </div>
-          <div class="hero-video janela">
-            <div class="janela-barra" aria-hidden="true"><span></span><span></span><span></span></div>
-            <video src="/video/autopecas-chat.mp4" poster="/video/autopecas-chat.jpg" autoplay muted loop playsinline aria-label="Demonstração do chat de WhatsApp de uma loja de autopeças"></video>
+          <div class="hero-midia">
+            <span class="haste haste-violeta" aria-hidden="true"></span>
+            <span class="haste haste-azul" aria-hidden="true"></span>
+            <span class="haste haste-ambar" aria-hidden="true"></span>
+            <div class="hero-video janela">
+              <div class="janela-barra" aria-hidden="true"><span></span><span></span><span></span></div>
+              <video src="/video/autopecas-chat.mp4" poster="/video/autopecas-chat.jpg" autoplay muted loop playsinline aria-label="Demonstração do chat de WhatsApp de uma loja de autopeças"></video>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="recursos" class="secao">
+      <section id="sistemas" class="secao">
         <div class="wrap">
-          <h2>Tudo o que a equipe comercial usa no dia a dia</h2>
-          <p class="sub">Cada módulo é um sistema. O plano define quais ficam liberados para a sua empresa.</p>
-          <div class="grade grade-4">
-            <article class="card"><span class="ic ic-roxo" aria-hidden="true">💬</span><h3>WhatsApp com vários atendentes</h3><p>Conversas distribuídas pela equipe, respostas rápidas, etiquetas, lembretes, figurinhas e o tempo de espera de cada cliente à vista.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">📈</span><h3>Pré e pós-vendas</h3><p>Cada contato vira um atendimento: vendedor, origem, retorno, venda ou motivo da perda. Dashboard da equipe e resumo do dia.</p></article>
-            <article class="card"><span class="ic ic-amarelo" aria-hidden="true">🎯</span><h3>Captura de leads</h3><p>Formulários, pop-ups e botão de WhatsApp para o seu site. O lead entra na base com a origem e a pontuação.</p></article>
-            <article class="card"><span class="ic ic-roxo" aria-hidden="true">✉️</span><h3>E-mail marketing e automações</h3><p>Editor de e-mails, landing pages, segmentação da base e automações que disparam sozinhas.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">📅</span><h3>Postagens com IA</h3><p>Calendário do Instagram e do Facebook (feed, stories e reels) com aprovação, textos e imagens criados pela IA e métricas por perfil.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">⚡</span><h3>Vendas em tempo real</h3><p>O que entrou hoje no atendimento, no e-commerce e no marketplace, juntos ou separados, comparado com ontem até a mesma hora. Atualiza sozinho.</p></article>
-            <article class="card"><span class="ic ic-roxo" aria-hidden="true">🗺️</span><h3>Mapa de vendas</h3><p>O mapa do Brasil mostra onde a empresa vendeu: quanto maior o valor, mais forte a cor. Veja também onde já chegou e as cidades de cada estado.</p></article>
-            <article class="card"><span class="ic ic-amarelo" aria-hidden="true">📊</span><h3>Relatórios e anúncios</h3><p>Relatórios da equipe e do marketing, Google Ads e a origem de cada venda, do anúncio ao fechamento.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">🔁</span><h3>Recompra automática</h3><p>Depois da venda ou da perda, o cliente recebe as mensagens de retorno no WhatsApp, com um texto para cada tipo de cliente (consumidor final, revenda).</p></article>
-            <article class="card"><span class="ic ic-roxo" aria-hidden="true">📺</span><h3>Painéis na TV</h3><p>Dashboard executivo e painel de coletas em tela cheia, com link protegido por senha e atualização automática.</p></article>
-            <article class="card"><span class="ic ic-amarelo" aria-hidden="true">🎁</span><h3>Controle de brindes</h3><p>Estoque e valor dos brindes, cota mensal de cada vendedor e o registro de cada entrega por cliente. O vendedor consulta o que tem livre.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">📱</span><h3>App do chat: o WhatsApp na palma da mão</h3><p>O chat da empresa no celular, com o jeito do WhatsApp: a equipe atende de qualquer lugar, recebe notificação de mensagem nova e vê os painéis do perfil dela.</p></article>
-          </div>
-          <p class="consulta">Integração com e-commerce e ERP: <a href="#contato">sob consulta</a>.</p>
-        </div>
-      </section>
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Sistemas</p>
+          <h2>11 sistemas prontos. Use todos ou só os que precisar.</h2>
+          <p class="sub">Cada sistema resolve uma parte do trabalho da empresa. O que você contrata define quais ficam liberados, e dá para acrescentar outros depois.</p>
+          <nav class="indice" aria-label="Lista dos sistemas">
+            <a href="#sis-atendimento">Atendimento</a>
+            <a href="#sis-whatsapp">WhatsApp</a>
+            <a href="#sis-captura">Captura de leads</a>
+            <a href="#sis-email">E-mail marketing</a>
+            <a href="#sis-postagens">Postagens</a>
+            <a href="#sis-relatorios">Relatórios</a>
+            <a href="#sis-marketing">Marketing Inteligente</a>
+            <a href="#sis-marketplaces">Marketplaces</a>
+            <a href="#sis-fretes">Fretes</a>
+            <a href="#sis-ecommerce">E-commerce</a>
+            <a href="#sis-erp">ERP</a>
+          </nav>
 
-      <section id="fretes" class="secao fretes">
-        <div class="wrap">
-          <p class="selo selo-claro">Gestão de fretes</p>
-          <h2>Pare de pagar frete errado</h2>
-          <p class="sub">Cotação, expedição, CT-e e fatura no mesmo lugar: o sistema confere o que foi cotado, o que a transportadora cobrou e o que a tabela manda cobrar, e mostra onde a empresa perde dinheiro.</p>
-          <div class="fluxo-frete" aria-label="Caminho do frete no sistema">
-            <div class="etapa"><span>1</span><strong>Praticado</strong><small>A cotação calcula todas as transportadoras com tabela vigente e guarda a versão de cada tabela usada.</small></div>
-            <div class="etapa"><span>2</span><strong>Cobrado</strong><small>Os CT-es chegam sozinhos da SEFAZ (certificado A1) ou por XML, e as faturas juntam os CT-es de cada transportadora.</small></div>
-            <div class="etapa"><span>3</span><strong>Executado</strong><small>Cada CT-e é conciliado com a cotação do pedido ou com a tabela vigente na data: diferença, motivo e decisão.</small></div>
-            <div class="etapa"><span>4</span><strong>Recuperado</strong><small>Divergências viram contestação, com o crédito obtido registrado. O painel mostra a perda por transportadora e por rota.</small></div>
-          </div>
-          <div class="grade grade-3">
-            <article class="card"><span class="ic ic-roxo" aria-hidden="true">🧮</span><h3>Cotação em segundos</h3><p>Todas as transportadoras com tabela vigente para a origem e o destino: frete peso, taxas (TDA, TDE, pedágio), ICMS, prazo e horário de coleta. Ordene por preço, prazo ou equilíbrio. Correios, Melhor Envio e Braspress também cotados online.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">📑</span><h3>Tabelas sob controle</h3><p>Importação das planilhas das transportadoras (faixas de CEP, cidades, peso e taxas), versões com vigência, conferência em lote e alerta de tabela vencida.</p></article>
-            <article class="card"><span class="ic ic-amarelo" aria-hidden="true">🔍</span><h3>Conciliação de CT-e</h3><p>Cobrado × esperado em cada CT-e, com o motivo de cada diferença. Fretes de marketplace podem ficar fora da conciliação.</p></article>
-            <article class="card"><span class="ic ic-roxo" aria-hidden="true">🚚</span><h3>Gargalos e coletas</h3><p>Pedidos expedidos e a situação de cada um, horário de coleta por transportadora e painel de coletas na TV para a expedição.</p></article>
-            <article class="card"><span class="ic ic-azul" aria-hidden="true">💸</span><h3>Faturas e pagamentos</h3><p>Fatura com os CT-es da transportadora, aprovação e registro de pagamento: nada é pago sem conferência.</p></article>
-            <article class="card"><span class="ic ic-amarelo" aria-hidden="true">🛍️</span><h3>Frete no Google Shopping</h3><p>O frete de cada produto, calculado nas mesmas tabelas do carrinho da loja, enviado ao Google Merchant Center por estado.</p></article>
-          </div>
-          <p class="beneficio">Menos perdas, menos gargalos e mais lucro em cada envio.</p>
-        </div>
-      </section>
-
-      <section id="marketplaces" class="secao secao-suave">
-        <div class="wrap">
-          <h2>Marketplaces e anúncios sob controle</h2>
-          <p class="sub">Venda mais nos marketplaces e pare de perder dinheiro com tráfego pago.</p>
-          <div class="destaques">
-            <article class="destaque">
-              <span class="ic ic-roxo" aria-hidden="true">🤖</span>
-              <h3>Gestão completa de marketplaces</h3>
-              <p>Perguntas do Mercado Livre respondidas pela IA com precisão, usando a base de conhecimento que o próprio sistema monta a partir das respostas aprovadas pela sua equipe.</p>
-              <ul>
-                <li>Respostas com a compatibilidade e os dados confirmados do produto</li>
-                <li>Indicação de produtos complementares para agregar na venda e aumentar o ticket médio</li>
-                <li>Aprovação da equipe antes de enviar, ou resposta automática quando a confiança é alta</li>
+          <div class="sistemas">
+            <article class="sistema" id="sis-atendimento">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-funil" /></svg></span><h3>Atendimento</h3></header>
+              <p>Pré-vendas, pós-vendas e controle de brindes: cada contato vira um atendimento com começo, meio e fim.</p>
+              <ul class="lista">
+                <li>Vendedor, origem, retorno, venda ou motivo da perda em cada atendimento</li>
+                <li>Dashboard da equipe e resumo do dia de cada vendedor</li>
+                <li>Pós-venda com envio em massa a partir da lista de pré-vendas</li>
+                <li>Recompra: depois da venda ou da perda, o cliente recebe mensagens de retorno no WhatsApp</li>
+                <li>Brindes: estoque, valor, cota mensal de cada vendedor e registro de cada entrega</li>
               </ul>
             </article>
-            <article class="destaque">
-              <span class="ic ic-amarelo" aria-hidden="true">🛒</span>
-              <h3>Dashboard de Ads dos marketplaces</h3>
-              <p>Visão completa dos anúncios patrocinados do Mercado Livre: investimento, vendas, ROAS e ACOS por campanha.</p>
-              <ul>
-                <li>O que vende e o que só consome verba</li>
-                <li>ROAS e ACOS para decidir onde investir</li>
-                <li>Em breve: Shopee, Amazon e TikTok Shop</li>
+
+            <article class="sistema" id="sis-whatsapp">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-chat" /></svg></span><h3>WhatsApp</h3></header>
+              <p>Chat, números e monitoramento: a equipe inteira atende no mesmo número da empresa.</p>
+              <ul class="lista">
+                <li>Vários atendentes no mesmo número, conectado por QR Code</li>
+                <li>Respostas rápidas, etiquetas, lembretes e o tempo de espera de cada cliente à vista</li>
+                <li>Transferência de conversas e até 10 arquivos por envio</li>
+                <li>Monitoramento: o gestor lê as conversas sem interferir e deixa notas internas que o cliente não recebe</li>
+                <li>Dashboard com tempo de resposta, conversas esperando e volume por atendente</li>
               </ul>
             </article>
-            <article class="destaque">
-              <span class="ic ic-azul" aria-hidden="true">📣</span>
-              <h3>Tráfego pago: Meta, Google e TikTok</h3>
-              <p>Painéis completos de Meta Ads, Google Ads e TikTok Ads, com sinais de atenção e ações sugeridas para parar de perder dinheiro e aumentar a margem de venda.</p>
-              <ul>
-                <li>Alertas de campanhas que gastam sem converter</li>
-                <li>Recomendações de ajuste de verba, públicos e palavras-chave</li>
-                <li>Do clique à venda: a origem de cada cliente no CRM</li>
+
+            <article class="sistema" id="sis-captura">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-alvo" /></svg></span><h3>Captura de leads</h3></header>
+              <p>Formulários, pop-ups e botões para transformar a visita ao seu site em contato.</p>
+              <ul class="lista">
+                <li>Formulários, pop-ups e botão de WhatsApp para o seu site</li>
+                <li>Editor visual para montar cada peça</li>
+                <li>O lead entra na base com a origem e a pontuação</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-email">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-email" /></svg></span><h3>E-mail marketing</h3></header>
+              <p>E-mail marketing, landing pages, automações e Web Push para falar com a base na hora certa.</p>
+              <ul class="lista">
+                <li>Editor de e-mails, segmentação da base e campanhas</li>
+                <li>Landing pages publicadas pelo próprio sistema</li>
+                <li>Automações que disparam sozinhas</li>
+                <li>Web Push: notificações no navegador para os visitantes da loja virtual, na hora ou agendadas</li>
+                <li>Envio pela conta de e-mail da sua empresa (SMTP)</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-postagens">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-post" /></svg></span><h3>Postagens</h3></header>
+              <p>Instagram e Facebook planejados em um calendário, com aprovação antes de publicar.</p>
+              <ul class="lista">
+                <li>Feed, stories e reels em várias contas</li>
+                <li>Aprovação da postagem antes de ir ao ar</li>
+                <li>Textos e imagens criados com inteligência artificial</li>
+                <li>Roteiro de Reels e plano da semana</li>
+                <li>Métricas por perfil e prévia do feed</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-relatorios">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-grafico" /></svg></span><h3>Relatórios</h3></header>
+              <p>Relatórios, Google Ads e Power BI: o resultado da equipe e do marketing em números.</p>
+              <ul class="lista">
+                <li>Dashboards e relatórios da equipe e do marketing, com relatórios salvos e exportação</li>
+                <li>Vendas em tempo real, comparadas com ontem até a mesma hora</li>
+                <li>Painel do Google Ads: investimento, leads, vendas e custo por campanha e palavra-chave</li>
+                <li>Power BI: chaves só de leitura para levar os dados do sistema aos seus painéis</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-marketing">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-tendencia" /></svg></span><h3>Marketing Inteligente</h3></header>
+              <p>Anúncios, redes sociais, site e vendas lado a lado, do clique ao fechamento.</p>
+              <ul class="lista">
+                <li>Dashboard executivo, funil e análise de campanhas</li>
+                <li>Mapa de vendas do Brasil, por estado e cidade</li>
+                <li>Mídia paga: Google, Meta e TikTok Ads cruzados com os leads e as vendas</li>
+                <li>Redes sociais orgânicas, SEO e tráfego do site</li>
+                <li>Recomendações com os números que as sustentam</li>
+                <li>Orçamento, metas, projeções e relatórios agendados por e-mail</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-marketplaces">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-loja" /></svg></span><h3>Marketplaces</h3></header>
+              <p>Mercado Livre sob controle: anúncios, perguntas, preços e planejamento.</p>
+              <ul class="lista">
+                <li>Mercado Livre Ads: investimento, vendas, ROAS e ACOS por campanha</li>
+                <li>Assistente de perguntas com IA e base de conhecimento, com aprovação da equipe ou resposta automática</li>
+                <li>SEO dos anúncios, com sugestões de título e descrição</li>
+                <li>Preços e promoções: custo, tarifa, frete, imposto, margem e preço sugerido</li>
+                <li>Planejamento: curva ABC, metas, sazonalidade e DRE</li>
+                <li>Publicar no Mercado Livre os produtos do ERP</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-fretes">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-caminhao" /></svg></span><h3>Fretes</h3></header>
+              <p>Cotação, expedição, CT-e e fatura no mesmo lugar, para conferir o que a transportadora cobrou.</p>
+              <ul class="lista">
+                <li>Cotação em todas as transportadoras com tabela vigente: frete, taxas, ICMS e prazo</li>
+                <li>Tabelas das transportadoras importadas por planilha, com versões e vigência</li>
+                <li>CT-es buscados na SEFAZ (certificado A1) ou importados por XML</li>
+                <li>Conciliação: cobrado × esperado em cada CT-e, com o motivo da diferença e a contestação</li>
+                <li>Faturas com aprovação e registro de pagamento</li>
+                <li>Pedidos, expedição e painel de coletas na TV</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-ecommerce">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-carrinho" /></svg></span><h3>Integração com e-commerce</h3><span class="etiqueta">Sob consulta</span></header>
+              <p>Liga o sistema à sua loja virtual: produtos, pedidos e carrinhos abandonados entram sozinhos.</p>
+              <ul class="lista">
+                <li>Catálogo de produtos com os números da loja</li>
+                <li>Carrinhos abandonados com o contato do cliente</li>
+                <li>SEO dos produtos com sugestões da IA</li>
+                <li>Pedidos ligados aos leads e às campanhas</li>
+                <li>Fidelidade: pontos pelas compras, níveis, prêmios e avaliação da compra</li>
+              </ul>
+            </article>
+
+            <article class="sistema" id="sis-erp">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-dados" /></svg></span><h3>Integração com ERP</h3><span class="etiqueta">Sob consulta</span></header>
+              <p>Liga o sistema ao ERP da empresa: a equipe consulta produtos, estoque e preço sem sair do atendimento.</p>
+              <ul class="lista">
+                <li>Busca por código, referência e aplicação</li>
+                <li>Estoque e preço atualizados</li>
+                <li>Consulta direto do atendimento e do chat</li>
+                <li>Integrações prontas com Tcar e Trier</li>
+              </ul>
+            </article>
+
+            <article class="sistema sistema-base">
+              <header><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-grade" /></svg></span><h3>Em toda contratação</h3></header>
+              <p>A base do sistema vem junto, seja qual for a forma de contratar.</p>
+              <ul class="lista">
+                <li>Início com os números do dia</li>
+                <li>Base de leads com origem, estágio do funil e pontuação</li>
+                <li>Usuários e perfis: cada pessoa vê só o que o perfil dela permite</li>
+                <li>Cadastros, configurações e a marca da sua empresa</li>
+                <li>Auditoria: o registro de quem fez o quê</li>
               </ul>
             </article>
           </div>
+          <p class="consulta">As integrações com e-commerce e ERP são feitas para o sistema que a sua empresa usa. <a href="#contato">Fale com a gente</a> para ver o seu caso.</p>
         </div>
       </section>
 
-      <section id="integracoes" class="secao integracoes">
+      <section id="segmentos" class="secao secao-escura">
         <div class="wrap">
-          <h2>Integrações funcionando hoje</h2>
-          <p class="sub">O sistema conversa com as ferramentas que a sua empresa já usa. Algumas integrações são liberadas sob consulta.</p>
-          <div class="hub" id="hub">
-            <svg class="hub-linhas" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-            <div class="hub-centro"><img src="/img/sg-icone.png" alt="SG Multiconecta" /></div>
-            <ul class="hub-itens">
-              <li data-x="30" data-y="12"><span class="hub-ic logo"><img src="/img/logos/whatsapp.svg" alt="" width="30" height="30" /></span><strong>WhatsApp</strong><small>vários atendentes, por QR Code</small></li>
-              <li data-x="30" data-y="37"><span class="hub-ic logo"><img src="/img/logos/meta.svg" alt="" width="30" height="30" /></span><strong>Meta</strong><small>Lead Ads, Instagram e Facebook</small></li>
-              <li data-x="30" data-y="63"><span class="hub-ic logo"><img src="/img/logos/googleads.svg" alt="" width="30" height="30" /></span><strong>Google Ads</strong><small>campanhas e conversões</small></li>
-              <li data-x="30" data-y="88"><span class="hub-ic logo"><img src="/img/logos/googleanalytics.svg" alt="" width="30" height="30" /></span><strong>Google Analytics</strong><small>e Search Console</small></li>
-              <li data-x="10" data-y="10"><span class="hub-ic logo"><img src="/img/logos/tiktok.svg" alt="" width="30" height="30" /></span><strong>TikTok Ads</strong><small>investimento e resultado</small></li>
-              <li data-x="10" data-y="30"><span class="hub-ic logo"><img src="/img/logos/claude.svg" alt="" width="30" height="30" /></span><strong>Claude</strong><small>IA</small></li>
-              <li data-x="10" data-y="50"><span class="hub-ic logo"><img src="/img/logos/googlegemini.svg" alt="" width="30" height="30" /></span><strong>Gemini</strong><small>IA</small></li>
-              <li data-x="70" data-y="12"><span class="hub-ic logo"><img src="/img/logos/mercadolivre.png" alt="" width="30" height="30" /></span><strong>Mercado Livre</strong><small>perguntas com IA e Ads</small></li>
-              <li data-x="70" data-y="37"><span class="hub-ic logo"><img src="/img/logos/magazord.png" alt="" width="30" height="30" /></span><strong>Magazord</strong><small>e-commerce</small></li>
-              <li data-x="70" data-y="63"><span class="hub-ic logo"><img src="/img/logos/googlemerchant.png" alt="" width="30" height="30" /></span><strong>Google Merchant</strong><small>frete no Shopping</small></li>
-              <li data-x="70" data-y="88"><span class="hub-ic logo"><img src="/img/logos/sefaz.png" alt="" width="30" height="30" /></span><strong>SEFAZ</strong><small>CT-e automático</small></li>
-              <li data-x="90" data-y="10"><span class="hub-ic logo"><img src="/img/logos/correios.png" alt="" width="30" height="30" /></span><strong>Correios</strong><small>cotação do contrato</small></li>
-              <li data-x="90" data-y="37"><span class="hub-ic logo"><img src="/img/logos/melhorenvio.png" alt="" width="30" height="30" style="border-radius:8px" /></span><strong>Melhor Envio</strong><small>cotação</small></li>
-              <li data-x="90" data-y="63"><span class="hub-ic logo"><img src="/img/logos/braspress.png" alt="" width="30" height="30" style="border-radius:8px" /></span><strong>Braspress</strong><small>cotação</small></li>
-              <li data-x="90" data-y="90"><span class="hub-ic logo"><img src="/img/logos/jadlog.png" alt="" width="30" height="30" /></span><strong>Jadlog</strong><small>cotação</small></li>
-              <li data-x="10" data-y="70"><span class="hub-ic logo"><img src="/img/logos/trier.png" alt="" width="30" height="30" /></span><strong>Trier</strong><small>ERP de farmácias</small></li>
-              <li data-x="10" data-y="90"><span class="hub-ic logo"><img src="/img/logos/tecinco.png" alt="" width="30" height="30" /></span><strong>Tecinco</strong><small>ERP</small></li>
-            </ul>
-          </div>
-          <p class="consulta">Também: envio de e-mail pela conta da sua empresa (SMTP). Integração com ERP e e-commerce: <a href="#contato">sob consulta</a>.</p>
-        </div>
-      </section>
-
-      <section class="secao em-breve">
-        <div class="wrap">
-          <h2>Em breve</h2>
-          <p class="sub">Novos módulos em desenvolvimento.</p>
-          <div class="grade grade-4">
-            <article class="card"><span class="selo-breve">Em breve</span><h3>Shopee, Amazon e TikTok Shop</h3><p>Perguntas respondidas pela IA e o dashboard de Ads também para os principais marketplaces.</p></article>
-            <article class="card"><span class="selo-breve">Em breve</span><h3>Análise de mercado</h3><p>Tendências, demanda e oportunidades no seu segmento e na sua região.</p></article>
-            <article class="card"><span class="selo-breve">Em breve</span><h3>Análise de concorrentes</h3><p>Preços, anúncios e presença digital dos concorrentes, lado a lado com os seus.</p></article>
-            <article class="card"><span class="selo-breve">Em breve</span><h3>Busca de leads</h3><p>Encontre clientes em potencial por região e área de interesse: quem ainda não chegou até a sua empresa.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section id="funcionando" class="secao secao-escura">
-        <div class="wrap">
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Segmentos</p>
           <h2>Veja funcionando no seu tipo de negócio</h2>
           <p class="sub">Telas reais do sistema com empresas de exemplo (dados fictícios). Cada empresa usa com a própria marca e as próprias cores.</p>
           <div class="segmentos" role="tablist" aria-label="Tipo de negócio">
-            <button role="tab" aria-selected="true" data-seg="autopecas"><span class="seg-cor" style="background:#c2410c"></span>Autopeças</button>
-            <button role="tab" aria-selected="false" data-seg="vitrinemoda"><span class="seg-cor" style="background:#be185d"></span>Loja de roupas</button>
-            <button role="tab" aria-selected="false" data-seg="smashpadel"><span class="seg-cor" style="background:#15803d"></span>Fábrica de roupas para padel</button>
+            <button role="tab" aria-selected="true" data-seg="autopecas">Autopeças</button>
+            <button role="tab" aria-selected="false" data-seg="vitrinemoda">Loja de roupas</button>
+            <button role="tab" aria-selected="false" data-seg="smashpadel">Roupas para padel</button>
           </div>
           <p class="seg-texto" id="seg-texto"></p>
           <div class="abas" role="tablist" aria-label="Telas">
@@ -214,38 +287,104 @@
         </div>
       </section>
 
-      <section class="secao">
+      <section id="diferenciais" class="secao">
         <div class="wrap">
-          <h2>Como começar</h2>
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Diferenciais</p>
+          <h2>Por que a SG Multiconecta</h2>
+          <p class="sub">O que você recebe ao contratar, sem letra miúda.</p>
+          <div class="grade">
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-camadas" /></svg></span><h3>Tudo em um só sistema</h3><p>Atendimento, marketing, marketplaces e fretes no mesmo lugar. A equipe troca de sistema pelo menu, sem abrir outra ferramenta.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-ajustes" /></svg></span><h3>Completo ou por módulos</h3><p>Monte o seu com os sistemas que precisa, escolha um kit ou leve o completo. Você paga o que usa.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-relogio" /></svg></span><h3>Teste grátis de 3 dias</h3><p>Crie a conta e use na hora, em qualquer forma de contratar.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-apoio" /></svg></span><h3>Implantação e acompanhamento grátis</h3><p>A SG Multiconecta coloca o sistema para funcionar com você e acompanha o uso, sem cobrar por isso.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-globo" /></svg></span><h3>Endereço próprio da empresa</h3><p>Sua empresa recebe um endereço na plataforma e pode usar o próprio domínio, como crm.suaempresa.com.br, com certificado de segurança.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-celular" /></svg></span><h3>App no celular</h3><p>O chat da empresa no celular, com o jeito do WhatsApp: notificação de mensagem nova e os painéis do perfil de cada pessoa.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-pessoas" /></svg></span><h3>WhatsApp com vários atendentes</h3><p>A equipe atende no número que a empresa já divulga. Não precisa trocar de número.</p></article>
+            <article class="card"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-plug" /></svg></span><h3>Integrações</h3><p>O sistema conversa com as ferramentas que a sua empresa já usa. <a href="#integracoes">Veja a lista</a>.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="integracoes" class="secao secao-suave integracoes">
+        <div class="wrap">
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Integrações</p>
+          <h2>Integrações funcionando hoje</h2>
+          <p class="sub">Algumas integrações são liberadas sob consulta.</p>
+          <div class="hub" id="hub">
+            <svg class="hub-linhas" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <div class="hub-centro"><img src="/img/sg-multiconecta-simbolo-cor.svg" alt="SG Multiconecta" width="64" height="64" /></div>
+            <ul class="hub-itens">
+              <li data-x="30" data-y="12"><span class="hub-ic logo"><img src="/img/logos/whatsapp.svg" alt="" width="30" height="30" /></span><strong>WhatsApp</strong><small>vários atendentes, por QR Code</small></li>
+              <li data-x="30" data-y="37"><span class="hub-ic logo"><img src="/img/logos/meta.svg" alt="" width="30" height="30" /></span><strong>Meta</strong><small>Lead Ads, Instagram e Facebook</small></li>
+              <li data-x="30" data-y="63"><span class="hub-ic logo"><img src="/img/logos/googleads.svg" alt="" width="30" height="30" /></span><strong>Google Ads</strong><small>campanhas e conversões</small></li>
+              <li data-x="30" data-y="88"><span class="hub-ic logo"><img src="/img/logos/googleanalytics.svg" alt="" width="30" height="30" /></span><strong>Google Analytics</strong><small>e Search Console</small></li>
+              <li data-x="10" data-y="10"><span class="hub-ic logo"><img src="/img/logos/tiktok.svg" alt="" width="30" height="30" /></span><strong>TikTok Ads</strong><small>investimento e resultado</small></li>
+              <li data-x="10" data-y="30"><span class="hub-ic logo"><img src="/img/logos/claude.svg" alt="" width="30" height="30" /></span><strong>Claude</strong><small>IA</small></li>
+              <li data-x="10" data-y="50"><span class="hub-ic logo"><img src="/img/logos/googlegemini.svg" alt="" width="30" height="30" /></span><strong>Gemini</strong><small>IA</small></li>
+              <li data-x="70" data-y="12"><span class="hub-ic logo"><img src="/img/logos/mercadolivre.png" alt="" width="30" height="30" /></span><strong>Mercado Livre</strong><small>perguntas com IA e Ads</small></li>
+              <li data-x="70" data-y="37"><span class="hub-ic logo"><img src="/img/logos/magazord.png" alt="" width="30" height="30" /></span><strong>Magazord</strong><small>e-commerce</small></li>
+              <li data-x="70" data-y="63"><span class="hub-ic logo"><img src="/img/logos/googlemerchant.png" alt="" width="30" height="30" /></span><strong>Google Merchant</strong><small>frete no Shopping</small></li>
+              <li data-x="70" data-y="88"><span class="hub-ic logo"><img src="/img/logos/sefaz.png" alt="" width="30" height="30" /></span><strong>SEFAZ</strong><small>CT-e automático</small></li>
+              <li data-x="90" data-y="10"><span class="hub-ic logo"><img src="/img/logos/correios.png" alt="" width="30" height="30" /></span><strong>Correios</strong><small>cotação do contrato</small></li>
+              <li data-x="90" data-y="37"><span class="hub-ic logo"><img class="arred" src="/img/logos/melhorenvio.png" alt="" width="30" height="30" /></span><strong>Melhor Envio</strong><small>cotação</small></li>
+              <li data-x="90" data-y="63"><span class="hub-ic logo"><img class="arred" src="/img/logos/braspress.png" alt="" width="30" height="30" /></span><strong>Braspress</strong><small>cotação</small></li>
+              <li data-x="90" data-y="90"><span class="hub-ic logo"><img src="/img/logos/jadlog.png" alt="" width="30" height="30" /></span><strong>Jadlog</strong><small>cotação</small></li>
+              <li data-x="10" data-y="70"><span class="hub-ic logo"><img src="/img/logos/trier.png" alt="" width="30" height="30" /></span><strong>Trier</strong><small>ERP de farmácias</small></li>
+              <li data-x="10" data-y="90"><span class="hub-ic logo"><img src="/img/logos/tecinco.png" alt="" width="30" height="30" /></span><strong>Tecinco</strong><small>ERP</small></li>
+            </ul>
+          </div>
+          <p class="consulta">Também: envio de e-mail pela conta da sua empresa (SMTP). Integração com ERP e e-commerce: <a href="#contato">sob consulta</a>.</p>
+        </div>
+      </section>
+
+      <section id="planos" class="secao">
+        <div class="wrap">
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Como contratar</p>
+          <h2>Completo ou por módulos. Você paga o que usa.</h2>
+          <p class="sub">Três formas de contratar, todas com teste grátis de 3 dias e implantação e acompanhamento grátis.</p>
+          <div class="formas">
+            <article class="forma"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-ajustes" /></svg></span><h3>Monte o seu</h3><p>Escolha só os sistemas que a sua empresa precisa. A mensalidade é a soma dos sistemas escolhidos.</p></article>
+            <article class="forma"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-caixa" /></svg></span><h3>Kits</h3><p>Conjuntos de sistemas já combinados, com usuários e números de WhatsApp definidos.</p></article>
+            <article class="forma forma-destaque"><span class="ic"><svg class="ico" aria-hidden="true"><use href="#i-camadas" /></svg></span><h3>Completo</h3><p>Todos os sistemas liberados. As integrações com e-commerce e ERP continuam sob consulta.</p></article>
+          </div>
+
+          <h3 class="titulo-menor">Planos e valores</h3>
+          <div class="planos" id="planos-lista">
+            <article class="plano">
+              <h3>Planos sob consulta</h3>
+              <p>Usuários, números de WhatsApp e sistemas de acordo com a sua operação. Conte como a sua empresa trabalha e receba a proposta.</p>
+              <a class="btn btn-cor" href="#contato">Consultar valores</a>
+            </article>
+          </div>
+          <p class="planos-nota">A inteligência artificial usa a chave da sua empresa (Google Gemini ou Anthropic Claude): o consumo é cobrado direto pelo provedor de IA, sem intermediário. Integração com ERP e e-commerce: sob consulta.</p>
+          <p class="consultoria">Consultoria em Marketing, CRM, Marketplaces e E-commerce: contratação à parte, negociada com você. <a href="#contato">Fale com a gente</a>.</p>
+
+          <h3 class="titulo-menor">Como começar</h3>
           <ol class="passos">
-            <li><strong>Crie a conta</strong><span>Escolha o plano, cadastre a empresa e o administrador. A sua empresa ganha um endereço próprio.</span></li>
+            <li><strong>Crie a conta</strong><span>Escolha como contratar, cadastre a empresa e o administrador. A sua empresa ganha um endereço próprio.</span></li>
             <li><strong>Conecte o WhatsApp</strong><span>Leia o QR Code no celular e convide a equipe. Cada perfil vê só o que precisa.</span></li>
             <li><strong>Atenda e venda</strong><span>Conversas, atendimentos, campanhas e postagens no mesmo lugar, com relatórios do resultado.</span></li>
           </ol>
         </div>
       </section>
 
-      <section id="planos" class="secao secao-suave">
+      <section class="secao secao-suave em-breve">
         <div class="wrap">
-          <h2>Planos</h2>
-          <p class="sub">Monte o seu com os sistemas que a sua empresa precisa, escolha um kit ou o completo.</p>
-          <p class="beneficio">Implantação e acompanhamento grátis em todos os planos.</p>
-          <div class="planos" id="planos-lista">
-            <article class="plano">
-              <h3>Planos sob medida</h3>
-              <p>Usuários, números de WhatsApp e módulos de acordo com a sua operação.</p>
-              <a class="btn btn-cor" href="#contato">Consultar valores</a>
-            </article>
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Em breve</p>
+          <h2>Novos módulos em desenvolvimento</h2>
+          <div class="grade">
+            <article class="card"><span class="etiqueta">Em breve</span><h3>Shopee, Amazon e TikTok Shop</h3><p>Perguntas respondidas pela IA e o dashboard de Ads também para os principais marketplaces.</p></article>
+            <article class="card"><span class="etiqueta">Em breve</span><h3>Análise de mercado</h3><p>Tendências, demanda e oportunidades no seu segmento e na sua região.</p></article>
+            <article class="card"><span class="etiqueta">Em breve</span><h3>Análise de concorrentes</h3><p>Preços, anúncios e presença digital dos concorrentes, lado a lado com os seus.</p></article>
+            <article class="card"><span class="etiqueta">Em breve</span><h3>Busca de leads</h3><p>Encontre clientes em potencial por região e área de interesse: quem ainda não chegou até a sua empresa.</p></article>
           </div>
-          <p class="planos-nota">Implantação e acompanhamento grátis. A inteligência artificial usa a chave da sua empresa (Google Gemini ou Anthropic Claude): o consumo é cobrado direto pelo provedor de IA, sem intermediário. Integração com ERP e e-commerce: sob consulta.</p>
-          <p class="consultoria">Consultoria em Marketing, CRM, Marketplaces e E-commerce: contratação à parte, negociada com você. <a href="#contato">Fale com a gente</a>.</p>
         </div>
       </section>
 
       <section class="secao">
         <div class="wrap faq">
-          <p class="rotulo">Perguntas</p>
-          <h2>O que perguntam antes de fechar.</h2>
+          <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Perguntas</p>
+          <h2>O que perguntam antes de fechar</h2>
           <details><summary>Preciso trocar o meu número de WhatsApp?</summary><p>Não. O sistema conecta o número que a sua empresa já divulga, lendo o QR Code no celular, como no WhatsApp Web. Vários atendentes usam o mesmo número.</p></details>
           <details><summary>Meus dados ficam misturados com os de outras empresas?</summary><p>Não. Cada empresa só enxerga os próprios dados, com endereço próprio e acesso por perfil, e os dados têm backup. A base de leads pode ser exportada em planilha quando você quiser.</p></details>
           <details><summary>A inteligência artificial pode responder errado ao meu cliente?</summary><p>Ela responde com a base de conhecimento e as regras que a sua equipe aprova. Você escolhe se a resposta passa pela equipe antes de sair ou se vai sozinha só quando a confiança é alta; sem informação confirmada, a pergunta fica para uma pessoa.</p></details>
@@ -261,12 +400,15 @@
 
       <section id="contato" class="secao secao-escura contato">
         <div class="wrap contato-in">
-          <div>
+          <div class="contato-texto">
+            <p class="rotulo"><span class="pontos" aria-hidden="true"><i></i><i></i><i></i></span>Contato</p>
             <h2>Vamos conversar?</h2>
-            <p class="sub">Tire dúvidas, peça uma demonstração ou consulte os valores dos planos.</p>
+            <p class="sub">Tire dúvidas, peça uma demonstração ou consulte os valores.</p>
+            <p class="responsavel"><strong>Diego Naue Mocelin</strong><span>Vendas e implantação · Maravilha/SC</span></p>
           </div>
           <div class="contato-acoes" id="contato-acoes">
-            <a class="btn btn-cor btn-grande" data-link="signup" href="https://crm.sgmulticonecta.com.br/cadastro">Criar minha conta</a>
+            <a class="btn btn-whats btn-grande" data-fallback href="https://wa.me/5549999931041?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20a%20SG%20Multiconecta." target="_blank" rel="noopener">WhatsApp (49) 9 9993-1041</a>
+            <a class="btn btn-cor btn-grande" data-link="signup" href="https://crm.sgmulticonecta.com.br/cadastro">Testar grátis por 3 dias</a>
           </div>
         </div>
       </section>
@@ -274,9 +416,11 @@
 
     <footer class="rodape">
       <div class="wrap rodape-in">
-        <img src="/img/sg-logo-branco.png" alt="SG Multiconecta" class="rodape-logo" />
-        <div class="rodape-links" id="rodape-contato"></div>
-        <p class="rodape-copy">© <span id="ano">2026</span> SG Multiconecta · <a data-link="login" href="https://crm.sgmulticonecta.com.br/login">Área do cliente</a></p>
+        <img src="/img/sg-multiconecta-horizontal-negativo.svg" alt="SG Multiconecta — CRM e atendimento em um só sistema" class="rodape-logo" width="650" height="228" />
+        <div class="rodape-links" id="rodape-contato">
+          <a data-fallback href="https://wa.me/5549999931041?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20a%20SG%20Multiconecta." target="_blank" rel="noopener">WhatsApp (49) 9 9993-1041</a>
+        </div>
+        <p class="rodape-copy">© <span id="ano">2026</span> SG Multiconecta · Maravilha/SC · <a data-link="login" href="https://crm.sgmulticonecta.com.br/login">Área do cliente</a></p>
       </div>
     </footer>
     <script src="/site.js" defer></script>
