@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.102",
+      "date": "2026-11-12",
+      "title": "Telefone internacional",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "Atendimento",
+          "text": "Telefone de cliente de outro país (ex.: +54 9 3755 30-1066) é salvo no formato internacional (+5493755301066) em atendimentos, leads, formulários e importações, e aparece com o código do país separado. Antes o número estrangeiro era recusado."
+        }
+      ]
+    },
+    {
       "version": "1.0.101",
       "date": "2026-11-12",
       "title": "Logo original da SG Multiconecta",
