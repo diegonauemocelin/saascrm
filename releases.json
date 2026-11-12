@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.109",
+      "date": "2026-11-12",
+      "title": "Contatos do site com ícones",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Rodapé do site: WhatsApp, e-mail e Instagram com ícone e cor de cada um. O link do Instagram agora abre o perfil pelo endereço www.instagram.com, em outra aba."
+        }
+      ]
+    },
+    {
       "version": "1.0.108",
       "date": "2026-11-12",
       "title": "E-mail: provedores prontos",
