@@ -14,6 +14,7 @@ import { DEFAULT_GA4, GA_TOKEN_URL, type Ga4Settings, signJwt } from '../relator
 import { SettingsService } from '../settings/settings.service'
 import {
   cepsOf,
+  UF_REF_CEP,
   cleanConfig,
   CONTENT_SCOPE,
   crmOptions,
@@ -382,7 +383,7 @@ export class MerchantFreteService implements OnApplicationBootstrap, OnModuleDes
         if (!r.nextPageToken) break
         page = r.nextPageToken
       }
-      const store = await this.prisma.storeProduct.findMany({ where: { tenantId, active: true }, select: { externalId: true, code: true, path: true, url: true, price: true, weightKg: true, heightCm: true, widthCm: true, lengthCm: true } })
+      const store = await this.prisma.storeProduct.findMany({ where: { tenantId, active: true }, select: { externalId: true, code: true, path: true, url: true, price: true, stock: true, weightKg: true, heightCm: true, widthCm: true, lengthCm: true } })
       const bySku = new Map(store.map((s) => [s.externalId, s]))
       for (const p of products) {
         if (!p.offerId || !p.contentLanguage || !p.feedLabel) continue
@@ -432,6 +433,8 @@ export class MerchantFreteService implements OnApplicationBootstrap, OnModuleDes
           const fp = fingerprint({ source: cfg.source, price, weight, dims, ceps: cfg.ceps, unitId: cfg.unitId, carrierIds: cfg.carrierIds, tables })
           return { it, price, weight, dims, weightError: pw && 'error' in pw ? pw.error : null, fp }
         })
+        // Só produtos com estoque (sem estoque a Magazord não simula o frete e o Google não vende).
+        .filter((x) => (bySku.get(x.it.sku!)?.stock ?? 1) > 0)
         .filter((x) => isDue(x.it, x.fp, cfg.refreshDays, now))
       const batch = crm ? due : due.slice(0, cfg.batchSize)
       const skipped = items.length - due.length
@@ -448,7 +451,7 @@ export class MerchantFreteService implements OnApplicationBootstrap, OnModuleDes
         const item = x.it
         try {
           if (crm && x.weight === null) throw new Error(x.weightError ?? 'Sem peso na Magazord.')
-          const quotes = crm ? await this.crmQuotes(tenantId, cfg, x.price, x.weight!, x.dims, cache) : await this.magazordQuotes(tenantId, cfg, simulationSku(item.sku!, bySku), x.price, pacer, cache)
+          const quotes = crm ? await this.crmQuotes(tenantId, cfg, x.price, x.weight!, x.dims, cache) : await this.magazordQuotes(tenantId, cfg, await this.workingSku(tenantId, cfg, [simulationSku(item.sku!, bySku), item.offerId, item.sku!], x.price, pacer, cache), x.price, pacer, cache)
           const shipping = shippingAttribute(quotes, cfg)
           if (!shipping.length) throw new Error(crm ? 'As tabelas do CRM não calcularam frete para nenhum estado.' : 'A Magazord não calculou frete para nenhum estado.')
           await this.must(tenantId, 'POST', `/products/v1/${acc}/productInputs:insert?dataSource=${encodeURIComponent(cfg.dataSource!)}`, { offerId: item.offerId, contentLanguage: item.contentLanguage, feedLabel: item.feedLabel, productAttributes: { shipping } })
@@ -526,6 +529,33 @@ export class MerchantFreteService implements OnApplicationBootstrap, OnModuleDes
     if (errors.length) this.logger.warn(`Frete Google (SKU ${sku}): ${errors.length} CEP(s) sem cálculo na Magazord. ${errors.slice(0, 3).join(' | ')}`)
     if (!quotes.some((q) => q.price !== null) && errors.length) throw new Error(errors[0]!.slice(0, 300))
     return quotes
+  }
+
+  /**
+   * Código que a Magazord aceita na simulação deste produto: tenta o código do produto/derivação, depois o id da
+   * oferta e o id interno. A Magazord responde 400 "verifique os parâmetros" quando o código não é o que ela espera.
+   */
+  private async workingSku(tenantId: string, cfg: MerchantFreteConfig, candidates: (string | null | undefined)[], price: number, pacer: Pacer, cache: Map<string, Promise<{ price: number; days: number | null }[]>>) {
+    const list = [...new Set(candidates.map((c) => (c ?? '').trim()).filter(Boolean))]
+    const cep = cepsOf(cfg, 'SP')[0] ?? UF_REF_CEP.SP
+    const tried: string[] = []
+    for (const sku of list) {
+      const key = `${sku}|${price}|${cep}`
+      let p = cache.get(key)
+      if (!p) {
+        p = this.simulate(tenantId, sku, price, cep, pacer)
+        cache.set(key, p)
+        p.catch(() => cache.delete(key))
+      }
+      try {
+        await p
+        return sku
+      } catch (e) {
+        if (e instanceof LimitedError || !/verifique os par[aâ]metros/i.test((e as Error).message)) return sku
+        tried.push(sku)
+      }
+    }
+    throw new Error(`A Magazord não simulou o frete com nenhum código do produto (tentados: ${tried.join(', ')}). Confira na Magazord se o produto está ativo, com estoque, peso e medidas.`)
   }
 
   private async simulate(tenantId: string, sku: string, price: number, cep: string, pacer: Pacer) {

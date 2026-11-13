@@ -2,6 +2,33 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.119",
+      "date": "2026-11-13",
+      "title": "Correções de integrações e produtos com estoque",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "Integrações",
+          "text": "Frete no Google Shopping: quando o e-commerce responde \"verifique os parâmetros fornecidos\", o CRM tenta os outros códigos do produto; e só calcula o frete de produtos com estoque."
+        },
+        {
+          "type": "correcao",
+          "area": "Integrações",
+          "text": "Loja virtual: a sincronização não para mais quando o cliente tem o e-mail de um lead excluído (o lead novo entra sem esse e-mail)."
+        },
+        {
+          "type": "correcao",
+          "area": "Integrações",
+          "text": "Google Search Console: a sincronização não falha mais em dias com muitas consultas (grava o dia em partes)."
+        },
+        {
+          "type": "melhoria",
+          "area": "E-commerce",
+          "text": "SEO do e-commerce: filtro de estoque, que já abre em \"Com estoque\". Com a ordem \"Mais vendidos\" ou \"Mais vistos\", mostra primeiro os produtos com estoque que mais vendem ou mais são vistos."
+        }
+      ]
+    },
+    {
       "version": "1.0.118",
       "date": "2026-11-13",
       "title": "Frete no Google Shopping volta a enviar",
