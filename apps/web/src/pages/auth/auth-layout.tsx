@@ -12,9 +12,9 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         className="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex"
         style={{ background: 'var(--brand-nav)', color: 'var(--brand-nav-foreground)' }}
       >
-        {/* No endereço da plataforma, a logo completa da SG Multiconecta (versão para fundo escuro). */}
+        {/* No endereço da plataforma, a logo completa da SG Multiconecta (versão negativo, para fundo escuro, do manual da marca). */}
         {b.signup ? (
-          <img src="/marca/sg-logo-branco.png" alt={b.appName} className="h-20 w-auto self-start" />
+          <img src="/marca/sg-logo-negativo.svg" alt={b.appName} className="h-20 w-auto self-start" />
         ) : (
           <div className="flex items-center gap-3 text-lg font-semibold">
             <BrandMark onDark className="size-10" />
@@ -35,7 +35,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         <main className="flex flex-1 items-center justify-center p-6">
           <div className="w-full max-w-sm">
             {b.signup ? (
-              <img src="/marca/sg-logo.png" alt={b.appName} className="mb-8 h-12 w-auto dark:hidden lg:hidden" />
+              <img src="/marca/sg-logo.svg" alt={b.appName} className="mb-8 h-[72px] w-auto dark:hidden lg:hidden" />
             ) : null}
             <div className={b.signup ? 'mb-8 hidden items-center gap-2 font-semibold dark:flex lg:!hidden' : 'mb-8 flex items-center gap-2 font-semibold lg:hidden'}>
               <BrandMark />

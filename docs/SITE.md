@@ -6,7 +6,7 @@ Página estática em `apps/site` (HTML, CSS e JS sem build), entregue pelo conta
 | O quê | Onde |
 |---|---|
 | Texto, seções e perguntas frequentes | `apps/site/index.html` |
-| Visual | `apps/site/site.css` (cores da marca: roxo `#5b3fd0`, azul `#2a9be3`, amarelo `#ffc21a`, fundo `#16133a`) |
+| Visual | `apps/site/site.css` (manual da marca: Violeta `#5B3FD6`, Azul `#1B9FE8`, Âmbar `#FFC220`, Tinta `#0F1222`, Lilás `#9485FF`, Névoa `#F4F3FB`; fonte Plus Jakarta Sans; botões em cápsula) |
 | Troca de segmento e de tela, planos e contato | `apps/site/site.js` |
 | Vídeos e capas | `apps/site/video/<segmento>-<tela>.mp4` e `.jpg` |
 | Logo e ícone | `apps/site/img` (cópia de `apps/web/public/marca`) |
@@ -47,5 +47,16 @@ própria marca e cores.
 
 ## Marca
 
-`scripts/marca/gerar-marca.cjs` gera `sg-icone.svg`, `sg-logo.svg` e `sg-logo-branco.svg` (texto convertido em curvas,
-fonte Montserrat), redesenhados a partir da logo enviada pelo cliente.
+Segue o **Manual da Marca SG Multiconecta v1.0** (novembro de 2026): símbolo com três figuras iguais (haste + ponto)
+giradas a 120°, nome em Plus Jakarta Sans, assinatura "CRM e atendimento em um só sistema".
+
+- Pacote completo em `docs/marca/`: logotipo horizontal, vertical e reduzido, símbolo, ícone do app e avatar, nas
+  versões cores (fundo claro), negativo (fundo escuro, violeta vira Lilás), preto e branco (sobre Violeta), em SVG
+  (texto em curvas) e PNG (`docs/marca/png`).
+- Gerador: `python3 scripts/marca/gerar_marca.py docs/marca` (precisa de `pip install uharfbuzz fonttools numpy
+  scikit-image`). A geometria do símbolo e as medidas do nome foram tiradas do manual e conferidas por sobreposição
+  com as páginas dele. Não redesenhe nem redigite o logotipo: gere pelo script ou use os arquivos do pacote.
+- Onde está aplicada: site (`apps/site/img/sg-logo-reduzida.svg` no topo, `sg-logo-negativo.svg` no rodapé,
+  `sg-simbolo.svg` no centro das integrações, `favicon.svg/png`, `apple-touch-icon.png`), login da plataforma
+  (`apps/web/public/marca/sg-logo*.svg`), favicon e ícones do app (`apps/web/public/favicon.svg`, `app-icon.png`,
+  `app-icon-maskable.png`, `app-badge.png`) e a marca padrão da plataforma (`apps/api/src/plataforma/perfis-padrao.ts`).

@@ -4,18 +4,18 @@
  */
 import type { PrismaClient } from '../generated/prisma/client'
 
-/** Marca da empresa dona da plataforma (SG Multiconecta): nome, cores e as imagens em apps/web/public/marca. */
+/** Marca da empresa dona da plataforma (SG Multiconecta, manual da marca v1.0): nome, cores e as imagens em apps/web/public/marca. */
 export const PLATFORM_BRANDING = {
   appName: 'SG Multiconecta',
   shortName: 'SG Multiconecta',
-  primaryColor: '#5b3fd0',
-  brandColor: '#5b3fd0',
-  sidebarColor: '#16133a',
+  primaryColor: '#5B3FD6',
+  brandColor: '#5B3FD6',
+  sidebarColor: '#0F1222',
   loginTitle: 'Bem-vindo ao SG Multiconecta',
-  loginSubtitle: 'Atendimento omnichannel com IA.',
+  loginSubtitle: 'CRM e atendimento em um só sistema.',
   logoPath: '/marca/sg-icone.svg',
-  logoDarkPath: '/marca/sg-icone.svg',
-  faviconPath: '/marca/sg-icone.svg',
+  logoDarkPath: '/marca/sg-icone-negativo.svg',
+  faviconPath: '/marca/sg-favicon.svg',
 }
 
 /** Grava a marca da plataforma, mantendo o que já foi configurado nos outros campos (e-mail de suporte, layout...). */

@@ -18,8 +18,10 @@ class UnsubscribeDto {
   @ApiProperty() @IsString() @MaxLength(1000) endpoint!: string
 }
 
-/** Ícone que acompanha o sistema, quando a empresa ainda não enviou o dela. */
+/** Ícone que acompanha o sistema, quando a empresa ainda não enviou o dela (manual da marca SG Multiconecta). */
 const FALLBACK_ICON = '/app-icon.png'
+/** O mesmo ícone sem os cantos arredondados (o Android e o iPhone arredondam sozinhos). */
+const FALLBACK_ICON_FULL = '/app-icon-maskable.png'
 
 /** App no celular (PWA): nome e ícone para instalar na tela inicial e as notificações. */
 @ApiTags('App no celular')
@@ -58,7 +60,7 @@ export class AppMovelController {
         icons: [
           { src: icon, sizes: '192x192', ...(type ? { type } : {}), purpose: 'any' },
           { src: icon, sizes: '512x512', ...(type ? { type } : {}), purpose: 'any' },
-          { src: icon, sizes: '512x512', ...(type ? { type } : {}), purpose: 'maskable' },
+          { src: iconId ? icon : FALLBACK_ICON_FULL, sizes: '512x512', ...(type ? { type } : {}), purpose: 'maskable' },
         ],
       }),
     )
@@ -70,7 +72,7 @@ export class AppMovelController {
   async icon(@ReqHost() host: string, @Res() res: Response) {
     const b = await this.settings.branding(await this.tenants.requireFromHost(host))
     res.setHeader('Cache-Control', 'no-cache')
-    res.redirect(302, b.appIconFileId ? `/api/files/public/${b.appIconFileId}` : FALLBACK_ICON)
+    res.redirect(302, b.appIconFileId ? `/api/files/public/${b.appIconFileId}` : FALLBACK_ICON_FULL)
   }
 
   @Get('push/chave')

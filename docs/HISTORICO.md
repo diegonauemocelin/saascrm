@@ -24,7 +24,7 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 | Integração e-commerce e ERP | Ficam no menu como **sob consulta** (cadeado + página de pedido de contato) |
 | Domínio | Plataforma em `crm.sgmulticonecta.com.br` (painel e cadastro no próprio domínio); empresas em `<empresa>.crm.sgmulticonecta.com.br`; domínio próprio da empresa por CNAME |
 | Site | `sgmulticonecta.com.br` com apresentação, vídeos por segmento (autopeças, loja de roupas, fábrica de roupas para padel) e **planos sob consulta** |
-| Marca | SG Multiconecta (logo enviada pelo Diego, redesenhada em SVG): roxo `#5b3fd0`, azul `#2a9be3`, amarelo `#ffc21a`, frase "Atendimento omnichannel com IA" |
+| Marca | Manual da Marca SG Multiconecta v1.0 (13/11/2026, versão 1.0.110): símbolo de 3 figuras a 120°, Plus Jakarta Sans, Violeta `#5B3FD6`, Azul `#1B9FE8`, Âmbar `#FFC220`, Tinta `#0F1222`, Lilás `#9485FF`, Névoa `#F4F3FB`, assinatura "CRM e atendimento em um só sistema". Pacote em `docs/marca` (ver docs/SITE.md) |
 | Ramo | Tudo genérico: nada do ramo de peças de máquinas da Usaparts (decisão de 25/10/2026) |
 | Preço dos planos | Sob consulta no site e no cadastro (Plataforma → Venda, "Mostrar os preços" desligado); o valor fica no painel e na fatura do Asaas |
 | Formas de contratar | Monte o seu (sistemas avulsos, mensalidade = soma), Kits e Completo (planos; o completo tem todos os sistemas); teste grátis de 3 dias nos três; marketplaces é um sistema só |
