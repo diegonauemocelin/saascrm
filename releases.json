@@ -2,6 +2,23 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.133",
+      "date": "2026-11-15",
+      "title": "Site: integrações organizadas por área",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "A seção de integrações do site agora mostra todas as integrações em quadros por área (Marketing e anúncios, Atendimento e IA, Marketplaces e e-commerce, Transportes e fiscal, ERPs), com o que cada uma faz."
+        },
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Transportes: destaque para a importação da tabela de frete de qualquer transportadora, nacional ou internacional, e selo \"API oficial\" nas integradas direto pela API (Correios, Melhor Envio, Braspress, Jadlog, Rodonaves e DHL)."
+        }
+      ]
+    },
+    {
       "version": "1.0.132",
       "date": "2026-11-15",
       "title": "Logos dos ERPs no site",

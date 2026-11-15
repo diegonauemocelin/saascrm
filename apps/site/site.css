@@ -150,15 +150,34 @@ img, video { display: block; max-width: 100%; }
 .hub-ic.logo img { width: 34px; height: 34px; object-fit: contain; display: block; }
 .hub-itens strong { color: var(--tinta); font: 700 14px var(--fonte); }
 .hub-itens small { font-size: 12.5px; color: #6b6d7d; line-height: 1.35; }
-.erps { max-width: 1100px; margin: 48px auto 0; text-align: center; }
-.erps h3 { font-size: 22px; }
-.erps-sub { margin: 8px auto 20px; max-width: 640px; color: #5A5F73; }
-.erps-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.erps-lista li { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 14px 12px; display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 104px; box-shadow: 0 6px 18px -12px rgba(18, 19, 28, .35); }
-.erps-lista .erp-logo { height: 36px; width: auto; max-width: 130px; object-fit: contain; display: block; }
-.erps-lista .erp-icone { width: 34px; height: 34px; object-fit: contain; display: block; }
-.erps-lista strong { color: var(--tinta); font: 700 15px var(--fonte); }
-.erps-lista small { font-size: 12.5px; color: #6b6d7d; }
+/* Integrações por área: título do grupo à esquerda (cor da área) e os cartões à direita. */
+.int-quadro { --g: var(--roxo); max-width: 1180px; margin: 24px auto 0; padding: 26px; border-radius: 24px; background: #fff; border: 1px solid var(--borda); box-shadow: 0 24px 50px -40px rgba(15, 18, 34, .45); display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; position: relative; overflow: hidden; }
+.int-quadro::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--g); }
+.int-cab { display: grid; align-content: start; gap: 10px; padding: 6px 4px 0 10px; }
+.int-selo { font: 800 20px/1.2 var(--fonte); color: var(--tinta); letter-spacing: -.01em; }
+.int-selo::before { content: ''; display: block; width: 34px; height: 4px; border-radius: 4px; background: var(--g); margin-bottom: 12px; }
+.int-sub { margin: 0; color: #5A5F73; font-size: 15px; line-height: 1.5; }
+.int-qtd { justify-self: start; padding: 4px 10px; border-radius: 999px; font: 700 12.5px var(--fonte); color: var(--g); background: color-mix(in srgb, var(--g) 10%, #fff); }
+.erp-txt { font-size: 26px; line-height: 1; }
+.erp-destaque { grid-column: 1 / -1; background: color-mix(in srgb, var(--g) 9%, #fff); border-color: color-mix(in srgb, var(--g) 40%, #fff); }
+.erp-destaque .erp-topo { height: auto; }
+.erp-destaque strong { font-size: 19px; }
+.selo-api { margin-left: auto; flex: none; padding: 3px 8px; border-radius: 999px; font: 700 11px var(--fonte); letter-spacing: .02em; color: #15803D; background: #DCFCE7; white-space: nowrap; }
+.erp-logo-faixa { height: 28px; border-radius: 5px; }
+.erp-texto { margin: 0; color: #3F4357; font-size: 15px; line-height: 1.55; max-width: 760px; }
+.erps-quadro { max-width: 1180px; margin: 0 auto; padding: 48px 40px; border-radius: 28px; background: linear-gradient(180deg, #F4F3FB 0%, #fff 100%); border: 1px solid var(--borda); box-shadow: 0 30px 60px -40px rgba(91, 63, 214, .45); text-align: center; }
+.erps-selo { display: inline-block; white-space: nowrap; padding: 6px 14px; border-radius: 999px; background: rgba(91, 63, 214, .1); color: var(--roxo); font: 700 13px var(--fonte); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 14px; }
+.erps-quadro .sub { max-width: 720px; margin: 12px auto 32px; }
+.erps-grade { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; text-align: left; }
+.erp-card { background: #FAFAFD; border: 1px solid var(--borda); border-radius: 16px; padding: 16px; transition: border-color .2s, box-shadow .2s, transform .2s; display: grid; align-content: start; gap: 8px; box-shadow: 0 10px 24px -18px rgba(18, 19, 28, .45); }
+.erp-topo { height: 40px; display: flex; align-items: center; gap: 8px; }
+.erp-topo strong { color: var(--tinta); font: 800 18px var(--fonte); }
+.erp-logo { height: 34px; width: auto; max-width: 140px; object-fit: contain; display: block; }
+.erp-icone { width: 34px; height: 34px; object-fit: contain; display: block; }
+.erp-card:hover { border-color: color-mix(in srgb, var(--g) 45%, #fff); box-shadow: 0 14px 28px -20px rgba(15, 18, 34, .5); transform: translateY(-2px); }
+.erp-seg { font: 700 12.5px var(--fonte); color: var(--g); }
+.erp-itens { margin: 0; padding-left: 18px; color: #5A5F73; font-size: 14px; line-height: 1.45; display: grid; gap: 4px; }
+.erps-nota { margin: 28px 0 0; color: #5A5F73; }
 
 .faq { max-width: 860px; }
 .faq .rotulo { margin: 0 0 10px; color: var(--roxo); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -192,6 +211,8 @@ img, video { display: block; max-width: 100%; }
   .fluxo-frete { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .etapa:nth-child(2)::after { display: none; }
   .grade-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .erps-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .int-quadro { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .hub { height: auto; display: grid; justify-items: center; gap: 28px; }
   .hub-linhas { display: none; }
   .hub-centro { position: static; transform: none; }
@@ -207,7 +228,8 @@ img, video { display: block; max-width: 100%; }
   .fluxo-frete, .grade-3 { grid-template-columns: minmax(0, 1fr); }
   .etapa::after { display: none; }
   .hub-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .erps-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .erps-grade { grid-template-columns: minmax(0, 1fr); }
+  .int-quadro { padding: 20px 14px 20px 18px; border-radius: 20px; }
   .topo-in { height: 64px; gap: 12px; }
   .marca img { height: 34px; }
   .acoes .btn-linha { display: none; }
@@ -222,5 +244,6 @@ img, video { display: block; max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .hub-linhas path.vivo { animation: none; }
   html { scroll-behavior: auto; }
-  .btn, .card { transition: none; }
+  .btn, .card, .erp-card { transition: none; }
+  .erp-card:hover { transform: none; }
 }

@@ -151,46 +151,86 @@
         <div class="wrap">
           <h2>Integrações funcionando hoje</h2>
           <p class="sub">O sistema conversa com as ferramentas que a sua empresa já usa. Algumas integrações são liberadas sob consulta.</p>
-          <div class="hub" id="hub">
-            <svg class="hub-linhas" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-            <div class="hub-centro"><img src="/img/sg-simbolo.svg" alt="SG Multiconecta" /></div>
-            <ul class="hub-itens">
-              <li data-x="30" data-y="12"><span class="hub-ic logo"><img src="/img/logos/whatsapp.svg" alt="" width="30" height="30" /></span><strong>WhatsApp</strong><small>vários atendentes, por QR Code</small></li>
-              <li data-x="30" data-y="37"><span class="hub-ic logo"><img src="/img/logos/meta.svg" alt="" width="30" height="30" /></span><strong>Meta</strong><small>Lead Ads, Instagram e Facebook</small></li>
-              <li data-x="30" data-y="63"><span class="hub-ic logo"><img src="/img/logos/googleads.svg" alt="" width="30" height="30" /></span><strong>Google Ads</strong><small>campanhas e conversões</small></li>
-              <li data-x="30" data-y="88"><span class="hub-ic logo"><img src="/img/logos/googleanalytics.svg" alt="" width="30" height="30" /></span><strong>Google Analytics</strong><small>e Search Console</small></li>
-              <li data-x="10" data-y="10"><span class="hub-ic logo"><img src="/img/logos/tiktok.svg" alt="" width="30" height="30" /></span><strong>TikTok Ads</strong><small>investimento e resultado</small></li>
-              <li data-x="10" data-y="30"><span class="hub-ic logo"><img src="/img/logos/claude.svg" alt="" width="30" height="30" /></span><strong>Claude</strong><small>IA</small></li>
-              <li data-x="10" data-y="50"><span class="hub-ic logo"><img src="/img/logos/googlegemini.svg" alt="" width="30" height="30" /></span><strong>Gemini</strong><small>IA</small></li>
-              <li data-x="70" data-y="12"><span class="hub-ic logo"><img src="/img/logos/mercadolivre.png" alt="" width="30" height="30" /></span><strong>Mercado Livre</strong><small>perguntas com IA e Ads</small></li>
-              <li data-x="70" data-y="37"><span class="hub-ic logo"><img src="/img/logos/magazord.png" alt="" width="30" height="30" /></span><strong>Magazord</strong><small>e-commerce</small></li>
-              <li data-x="70" data-y="63"><span class="hub-ic logo"><img src="/img/logos/googlemerchant.png" alt="" width="30" height="30" /></span><strong>Google Merchant</strong><small>frete no Shopping</small></li>
-              <li data-x="70" data-y="88"><span class="hub-ic logo"><img src="/img/logos/sefaz.png" alt="" width="30" height="30" /></span><strong>SEFAZ</strong><small>CT-e automático</small></li>
-              <li data-x="90" data-y="10"><span class="hub-ic logo"><img src="/img/logos/correios.png" alt="" width="30" height="30" /></span><strong>Correios</strong><small>cotação do contrato</small></li>
-              <li data-x="90" data-y="37"><span class="hub-ic logo"><img src="/img/logos/melhorenvio.png" alt="" width="30" height="30" style="border-radius:8px" /></span><strong>Melhor Envio</strong><small>cotação</small></li>
-              <li data-x="90" data-y="63"><span class="hub-ic logo"><img src="/img/logos/braspress.png" alt="" width="30" height="30" style="border-radius:8px" /></span><strong>Braspress</strong><small>cotação</small></li>
-              <li data-x="90" data-y="90"><span class="hub-ic logo"><img src="/img/logos/jadlog.png" alt="" width="30" height="30" /></span><strong>Jadlog</strong><small>cotação</small></li>
-              <li data-x="10" data-y="70"><span class="hub-ic logo"><img src="/img/logos/trier.png" alt="" width="30" height="30" /></span><strong>Trier</strong><small>ERP de farmácias</small></li>
-              <li data-x="10" data-y="90"><span class="hub-ic logo"><img src="/img/logos/tecinco.png" alt="" width="30" height="30" /></span><strong>Tcar</strong><small>ERP de autopeças</small></li>
+          <div class="int-quadro" style="--g: #5B3FD6">
+            <div class="int-cab">
+              <span class="int-selo">Marketing e anúncios</span>
+              <p class="int-sub">Anúncios, leads, resultados e e-mail.</p>
+              <span class="int-qtd">5 integrações</span>
+            </div>
+            <ul class="erps-grade">
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/meta.svg" alt="" class="erp-icone" /><strong>Meta</strong></div><span class="erp-seg">Facebook e Instagram</span><ul class="erp-itens"><li>Leads do Lead Ads direto no CRM</li><li>Postagens no Instagram e no Facebook</li><li>Resultado das campanhas (só leitura)</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/googleads.svg" alt="" class="erp-icone" /><strong>Google Ads</strong></div><span class="erp-seg">Campanhas e conversões</span><ul class="erp-itens"><li>Investimento e resultado por campanha (só leitura)</li><li>Envio das conversões de venda</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/googleanalytics.svg" alt="" class="erp-icone" /><strong>Google Analytics</strong></div><span class="erp-seg">e Search Console</span><ul class="erp-itens"><li>Tráfego do site e buscas no Google</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/tiktok.svg" alt="" class="erp-icone" /><strong>TikTok Ads</strong></div><span class="erp-seg">Investimento e resultado</span><ul class="erp-itens"><li>Painel das campanhas (só leitura)</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><span class="erp-txt" aria-hidden="true">✉️</span><strong>E-mail (SMTP)</strong></div><span class="erp-seg">Conta da sua empresa</span><ul class="erp-itens"><li>E-mails e campanhas enviados pelo servidor de e-mail da sua empresa</li></ul></li>
             </ul>
           </div>
-          <div class="erps">
-            <h3>ERPs integrados</h3>
-            <p class="erps-sub">Produtos, preço, estoque e custo do seu ERP dentro do CRM, para consultar no atendimento e publicar nos marketplaces. Só leitura: o CRM não altera nada no seu ERP.</p>
-            <ul class="erps-lista">
-              <li><img src="/img/logos/tecinco.png" alt="" width="34" height="34" class="erp-icone" /><strong>Tcar</strong><small>autopeças</small></li>
-              <li><img src="/img/logos/trier.png" alt="" width="34" height="34" class="erp-icone" /><strong>Trier</strong><small>farmácias</small></li>
-              <li><img src="/img/logos/bling.png" alt="Bling" width="74" height="36" class="erp-logo" /><small>varejo e e-commerce</small></li>
-              <li><img src="/img/logos/tiny.png" alt="Tiny by Olist" width="58" height="36" class="erp-logo" /><small>varejo e e-commerce</small></li>
-              <li><img src="/img/logos/omie.png" alt="Omie" width="118" height="36" class="erp-logo" /><small>gestão para PMEs</small></li>
-              <li><img src="/img/logos/linx.png" alt="Linx" width="61" height="36" class="erp-logo" /><small>farmácias</small></li>
-              <li><img src="/img/logos/linx.png" alt="Linx" width="61" height="36" class="erp-logo" /><small>indústria de confecção e moda</small></li>
-              <li><img src="/img/logos/cigam.png" alt="CIGAM" width="91" height="36" class="erp-logo" /><small>indústria e distribuição</small></li>
+          <div class="int-quadro" style="--g: #16A34A">
+            <div class="int-cab">
+              <span class="int-selo">Atendimento e IA</span>
+              <p class="int-sub">WhatsApp com vários atendentes e a IA da sua escolha.</p>
+              <span class="int-qtd">3 integrações</span>
+            </div>
+            <ul class="erps-grade">
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/whatsapp.svg" alt="" class="erp-icone" /><strong>WhatsApp</strong></div><span class="erp-seg">Vários atendentes</span><ul class="erp-itens"><li>Conexão por QR Code</li><li>Vários números e atendentes no mesmo sistema</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/claude.svg" alt="" class="erp-icone" /><strong>Claude</strong></div><span class="erp-seg">IA da Anthropic</span><ul class="erp-itens"><li>Usa a chave da sua empresa: o consumo é cobrado direto pela Anthropic</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/googlegemini.svg" alt="" class="erp-icone" /><strong>Gemini</strong></div><span class="erp-seg">IA do Google</span><ul class="erp-itens"><li>Usa a chave da sua empresa (há plano gratuito do Google)</li></ul></li>
             </ul>
           </div>
-          <p class="consulta">Também: envio de e-mail pela conta da sua empresa (SMTP). Integração com ERP e e-commerce: <a href="#contato">sob consulta</a>.</p>
+          <div class="int-quadro" style="--g: #1B9FE8">
+            <div class="int-cab">
+              <span class="int-selo">Marketplaces e e-commerce</span>
+              <p class="int-sub">Mercado Livre, loja virtual e Google Shopping.</p>
+              <span class="int-qtd">3 integrações</span>
+            </div>
+            <ul class="erps-grade">
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/mercadolivre.png" alt="" class="erp-icone" /><strong>Mercado Livre</strong></div><span class="erp-seg">Marketplace</span><ul class="erp-itens"><li>Perguntas respondidas com IA</li><li>Painel de Ads</li><li>Preços, promoções e planejamento</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/magazord.png" alt="" class="erp-icone" /><strong>Magazord</strong></div><span class="erp-seg">Loja virtual</span><ul class="erp-itens"><li>Produtos, carrinhos abandonados e frete</li><li>Sob consulta</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/googlemerchant.png" alt="" class="erp-icone" /><strong>Google Merchant</strong></div><span class="erp-seg">Google Shopping</span><ul class="erp-itens"><li>Frete de cada produto no anúncio do Shopping</li></ul></li>
+            </ul>
+          </div>
+          <div class="int-quadro" style="--g: #E8A300">
+            <div class="int-cab">
+              <span class="int-selo">Transportes e fiscal</span>
+              <p class="int-sub">Cotação de frete em qualquer transportadora do Brasil e do exterior, e o CT-e da SEFAZ. Com o selo <strong>API oficial</strong>, a cotação é feita direto na API da transportadora.</p>
+              <span class="int-qtd">6 integrações + tabelas de qualquer transportadora</span>
+            </div>
+            <ul class="erps-grade">
+              <li class="erp-card erp-destaque">
+                <div class="erp-topo"><span class="erp-txt" aria-hidden="true">🚚</span><strong>Qualquer transportadora, nacional ou internacional</strong></div>
+                <p class="erp-texto">Não fica só nas transportadoras com logo aqui. Importe a tabela de frete de qualquer transportadora (Excel ou CSV, no formato que ela enviar) e o sistema calcula por CEP, cidade ou região, faixa de peso, cubagem e taxas como GRIS, TDA e TDE, comparando todas na mesma cotação, com o prazo de cada uma.</p>
+              </li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/correios.png" alt="" class="erp-icone" /><strong>Correios</strong><span class="selo-api">API oficial</span></div><span class="erp-seg">Contrato da empresa</span><ul class="erp-itens"><li>Cotação com o contrato dos Correios</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/melhorenvio.png" alt="" class="erp-icone" style="border-radius:8px" /><strong>Melhor Envio</strong><span class="selo-api">API oficial</span></div><span class="erp-seg">Plataforma de fretes</span><ul class="erp-itens"><li>Cotação de frete</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/braspress.png" alt="" class="erp-icone" style="border-radius:8px" /><strong>Braspress</strong><span class="selo-api">API oficial</span></div><span class="erp-seg">Transportadora</span><ul class="erp-itens"><li>Cotação de frete</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/jadlog.png" alt="" class="erp-icone" /><strong>Jadlog</strong><span class="selo-api">API oficial</span></div><span class="erp-seg">Transportadora</span><ul class="erp-itens"><li>Cotação de frete</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/rodonaves.png" alt="Rodonaves" class="erp-logo erp-logo-faixa" /><span class="selo-api">API oficial</span></div><span class="erp-seg">Transportadora</span><ul class="erp-itens"><li>Cotação de frete</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/dhl.png" alt="DHL" class="erp-logo erp-logo-faixa" /><span class="selo-api">API oficial</span></div><span class="erp-seg">Nacional e internacional</span><ul class="erp-itens"><li>Cotação de envio nacional e internacional</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/sefaz.png" alt="" class="erp-icone" /><strong>SEFAZ</strong><span class="selo-api">Serviço oficial</span></div><span class="erp-seg">CT-e automático</span><ul class="erp-itens"><li>Captura dos CT-e emitidos contra a sua empresa, com o certificado A1</li></ul></li>
+            </ul>
+          </div>
+          <div class="int-quadro" style="--g: #9485FF">
+            <div class="int-cab">
+              <span class="int-selo">Integrações com ERP</span>
+              <p class="int-sub">Sob consulta: liberamos só o ERP que a sua empresa usa.</p>
+              <span class="int-qtd">8 integrações</span>
+            </div>
+            <ul class="erps-grade">
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/tecinco.png" alt="" class="erp-icone" /><strong>Tcar</strong></div><span class="erp-seg">ERP de autopeças</span><ul class="erp-itens"><li>Consulta de produtos por código, referência ou título, com estoque e preço por filial</li><li>Fotos dos produtos</li><li>Orçamento e pré-nota para cotar o frete</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/trier.png" alt="" class="erp-icone" /><strong>Trier</strong></div><span class="erp-seg">ERP de farmácias</span><ul class="erp-itens"><li>Produtos, estoque e preço de venda</li><li>Publicar do ERP no Mercado Livre (higiene, perfumaria e correlatos)</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/bling.png" alt="Bling" class="erp-logo" /></div><span class="erp-seg">Varejo e e-commerce</span><ul class="erp-itens"><li>Produtos, preço e estoque</li><li>Custo para os preços do Mercado Livre (opcional)</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/tiny.png" alt="Tiny by Olist" class="erp-logo" /></div><span class="erp-seg">Varejo e e-commerce</span><ul class="erp-itens"><li>Produtos, preço, estoque e categoria</li><li>Custo médio para os preços do Mercado Livre (opcional)</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/omie.png" alt="Omie" class="erp-logo" /></div><span class="erp-seg">Pequenas e médias empresas</span><ul class="erp-itens"><li>Produtos, preço, marca e estoque</li><li>Custo médio contábil (opcional)</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/cigam.png" alt="CIGAM by Senior" class="erp-logo" /></div><span class="erp-seg">Indústria e distribuição</span><ul class="erp-itens"><li>Materiais, tabela de preço e estoque on-line</li><li>Pelo Integrador do CIGAM</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/linx.png" alt="Linx" class="erp-logo" /></div><span class="erp-seg">Farmácias</span><ul class="erp-itens"><li>Produtos, preço e estoque</li><li>Implantação com a documentação da API da Linx</li></ul></li>
+              <li class="erp-card"><div class="erp-topo"><img src="/img/logos/linx.png" alt="Linx" class="erp-logo" /></div><span class="erp-seg">Indústria de confecção e moda</span><ul class="erp-itens"><li>Produtos, preço e estoque</li><li>Implantação com a documentação da API da Linx</li></ul></li>
+            </ul>
+          </div>
+          <p class="consulta">Integrações com ERP e e-commerce: <a href="#contato">sob consulta</a>. Usa outro sistema com API? Fale com a gente.</p>
         </div>
       </section>
+
+
 
       <section class="secao em-breve">
         <div class="wrap">
