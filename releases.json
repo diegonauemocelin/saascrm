@@ -2,6 +2,33 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.131",
+      "date": "2026-11-15",
+      "title": "Integrações com ERPs: Bling, Tiny, Omie, CIGAM e Linx",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Integrações",
+          "text": "Integrações com os ERPs Bling, Tiny, Omie e CIGAM: o CRM copia produtos, preço, estoque e custo (só leitura, sem alterar nada no ERP), com tela de produtos, teste de conexão e cópia automática. Bling e Tiny se conectam pela autorização na própria conta do ERP."
+        },
+        {
+          "type": "novo",
+          "area": "Integrações",
+          "text": "Linx (farmácias e indústria de moda): tela de integração pronta para receber os dados de acesso; a leitura dos produtos é concluída com a documentação da API que a Linx fornece ao cliente."
+        },
+        {
+          "type": "melhoria",
+          "area": "Plataforma",
+          "text": "Cada integração com ERP é liberada pela plataforma só para a empresa que usa aquele ERP (Plataforma › Empresas › Integrações com ERP liberadas). As outras não aparecem no menu da empresa."
+        },
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Site da SG Multiconecta com a lista dos ERPs integrados."
+        }
+      ]
+    },
+    {
       "version": "1.0.130",
       "date": "2026-11-13",
       "title": "Preço do Mercado Livre com a mesma margem da tabela",

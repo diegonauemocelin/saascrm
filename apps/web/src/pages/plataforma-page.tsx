@@ -50,6 +50,7 @@ interface Company {
   extraUsers: number
   extraWhatsapp: number
   extraSystems: string[]
+  erpIntegrations: string[]
   isDemo?: boolean
   document: string | null
   contactName: string | null
@@ -366,9 +367,10 @@ function CompanySheet({ company: c, plans, systems, onClose }: { company: Compan
   const qc = useQueryClient()
   const { can } = useAuth()
   const edit = can('plataforma', 'edit')
-  const [f, setF] = useState({ name: c.name, planId: c.plan?.id ?? '', status: c.status, paidUntil: dateInput(c.paidUntil), trialEndsAt: dateInput(c.trialEndsAt), extraUsers: c.extraUsers, extraWhatsapp: c.extraWhatsapp, extraSystems: c.extraSystems, contactName: c.contactName ?? '', contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', document: c.document ?? '', notes: c.notes ?? '' })
+  const [f, setF] = useState({ name: c.name, planId: c.plan?.id ?? '', status: c.status, paidUntil: dateInput(c.paidUntil), trialEndsAt: dateInput(c.trialEndsAt), extraUsers: c.extraUsers, extraWhatsapp: c.extraWhatsapp, extraSystems: c.extraSystems, erpIntegrations: c.erpIntegrations ?? [], contactName: c.contactName ?? '', contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', document: c.document ?? '', notes: c.notes ?? '' })
   const [host, setHost] = useState('')
   const [domains, setDomains] = useState(c.domains)
+  const erps = useQuery({ queryKey: ['plataforma-integracoes-erp'], queryFn: () => api.get<{ key: string; label: string }[]>('/plataforma/integracoes-erp'), staleTime: Infinity })
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['plataforma-empresas'] })
     void qc.invalidateQueries({ queryKey: ['plataforma-resumo'] })
@@ -518,7 +520,7 @@ function CompanySheet({ company: c, plans, systems, onClose }: { company: Compan
               <Label>Sistemas sob consulta liberados para esta empresa</Label>
               <div className="grid gap-1.5">
                 {systems
-                  .filter((x) => x.onRequest)
+                  .filter((x) => x.onRequest && x.key !== 'erp')
                   .map((x) => (
                     <label key={x.key} className="flex items-center gap-2 text-sm">
                       <Checkbox checked={f.extraSystems.includes(x.key)} onCheckedChange={(v) => set('extraSystems', v ? [...f.extraSystems, x.key] : f.extraSystems.filter((k) => k !== x.key))} disabled={!edit} /> {x.label}
@@ -526,6 +528,17 @@ function CompanySheet({ company: c, plans, systems, onClose }: { company: Compan
                   ))}
               </div>
               <p className="text-xs text-muted-foreground">Sem a liberação, o item aparece no menu da empresa com o selo “Sob consulta”.</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Integrações com ERP liberadas para esta empresa</Label>
+              <div className="grid gap-1.5 sm:grid-cols-2">
+                {(erps.data ?? []).map((x) => (
+                  <label key={x.key} className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={f.erpIntegrations.includes(x.key)} onCheckedChange={(v) => set('erpIntegrations', v ? [...f.erpIntegrations, x.key] : f.erpIntegrations.filter((k) => k !== x.key))} disabled={!edit} /> {x.label}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Libere só o ERP que a empresa usa (ex.: só a Trier). As integrações não liberadas não aparecem para a empresa.</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="e-notes">Observação interna</Label>

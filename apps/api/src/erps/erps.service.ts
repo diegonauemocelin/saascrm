@@ -120,10 +120,15 @@ export class ErpsService implements OnApplicationBootstrap, OnModuleDestroy {
     return new Set(ADAPTERS[key].def.fields.filter((f) => f.secret).map((f) => f.key))
   }
 
+  /** Valor guardado criptografado: os campos secretos e tudo o que não é campo da tela (ex.: tokens OAuth). */
+  private isSecret(key: ErpKey, field: string) {
+    const f = ADAPTERS[key].def.fields.find((x) => x.key === field)
+    return !f || !!f.secret
+  }
+
   /** Contexto do adaptador: credenciais, chamada HTTP segura e gravação de tokens renovados. */
   private ctx(tenantId: string, key: ErpKey, s: ErpSettings): ErpCtx {
     const name = ADAPTERS[key].def.name
-    const secrets = this.secretKeys(key)
     const values = this.open(s.values)
     return {
       values,
@@ -139,7 +144,7 @@ export class ErpsService implements OnApplicationBootstrap, OnModuleDestroy {
         const cur = await this.config(tenantId, key)
         const next = { ...cur.values }
         for (const [k, v] of Object.entries(patch)) {
-          next[k] = secrets.has(k) && v ? ENC + encrypt(v) : v
+          next[k] = this.isSecret(key, k) && v ? ENC + encrypt(v) : v
           values[k] = v
         }
         await this.settings.set(tenantId, settingsKey(key), { ...cur, values: next })

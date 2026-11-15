@@ -98,8 +98,18 @@ describe('plataforma: cobrança', () => {
   })
 
   it('integrações sob consulta ficam no menu de quem não tem', () => {
-    expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['whatsapp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade', 'consulta_produtos', 'erp_trier', 'erp_bling', 'erp_tiny', 'erp_omie', 'erp_linx_farma', 'erp_linx_moda', 'erp_cigam'])
+    expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['whatsapp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'])
     expect(onRequestModules(allowedModules({ isPlatform: false, systems: ['erp'] }))).toEqual(['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'])
+  })
+
+  it('integração com ERP: só a liberada pela plataforma aparece', () => {
+    const only = allowedModules({ isPlatform: false, systems: ['erp', 'whatsapp'], erpIntegrations: ['trier'] })
+    expect(only.has('erp_trier')).toBe(true)
+    expect(only.has('erp_bling')).toBe(false)
+    expect(only.has('consulta_produtos')).toBe(false)
+    // Liberada sem o sistema "erp" no plano: vale a liberação da plataforma.
+    expect(allowedModules({ isPlatform: false, systems: [], erpIntegrations: ['bling'] }).has('erp_bling')).toBe(true)
+    expect(allowedModules({ isPlatform: true, systems: [] }).has('erp_cigam')).toBe(true)
   })
 })
 

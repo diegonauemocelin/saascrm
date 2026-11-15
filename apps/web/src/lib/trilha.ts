@@ -1582,7 +1582,7 @@ export const TRAIL: TrailModule[] = [
     key: 'integracao-bling',
     title: 'Integração Bling (ERP)',
     module: 'erp_bling',
-    routes: ['/erp/bling', '/erp/:erp'],
+    routes: ['/erp/bling', '/erp'],
     purpose: 'Trazer do Bling os produtos, o preço, o estoque e o custo para consultar no CRM.',
     howItWorks: 'O CRM consulta o Bling de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
     lessons: [

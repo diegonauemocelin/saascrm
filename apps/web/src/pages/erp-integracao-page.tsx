@@ -103,7 +103,7 @@ function SyncStatus({ cfg }: { cfg: ErpConfig }) {
         <Badge variant="outline">Desligada</Badge>
       )}
       <span className="text-muted-foreground">
-        {int(s.products)} produto(s){s.lastFullAt ? ` · última cópia ${formatDateTime(s.lastFullAt)}` : ' · ainda sem cópia'}
+        {int.format(s.products)} produto(s){s.lastFullAt ? ` · última cópia ${formatDateTime(s.lastFullAt)}` : ' · ainda sem cópia'}
       </span>
       {s.lastError && (
         <span className="flex items-center gap-1 text-destructive">
@@ -173,9 +173,9 @@ function Products({ erp, cfg }: { erp: string; cfg: ErpConfig }) {
                       {r.name} {!r.active && <Badge variant="outline">inativo</Badge>}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{[r.brand, r.category].filter(Boolean).join(' · ') || '—'}</TableCell>
-                    <TableCell className="text-right">{r.price === null ? '—' : brl(r.price)}</TableCell>
+                    <TableCell className="text-right">{r.price === null ? '—' : brl.format(r.price)}</TableCell>
                     <TableCell className="text-right">{r.stock === null ? '—' : `${r.stock.toLocaleString('pt-BR')}${r.unit ? ` ${r.unit}` : ''}`}</TableCell>
-                    {showCost && <TableCell className="text-right">{r.cost === null ? '—' : brl(r.cost)}</TableCell>}
+                    {showCost && <TableCell className="text-right">{r.cost === null ? '—' : brl.format(r.cost)}</TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
@@ -183,7 +183,7 @@ function Products({ erp, cfg }: { erp: string; cfg: ErpConfig }) {
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
-              {int(d.total)} produto(s) · página {d.page} de {pages}
+              {int.format(d.total)} produto(s) · página {d.page} de {pages}
             </span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
@@ -326,7 +326,7 @@ function ConfigTab({ erp, cfg }: { erp: string; cfg: ErpConfig }) {
         <CardContent className="space-y-2 text-sm">
           <SyncStatus cfg={cfg} />
           <p className="text-muted-foreground">Último acesso OK: {cfg.state.lastOkAt ? formatDateTime(cfg.state.lastOkAt) : '—'}</p>
-          {cfg.state.removed > 0 && <p className="text-muted-foreground">{int(cfg.state.removed)} produto(s) que saíram do ERP ficam fora da lista.</p>}
+          {cfg.state.removed > 0 && <p className="text-muted-foreground">{int.format(cfg.state.removed)} produto(s) que saíram do ERP ficam fora da lista.</p>}
           <p className="text-xs text-muted-foreground">Só leitura: o CRM consulta o {cfg.def.name} e não altera produtos, preços nem estoque. As credenciais ficam criptografadas.</p>
         </CardContent>
       </Card>

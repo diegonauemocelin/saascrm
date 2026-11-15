@@ -50,6 +50,8 @@ class CompanyUpdateDto {
   @IsOptional() @IsInt() @Min(0) @Max(1000) extraUsers?: number
   @IsOptional() @IsInt() @Min(0) @Max(1000) extraWhatsapp?: number
   @IsOptional() @IsArray() @IsString({ each: true }) extraSystems?: string[]
+  /** Integrações com ERP liberadas (tcar, trier, bling, tiny, omie, linx_farma, linx_moda, cigam). */
+  @IsOptional() @IsArray() @IsString({ each: true }) erpIntegrations?: string[]
   @IsOptional() @IsString() @MaxLength(20) document?: string
   @IsOptional() @IsString() @MaxLength(120) contactName?: string
   @IsOptional() @IsString() @MaxLength(200) contactEmail?: string
@@ -137,6 +139,11 @@ export class PlataformaController {
   @Get('sistemas')
   systems() {
     return this.svc.systems()
+  }
+
+  @Get('integracoes-erp')
+  erpIntegrations() {
+    return this.svc.erpIntegrations()
   }
 
   @Get('planos')

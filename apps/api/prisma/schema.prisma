@@ -109,6 +109,8 @@ model Tenant {
   paidUntil           DateTime?
   /// Sistemas liberados só para esta empresa, além dos do plano (ex.: os sob consulta, como integração com ERP).
   extraSystems        String[]  @default([])
+  /// Integrações com ERP liberadas pela plataforma (tcar, trier, bling, tiny, omie, linx_farma, linx_moda, cigam): só elas aparecem para a empresa.
+  erpIntegrations     String[]  @default([])
   /// Usuários e números de WhatsApp contratados além do plano.
   extraUsers          Int       @default(0)
   extraWhatsapp       Int       @default(0)
