@@ -154,7 +154,9 @@ img, video { display: block; max-width: 100%; }
 .erps h3 { font-size: 22px; }
 .erps-sub { margin: 8px auto 20px; max-width: 640px; color: #5A5F73; }
 .erps-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.erps-lista li { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 14px 12px; display: grid; gap: 2px; box-shadow: 0 6px 18px -12px rgba(18, 19, 28, .35); }
+.erps-lista li { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 14px 12px; display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 104px; box-shadow: 0 6px 18px -12px rgba(18, 19, 28, .35); }
+.erps-lista .erp-logo { height: 36px; width: auto; max-width: 130px; object-fit: contain; display: block; }
+.erps-lista .erp-icone { width: 34px; height: 34px; object-fit: contain; display: block; }
 .erps-lista strong { color: var(--tinta); font: 700 15px var(--fonte); }
 .erps-lista small { font-size: 12.5px; color: #6b6d7d; }
 

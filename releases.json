@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.132",
+      "date": "2026-11-15",
+      "title": "Logos dos ERPs no site",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Faixa \"ERPs integrados\" do site da SG Multiconecta com os logos do Bling, Tiny, Omie, Linx e CIGAM."
+        }
+      ]
+    },
+    {
       "version": "1.0.131",
       "date": "2026-11-15",
       "title": "Integrações com ERPs: Bling, Tiny, Omie, CIGAM e Linx",
