@@ -1579,6 +1579,126 @@ export const TRAIL: TrailModule[] = [
     ],
   },
   {
+    key: 'integracao-bling',
+    title: 'Integração Bling (ERP)',
+    module: 'erp_bling',
+    routes: ['/erp/bling', '/erp/:erp'],
+    purpose: 'Trazer do Bling os produtos, o preço, o estoque e o custo para consultar no CRM.',
+    howItWorks: 'O CRM consulta o Bling de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
+    lessons: [
+      {
+        id: 'erp.bling.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração Bling (ERP) → Configuração.',
+          'Conecte pelo botão Conectar (autorização no Bling) depois de salvar o Client ID e o Client Secret do aplicativo criado na Central de Extensões do Bling.',
+          'Salve, clique em Testar conexão, ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o preço e o estoque.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'integracao-tiny',
+    title: 'Integração Tiny ERP (ERP)',
+    module: 'erp_tiny',
+    routes: ['/erp/tiny'],
+    purpose: 'Trazer do Tiny ERP os produtos, o preço, o estoque e o custo para consultar no CRM.',
+    howItWorks: 'O CRM consulta o Tiny ERP de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
+    lessons: [
+      {
+        id: 'erp.tiny.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração Tiny ERP (ERP) → Configuração.',
+          'Cole o token da API do Tiny (Configurações › Outras configurações › Token da API no Tiny).',
+          'Salve, clique em Testar conexão, ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o preço e o estoque.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'integracao-omie',
+    title: 'Integração Omie (ERP)',
+    module: 'erp_omie',
+    routes: ['/erp/omie'],
+    purpose: 'Trazer do Omie os produtos, o preço, o estoque e o custo para consultar no CRM.',
+    howItWorks: 'O CRM consulta o Omie de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
+    lessons: [
+      {
+        id: 'erp.omie.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração Omie (ERP) → Configuração.',
+          'Cole a App Key e a App Secret do aplicativo da Omie (Portal do Desenvolvedor da Omie).',
+          'Salve, clique em Testar conexão, ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o preço e o estoque.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'integracao-linx-farma',
+    title: 'Integração Linx (farmácias) (ERP)',
+    module: 'erp_linx_farma',
+    routes: ['/erp/linx_farma'],
+    purpose: 'Trazer do Linx (farmácias) os produtos, o preço, o estoque e o custo para consultar no CRM.',
+    howItWorks: 'O CRM consulta o Linx (farmácias) de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
+    lessons: [
+      {
+        id: 'erp.linx_farma.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração Linx (farmácias) (ERP) → Configuração.',
+          'Informe os dados de acesso à API fornecidos pela Linx para a sua farmácia.',
+          'Salve, clique em Testar conexão, ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o preço e o estoque.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'integracao-linx-moda',
+    title: 'Integração Linx (indústria de confecção e moda) (ERP)',
+    module: 'erp_linx_moda',
+    routes: ['/erp/linx_moda'],
+    purpose: 'Trazer do Linx (indústria de confecção e moda) os produtos, o preço, o estoque e o custo para consultar no CRM.',
+    howItWorks: 'O CRM consulta o Linx (indústria de confecção e moda) de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
+    lessons: [
+      {
+        id: 'erp.linx_moda.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração Linx (indústria de confecção e moda) (ERP) → Configuração.',
+          'Informe os dados de acesso à API fornecidos pela Linx para a sua empresa.',
+          'Salve, clique em Testar conexão, ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o preço e o estoque.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'integracao-cigam',
+    title: 'Integração CIGAM (ERP)',
+    module: 'erp_cigam',
+    routes: ['/erp/cigam'],
+    purpose: 'Trazer do CIGAM os produtos, o preço, o estoque e o custo para consultar no CRM.',
+    howItWorks: 'O CRM consulta o CIGAM de tempos em tempos (cópia completa a cada 6 horas, ajustável), só lendo: não altera produtos, preços nem estoque no ERP. As credenciais ficam guardadas criptografadas; o custo só é guardado com "Importar o custo do ERP" ligado.',
+    lessons: [
+      {
+        id: 'erp.cigam.config',
+        title: 'Ligar a integração',
+        steps: [
+          'Abra Integração CIGAM (ERP) → Configuração.',
+          'Informe o endereço do servidor da API do CIGAM e as credenciais fornecidas pela CIGAM ou pelo seu TI.',
+          'Salve, clique em Testar conexão, ligue a integração e use Copiar agora para a primeira cópia.',
+          'Na aba Produtos, confira a lista, o preço e o estoque.',
+        ],
+      },
+    ],
+  },
+  {
     key: 'assistente-ml',
     title: 'Assistente das perguntas do Mercado Livre',
     module: 'assist_atendimento',

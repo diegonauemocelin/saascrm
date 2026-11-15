@@ -65,7 +65,7 @@ import {
   ReceiptIcon,
   BellIcon,
   PieChartIcon,
-  TicketPercentIcon, SparklesIcon } from 'lucide-react'
+  TicketPercentIcon, SparklesIcon, PlugZapIcon } from 'lucide-react'
 import type { Action } from './types'
 
 export interface NavItem {
@@ -128,6 +128,12 @@ export const NAVIGATION: NavGroup[] = [
       { title: 'Monitorar conversas', to: '/chat?monitorar=1', icon: EyeIcon, module: 'monitoramento' },
       { title: 'Consulta de produtos (ERP)', to: '/consulta-produtos', icon: PackageSearchIcon, module: 'consulta_produtos' },
       { title: 'Integração Trier (ERP)', to: '/erp/trier', icon: PillIcon, module: 'erp_trier' },
+      { title: 'Integração Bling (ERP)', to: '/erp/bling', icon: PlugZapIcon, module: 'erp_bling' },
+      { title: 'Integração Tiny (ERP)', to: '/erp/tiny', icon: PlugZapIcon, module: 'erp_tiny' },
+      { title: 'Integração Omie (ERP)', to: '/erp/omie', icon: PlugZapIcon, module: 'erp_omie' },
+      { title: 'Integração Linx Farmácias (ERP)', to: '/erp/linx_farma', icon: PlugZapIcon, module: 'erp_linx_farma' },
+      { title: 'Integração Linx Moda (indústria) (ERP)', to: '/erp/linx_moda', icon: PlugZapIcon, module: 'erp_linx_moda' },
+      { title: 'Integração CIGAM (ERP)', to: '/erp/cigam', icon: PlugZapIcon, module: 'erp_cigam' },
       { title: 'Meus brindes', to: '/meus-brindes', icon: GiftIcon, anyOf: ['pre_vendas', 'pos_vendas', 'chat', 'brindes'] },
     ],
   },
