@@ -124,6 +124,16 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    aparece para publicar o que a empresa marcar (departamento/grupo/categoria da Trier). Falta homologar com um token
    real da Trier e uma conta do Mercado Livre.
 
+29. **1.0.131** (15/11/2026, só no SaaS): integrações com os ERPs **Bling** (API v3, OAuth), **Tiny** (API v3, OAuth),
+   **Omie**, **CIGAM** (Integrador, no servidor do cliente) e **Linx** (farmácias e indústria de moda: tela pronta, a
+   leitura depende da documentação que a Linx entrega ao cliente). No padrão da Trier: só leitura, cópia completa a
+   cada N horas, produtos em `erp_products` (`apps/api/src/erps`, adaptadores em `erps/provedores`), tela única
+   `/erp/:erp`. Decisão do Diego: **cada integração com ERP é liberada pela plataforma para a empresa que usa aquele
+   ERP** (Plataforma › Empresas › "Integrações com ERP liberadas", campo `tenants.erpIntegrations`, inclusive Tcar e
+   Trier); as não liberadas não aparecem para a empresa (nem como sob consulta). Quem já tinha o sistema `erp` ficou
+   com Tcar e Trier liberadas (migração `20261115120000_integracoes_erps`). Site: faixa "ERPs integrados". Falta
+   homologar Bling, Tiny, Omie e CIGAM com contas reais.
+
 ## Como está no ar
 
 - **VPS**: `srv772376`, IP `91.108.125.234`, código em `/opt/saascrm`. Tem outro sistema rodando (não mexer).

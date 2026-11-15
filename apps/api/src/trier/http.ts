@@ -72,6 +72,9 @@ export function guardedLookup(allowIp: string | null, resolver: typeof dnsLookup
 
 export interface SafeGetOptions {
   headers?: Record<string, string>
+  /** GET (padrão) ou POST com corpo (APIs de ERP que consultam por POST, ex.: Omie). */
+  method?: 'GET' | 'POST'
+  body?: string
   timeoutMs: number
   maxBytes: number
   /** IP privado liberado para a empresa (acesso pela VPN), ou null. */
@@ -94,7 +97,8 @@ export function safeGet(url: string, o: SafeGetOptions): Promise<string> {
       if (err) reject(err)
       else resolve(body!)
     }
-    const req = lib.request(u, { method: 'GET', headers: { Accept: 'application/json', 'User-Agent': 'CRM-integracao/1.0', ...o.headers }, lookup: guardedLookup(o.allowIp) as never }, (res) => {
+    const body = o.body === undefined ? undefined : Buffer.from(o.body, 'utf8')
+    const req = lib.request(u, { method: o.method ?? 'GET', headers: { Accept: 'application/json', 'User-Agent': 'CRM-integracao/1.0', ...(body ? { 'Content-Length': String(body.length) } : {}), ...o.headers }, lookup: guardedLookup(o.allowIp) as never }, (res) => {
       const status = res.statusCode ?? 0
       const len = Number(res.headers['content-length'] ?? 0)
       if (len > o.maxBytes) {
@@ -125,7 +129,7 @@ export function safeGet(url: string, o: SafeGetOptions): Promise<string> {
       finish(new Error('O servidor não respondeu a tempo.'))
     }, o.timeoutMs)
     req.on('error', (e) => finish(e))
-    req.end()
+    req.end(body)
   })
 }
 

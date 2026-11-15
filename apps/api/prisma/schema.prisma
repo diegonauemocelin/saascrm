@@ -109,6 +109,8 @@ model Tenant {
   paidUntil           DateTime?
   /// Sistemas liberados só para esta empresa, além dos do plano (ex.: os sob consulta, como integração com ERP).
   extraSystems        String[]  @default([])
+  /// Integrações com ERP liberadas pela plataforma (tcar, trier, bling, tiny, omie, linx_farma, linx_moda, cigam): só elas aparecem para a empresa.
+  erpIntegrations     String[]  @default([])
   /// Usuários e números de WhatsApp contratados além do plano.
   extraUsers          Int       @default(0)
   extraWhatsapp       Int       @default(0)
@@ -4252,4 +4254,37 @@ model MlPublication {
   @@index([tenantId, status])
   @@index([tenantId, itemId])
   @@map("ml_publications")
+}
+
+/// Produtos copiados de um ERP (Bling, Tiny, Omie, Linx, CIGAM): só leitura, no padrão da Trier.
+model ErpProduct {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @db.Uuid
+  /// bling, tiny, omie, linx_farma, linx_moda ou cigam.
+  provider   String
+  /// Código (SKU) do produto no ERP.
+  code       String
+  /// Id interno do produto no ERP.
+  externalId String?
+  name       String
+  ean        String?
+  brand      String?
+  category   String?
+  ncm        String?
+  unit       String?
+  price      Decimal?  @db.Decimal(12, 2)
+  stock      Decimal?  @db.Decimal(14, 3)
+  /// Custo do ERP: só com "Importar custo do ERP" ligado.
+  cost       Decimal?  @db.Decimal(12, 2)
+  active     Boolean   @default(true)
+  searchText String    @default("")
+  seenAt     DateTime  @default(now())
+  removedAt  DateTime?
+  syncedAt   DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([tenantId, provider, code])
+  @@index([tenantId, provider, removedAt])
+  @@map("erp_products")
 }

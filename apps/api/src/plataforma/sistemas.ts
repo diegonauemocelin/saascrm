@@ -14,7 +14,7 @@ export const SYSTEMS = [
   { key: 'email_marketing', label: 'E-mail marketing, landing pages, automações e Web Push', modules: ['email_marketing', 'automacoes', 'web_push'] },
   { key: 'postagens', label: 'Postagens no Instagram e no Facebook', modules: ['postagens'] },
   { key: 'ecommerce', label: 'Integração com e-commerce (catálogo, carrinhos abandonados, SEO e fidelidade)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'], onRequest: true },
-  { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço; Tcar e Trier)', modules: ['consulta_produtos', 'erp_trier'], onRequest: true },
+  { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço; Tcar, Trier, Bling, Tiny, Omie, Linx e CIGAM)', modules: ['consulta_produtos', 'erp_trier', 'erp_bling', 'erp_tiny', 'erp_omie', 'erp_linx_farma', 'erp_linx_moda', 'erp_cigam'], onRequest: true },
   { key: 'relatorios', label: 'Relatórios, Google Ads e Power BI', modules: ['relatorios', 'google_ads', 'bi'] },
   { key: 'marketing_inteligente', label: 'Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
   { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads, assistente de perguntas, SEO dos anúncios, preços e promoções, planejamento e publicar do ERP)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config', 'seo_marketplace', 'marketplace_precos', 'marketplace_planejamento', 'marketplace_publicar'] },
@@ -27,11 +27,33 @@ export const SYSTEM_KEYS = SYSTEMS.map((s) => s.key) as readonly string[]
 /** Módulo só da empresa dona da plataforma (painel de empresas, planos e cobranças). */
 export const PLATFORM_MODULE = 'plataforma'
 
-/** Módulos que a empresa pode usar: a base, os dos sistemas do plano e, na empresa dona, todos. */
-export function allowedModules(t: { isPlatform: boolean; systems: readonly string[] }): Set<string> {
+/**
+ * Integrações com ERP: cada uma é liberada pela plataforma para a empresa que usa aquele ERP (ex.: só a Trier). As
+ * não liberadas não aparecem para a empresa, nem como "sob consulta".
+ */
+export const ERP_INTEGRATIONS = [
+  { key: 'tcar', module: 'consulta_produtos', label: 'Tcar (autopeças) · Consulta de produtos' },
+  { key: 'trier', module: 'erp_trier', label: 'Trier (farmácias)' },
+  { key: 'bling', module: 'erp_bling', label: 'Bling' },
+  { key: 'tiny', module: 'erp_tiny', label: 'Tiny ERP (Olist)' },
+  { key: 'omie', module: 'erp_omie', label: 'Omie' },
+  { key: 'linx_farma', module: 'erp_linx_farma', label: 'Linx (farmácias)' },
+  { key: 'linx_moda', module: 'erp_linx_moda', label: 'Linx (indústria de confecção e moda)' },
+  { key: 'cigam', module: 'erp_cigam', label: 'CIGAM' },
+] as const
+export const ERP_INTEGRATION_KEYS = ERP_INTEGRATIONS.map((e) => e.key) as readonly string[]
+const ERP_MODULES = new Set<string>(ERP_INTEGRATIONS.map((e) => e.module))
+export const cleanErpIntegrations = (list: unknown) => (Array.isArray(list) ? [...new Set(list.filter((s): s is string => typeof s === 'string' && ERP_INTEGRATION_KEYS.includes(s)))] : [])
+
+/**
+ * Módulos que a empresa pode usar: a base, os dos sistemas do plano e, na empresa dona, todos. Integração com ERP só a
+ * liberada pela plataforma para a empresa (erpIntegrations).
+ */
+export function allowedModules(t: { isPlatform: boolean; systems: readonly string[]; erpIntegrations?: readonly string[] }): Set<string> {
   if (t.isPlatform) return new Set(MODULE_KEYS)
   const out = new Set<string>(BASE_MODULES)
-  for (const s of SYSTEMS) if (t.systems.includes(s.key)) for (const m of s.modules) out.add(m)
+  for (const s of SYSTEMS) if (t.systems.includes(s.key)) for (const m of s.modules) if (!ERP_MODULES.has(m)) out.add(m)
+  for (const e of ERP_INTEGRATIONS) if (t.erpIntegrations?.includes(e.key)) out.add(e.module)
   return out
 }
 
@@ -39,7 +61,7 @@ export function allowedModules(t: { isPlatform: boolean; systems: readonly strin
  * Rotinas e páginas públicas de um módulo (sem usuário logado): só rodam para a empresa que tem o módulo no plano e
  * com o acesso liberado (assinatura em dia ou em teste).
  */
-export function moduleActive(t: { isPlatform: boolean; systems: readonly string[]; status: string; trialEndsAt: Date | null; paidUntil: Date | null }, module: string, now = Date.now()): boolean {
+export function moduleActive(t: { isPlatform: boolean; systems: readonly string[]; erpIntegrations?: readonly string[]; status: string; trialEndsAt: Date | null; paidUntil: Date | null }, module: string, now = Date.now()): boolean {
   return allowedModules(t).has(module) && !accessOf(t, now).blocked
 }
 
@@ -48,7 +70,8 @@ export function moduleActive(t: { isPlatform: boolean; systems: readonly string[
  * para falar com a SG Multiconecta. Devolve os módulos desses sistemas que a empresa ainda não tem.
  */
 export function onRequestModules(allowed: Set<string>): string[] {
-  return SYSTEMS.filter((s) => 'onRequest' in s && s.onRequest).flatMap((s) => s.modules).filter((m) => !allowed.has(m))
+  // Integrações com ERP não liberadas não aparecem (cada empresa vê só a do ERP que usa).
+  return SYSTEMS.filter((s) => 'onRequest' in s && s.onRequest).flatMap((s) => s.modules).filter((m) => !allowed.has(m) && !ERP_MODULES.has(m))
 }
 
 /** Permissões do usuário só nos módulos liberados para a empresa (o administrador recebe todos os liberados). */

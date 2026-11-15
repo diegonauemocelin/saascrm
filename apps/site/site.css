@@ -150,6 +150,13 @@ img, video { display: block; max-width: 100%; }
 .hub-ic.logo img { width: 34px; height: 34px; object-fit: contain; display: block; }
 .hub-itens strong { color: var(--tinta); font: 700 14px var(--fonte); }
 .hub-itens small { font-size: 12.5px; color: #6b6d7d; line-height: 1.35; }
+.erps { max-width: 1100px; margin: 48px auto 0; text-align: center; }
+.erps h3 { font-size: 22px; }
+.erps-sub { margin: 8px auto 20px; max-width: 640px; color: #5A5F73; }
+.erps-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.erps-lista li { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 14px 12px; display: grid; gap: 2px; box-shadow: 0 6px 18px -12px rgba(18, 19, 28, .35); }
+.erps-lista strong { color: var(--tinta); font: 700 15px var(--fonte); }
+.erps-lista small { font-size: 12.5px; color: #6b6d7d; }
 
 .faq { max-width: 860px; }
 .faq .rotulo { margin: 0 0 10px; color: var(--roxo); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -198,6 +205,7 @@ img, video { display: block; max-width: 100%; }
   .fluxo-frete, .grade-3 { grid-template-columns: minmax(0, 1fr); }
   .etapa::after { display: none; }
   .hub-itens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .erps-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .topo-in { height: 64px; gap: 12px; }
   .marca img { height: 34px; }
   .acoes .btn-linha { display: none; }

@@ -29,6 +29,7 @@ import { MarketplacesModule } from './marketplaces/marketplaces.module'
 import { AssistenteModule } from './assistente/assistente.module'
 import { TcarModule } from './tcar/tcar.module'
 import { TrierModule } from './trier/trier.module'
+import { ErpsModule } from './erps/erps.module'
 import { FretesModule } from './fretes/fretes.module'
 import { BrindesModule } from './brindes/brindes.module'
 import { FidelidadeModule } from './fidelidade/fidelidade.module'
@@ -98,7 +99,7 @@ import { UsersService } from './users/users.service'
     MarketplacesModule,
     AssistenteModule,
     TcarModule,
-    TrierModule,
+    TrierModule, ErpsModule,
     FretesModule,
     BrindesModule,
     FidelidadeModule,
