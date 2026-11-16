@@ -143,6 +143,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    quadro "Aplicativo da SG" na tela da loja); retorno do OAuth no painel da plataforma, empresa pelo "state"
    criptografado. Falta: cadastrar o app da SG na Nuvemshop (portal de parceiros) e pedir à Tray (Parcerias); Loja
    Integrada pode exigir o IP da VPS liberado. Jet descartada; Olist e Linx Commerce ficam para depois.
+31. **1.0.137** (16/11/2026, da v3.0.42 da Usaparts): **Busca de leads** (`apps/api/src/prospeccao`, tela
+   Atendimento Comercial › Busca de leads, permissão `prospeccao` no sistema Atendimento). A IA (Claude com pesquisa na
+   web, ou Gemini no plano gratuito, escolhido na Configuração da tela) procura empresas por cidade/CEP, raio, segmento e
+   palavras; o CRM completa com OpenStreetMap, cadastro público do CNPJ (sem sócios) e confere e-mail (MX) e WhatsApp.
+   Tira quem já é lead ou está em "não contatar". Chaves: Claude da Análise das perdas (IA), Gemini do Assistente ML/e-mail.
 
 ## Como está no ar
 

@@ -2,6 +2,28 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.137",
+      "date": "2026-11-16",
+      "title": "Busca de leads",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Atendimento",
+          "text": "Busca de leads: encontre empresas que podem virar clientes por cidade ou CEP, raio de alcance, segmento e palavras-chave. A busca é feita por IA (Claude ou Gemini no plano gratuito, escolhido na configuração) e traz telefone, WhatsApp, e-mail, site e Instagram encontrados em fontes públicas."
+        },
+        {
+          "type": "novo",
+          "area": "Atendimento",
+          "text": "Cada empresa encontrada mostra de onde veio cada contato, a situação do CNPJ e uma nota de aderência. Dá para conferir quais números têm WhatsApp, transformar em lead (origem Prospecção), descartar ou marcar \"não contatar\"."
+        },
+        {
+          "type": "melhoria",
+          "area": "Atendimento",
+          "text": "Empresas que já são leads ou foram marcadas \"não contatar\" não aparecem de novo nas buscas. Limite de buscas por dia configurável."
+        }
+      ]
+    },
+    {
       "version": "1.0.136",
       "date": "2026-11-16",
       "title": "Site: integrações pela API oficial",
