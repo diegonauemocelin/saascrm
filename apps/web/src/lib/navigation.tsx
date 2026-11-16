@@ -148,6 +148,9 @@ export const NAVIGATION: NavGroup[] = [
     items: [
       { title: 'Catálogo', to: '/catalogo', icon: PackageIcon, module: 'catalogo' },
       { title: 'Carrinhos abandonados', to: '/carrinhos', icon: ShoppingCartIcon, module: 'carrinhos' },
+      { title: 'Integração Tray', to: '/loja/tray', icon: StoreIcon, module: 'loja_tray' },
+      { title: 'Integração Nuvemshop', to: '/loja/nuvemshop', icon: StoreIcon, module: 'loja_nuvemshop' },
+      { title: 'Integração Loja Integrada', to: '/loja/loja_integrada', icon: StoreIcon, module: 'loja_loja_integrada' },
       { title: 'SEO dos produtos', to: '/seo-ecommerce', icon: SearchCheckIcon, module: 'seo_ecommerce' },
     ],
   },

@@ -16,6 +16,8 @@ export interface TenantInfo {
   systems: string[]
   /** Integrações com ERP liberadas pela plataforma. */
   erpIntegrations: string[]
+  /** Integrações com loja virtual liberadas pela plataforma. */
+  ecomIntegrations: string[]
   maxUsers: number
   maxWhatsapp: number
   /** Domínio próprio conferido (vale nos links), quando houver. */
@@ -116,6 +118,7 @@ export class TenantService {
       planName: t.plan?.name ?? null,
       systems: [...new Set([...(t.plan?.systems ?? []), ...t.extraSystems])],
       erpIntegrations: t.erpIntegrations ?? [],
+      ecomIntegrations: t.ecomIntegrations ?? [],
       maxUsers: (t.plan?.maxUsers ?? 0) + t.extraUsers,
       maxWhatsapp: (t.plan?.maxWhatsapp ?? 0) + t.extraWhatsapp,
       domain: t.domains[0]?.host ?? null,

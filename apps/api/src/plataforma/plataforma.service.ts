@@ -13,7 +13,7 @@ import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
 import { createDefaultRoles } from './perfis-padrao'
-import { accessOf, avulsoTotal, cleanErpIntegrations, cleanSale, cleanSlug, cleanSystems, ERP_INTEGRATIONS, nextStatus, PLATFORM_MODULE, SALE_DEFAULTS, type SaleSettings, STATUS_LABEL, SYSTEMS, TENANT_STATUSES, type TenantStatus } from './sistemas'
+import { accessOf, avulsoTotal, cleanEcomIntegrations, cleanErpIntegrations, ECOM_INTEGRATIONS, cleanSale, cleanSlug, cleanSystems, ERP_INTEGRATIONS, nextStatus, PLATFORM_MODULE, SALE_DEFAULTS, type SaleSettings, STATUS_LABEL, SYSTEMS, TENANT_STATUSES, type TenantStatus } from './sistemas'
 
 const DAY = 86_400_000
 
@@ -170,6 +170,11 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
     return ERP_INTEGRATIONS.map((e) => ({ key: e.key, label: e.label }))
   }
 
+  /** Integrações com loja virtual que a plataforma libera uma a uma. */
+  ecomIntegrations() {
+    return ECOM_INTEGRATIONS.map((e) => ({ key: e.key, label: e.label }))
+  }
+
   async plans(user: AuthUser) {
     await this.assertCan(user, 'view')
     const rows = await this.prisma.plan.findMany({ orderBy: [{ active: 'desc' }, { sortOrder: 'asc' }, { priceCents: 'asc' }], include: { _count: { select: { tenants: true } } } })
@@ -252,6 +257,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
       extraWhatsapp: r.extraWhatsapp,
       extraSystems: r.extraSystems,
       erpIntegrations: r.erpIntegrations,
+      ecomIntegrations: r.ecomIntegrations,
       isDemo: r.isDemo,
       document: r.document,
       contactName: r.contactName,
@@ -330,7 +336,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
   }
 
   /** Alterar a empresa: plano, adicionais, contato, observação, vencimento e a situação (suspender, reativar, cancelar). */
-  async updateCompany(user: AuthUser, id: string, d: Partial<CompanyInput> & { status?: string; trialEndsAt?: string | null; extraUsers?: number; extraWhatsapp?: number; extraSystems?: string[]; erpIntegrations?: string[]; notes?: string | null }, ctx: RequestCtx) {
+  async updateCompany(user: AuthUser, id: string, d: Partial<CompanyInput> & { status?: string; trialEndsAt?: string | null; extraUsers?: number; extraWhatsapp?: number; extraSystems?: string[]; erpIntegrations?: string[]; ecomIntegrations?: string[]; notes?: string | null }, ctx: RequestCtx) {
     await this.assertCan(user, 'edit')
     const cur = await this.prisma.tenant.findFirst({ where: { id, isPlatform: false } })
     if (!cur) throw new NotFoundException('Empresa não encontrada.')
@@ -343,6 +349,7 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
     for (const k of ['extraUsers', 'extraWhatsapp'] as const) if (d[k] !== undefined) data[k] = Math.max(0, Math.min(1000, Math.round(d[k]!)))
     if (d.extraSystems !== undefined) data.extraSystems = cleanSystems(d.extraSystems)
     if (d.erpIntegrations !== undefined) data.erpIntegrations = cleanErpIntegrations(d.erpIntegrations)
+    if (d.ecomIntegrations !== undefined) data.ecomIntegrations = cleanEcomIntegrations(d.ecomIntegrations)
     for (const k of ['document', 'contactName', 'contactEmail', 'contactPhone', 'notes'] as const) if (d[k] !== undefined) data[k] = d[k]?.toString().trim().slice(0, k === 'notes' ? 1000 : 200) || null
     if (d.paidUntil !== undefined) data.paidUntil = d.paidUntil && Number.isFinite(Date.parse(d.paidUntil)) ? new Date(d.paidUntil) : null
     if (d.trialEndsAt !== undefined) data.trialEndsAt = d.trialEndsAt && Number.isFinite(Date.parse(d.trialEndsAt)) ? new Date(d.trialEndsAt) : null

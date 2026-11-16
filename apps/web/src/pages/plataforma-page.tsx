@@ -51,6 +51,7 @@ interface Company {
   extraWhatsapp: number
   extraSystems: string[]
   erpIntegrations: string[]
+  ecomIntegrations: string[]
   isDemo?: boolean
   document: string | null
   contactName: string | null
@@ -367,10 +368,11 @@ function CompanySheet({ company: c, plans, systems, onClose }: { company: Compan
   const qc = useQueryClient()
   const { can } = useAuth()
   const edit = can('plataforma', 'edit')
-  const [f, setF] = useState({ name: c.name, planId: c.plan?.id ?? '', status: c.status, paidUntil: dateInput(c.paidUntil), trialEndsAt: dateInput(c.trialEndsAt), extraUsers: c.extraUsers, extraWhatsapp: c.extraWhatsapp, extraSystems: c.extraSystems, erpIntegrations: c.erpIntegrations ?? [], contactName: c.contactName ?? '', contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', document: c.document ?? '', notes: c.notes ?? '' })
+  const [f, setF] = useState({ name: c.name, planId: c.plan?.id ?? '', status: c.status, paidUntil: dateInput(c.paidUntil), trialEndsAt: dateInput(c.trialEndsAt), extraUsers: c.extraUsers, extraWhatsapp: c.extraWhatsapp, extraSystems: c.extraSystems, erpIntegrations: c.erpIntegrations ?? [], ecomIntegrations: c.ecomIntegrations ?? [], contactName: c.contactName ?? '', contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', document: c.document ?? '', notes: c.notes ?? '' })
   const [host, setHost] = useState('')
   const [domains, setDomains] = useState(c.domains)
   const erps = useQuery({ queryKey: ['plataforma-integracoes-erp'], queryFn: () => api.get<{ key: string; label: string }[]>('/plataforma/integracoes-erp'), staleTime: Infinity })
+  const ecoms = useQuery({ queryKey: ['plataforma-integracoes-ecom'], queryFn: () => api.get<{ key: string; label: string }[]>('/plataforma/integracoes-ecom'), staleTime: Infinity })
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['plataforma-empresas'] })
     void qc.invalidateQueries({ queryKey: ['plataforma-resumo'] })
@@ -539,6 +541,17 @@ function CompanySheet({ company: c, plans, systems, onClose }: { company: Compan
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">Libere só o ERP que a empresa usa (ex.: só a Trier). As integrações não liberadas não aparecem para a empresa.</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Integrações com loja virtual liberadas para esta empresa</Label>
+              <div className="grid gap-1.5 sm:grid-cols-3">
+                {(ecoms.data ?? []).map((x) => (
+                  <label key={x.key} className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={f.ecomIntegrations.includes(x.key)} onCheckedChange={(v) => set('ecomIntegrations', v ? [...f.ecomIntegrations, x.key] : f.ecomIntegrations.filter((k) => k !== x.key))} disabled={!edit} /> {x.label}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Liberar uma loja também libera o Catálogo e os Carrinhos abandonados, que ela abastece.</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="e-notes">Observação interna</Label>

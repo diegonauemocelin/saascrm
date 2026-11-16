@@ -1699,6 +1699,66 @@ export const TRAIL: TrailModule[] = [
     ],
   },
   {
+    key: 'loja-tray',
+    title: 'Integração Tray (loja virtual)',
+    module: 'loja_tray',
+    routes: ['/loja/tray', '/loja'],
+    purpose: 'Trazer da Tray os clientes, os pedidos, os carrinhos e os produtos para o CRM.',
+    howItWorks: 'O CRM consulta a Tray a cada 15 minutos (produtos a cada 6 horas), só lendo. Clientes viram leads com origem Ecommerce, pedidos pagos marcam a venda no lead, carrinhos vão para Carrinhos abandonados e produtos para o Catálogo.',
+    lessons: [
+      {
+        id: 'loja.tray.config',
+        title: 'Conectar a loja',
+        steps: [
+          'Abra E-commerce → Integração Tray.',
+          'Clique em Conectar e autorize o aplicativo da SG Multiconecta na sua loja Tray.',
+          'Escolha o que importar, ligue a integração e salve. Use Sincronizar agora para a primeira cópia.',
+          'Confira os leads, os Carrinhos abandonados e o Catálogo.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'loja-nuvemshop',
+    title: 'Integração Nuvemshop (loja virtual)',
+    module: 'loja_nuvemshop',
+    routes: ['/loja/nuvemshop'],
+    purpose: 'Trazer da Nuvemshop os clientes, os pedidos, os carrinhos e os produtos para o CRM.',
+    howItWorks: 'O CRM consulta a Nuvemshop a cada 15 minutos (produtos a cada 6 horas), só lendo. Clientes viram leads com origem Ecommerce, pedidos pagos marcam a venda no lead, carrinhos vão para Carrinhos abandonados e produtos para o Catálogo.',
+    lessons: [
+      {
+        id: 'loja.nuvemshop.config',
+        title: 'Conectar a loja',
+        steps: [
+          'Abra E-commerce → Integração Nuvemshop.',
+          'Clique em Conectar e autorize o aplicativo da SG Multiconecta na sua loja Nuvemshop.',
+          'Escolha o que importar, ligue a integração e salve. Use Sincronizar agora para a primeira cópia.',
+          'Confira os leads, os Carrinhos abandonados e o Catálogo.',
+        ],
+      },
+    ],
+  },
+  {
+    key: 'loja-loja-integrada',
+    title: 'Integração Loja Integrada (loja virtual)',
+    module: 'loja_loja_integrada',
+    routes: ['/loja/loja_integrada'],
+    purpose: 'Trazer da Loja Integrada os clientes, os pedidos, os carrinhos e os produtos para o CRM.',
+    howItWorks: 'O CRM consulta a Loja Integrada a cada 15 minutos (produtos a cada 6 horas), só lendo. Clientes viram leads com origem Ecommerce, pedidos pagos marcam a venda no lead, carrinhos vão para Carrinhos abandonados e produtos para o Catálogo.',
+    lessons: [
+      {
+        id: 'loja.loja_integrada.config',
+        title: 'Conectar a loja',
+        steps: [
+          'Abra E-commerce → Integração Loja Integrada.',
+          'Cole a chave de API e a chave de aplicação da Loja Integrada e salve.',
+          'Escolha o que importar, ligue a integração e salve. Use Sincronizar agora para a primeira cópia.',
+          'Confira os leads, os Carrinhos abandonados e o Catálogo.',
+        ],
+      },
+    ],
+  },
+  {
     key: 'assistente-ml',
     title: 'Assistente das perguntas do Mercado Livre',
     module: 'assist_atendimento',

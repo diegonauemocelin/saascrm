@@ -82,7 +82,21 @@ export interface SafeGetOptions {
 }
 
 /** GET com as proteções acima; devolve o corpo como texto (status 2xx) ou lança HttpStatusError. */
-export function safeGet(url: string, o: SafeGetOptions): Promise<string> {
+export async function safeGet(url: string, o: SafeGetOptions): Promise<string> {
+  const r = await safeRequest(url, o)
+  if (r.status >= 200 && r.status < 300) return r.body
+  throw new HttpStatusError(r.status, r.body.slice(0, 500))
+}
+
+/** Resposta completa (situação, cabeçalhos e corpo), sem lançar erro em 4xx/5xx. */
+export interface SafeResponse {
+  status: number
+  headers: Record<string, string>
+  body: string
+}
+
+/** Chamada com as proteções acima (mesmas regras do safeGet), devolvendo situação e cabeçalhos. */
+export function safeRequest(url: string, o: SafeGetOptions): Promise<SafeResponse> {
   const u = new URL(url)
   if (u.protocol !== 'http:' && u.protocol !== 'https:') return Promise.reject(new Error('Protocolo não permitido.'))
   const host = u.hostname.replace(/^\[|\]$/g, '')
@@ -90,7 +104,7 @@ export function safeGet(url: string, o: SafeGetOptions): Promise<string> {
   const lib = u.protocol === 'https:' ? https : http
   return new Promise((resolve, reject) => {
     let done = false
-    const finish = (err: Error | null, body?: string) => {
+    const finish = (err: Error | null, body?: SafeResponse) => {
       if (done) return
       done = true
       clearTimeout(timer)
@@ -119,8 +133,9 @@ export function safeGet(url: string, o: SafeGetOptions): Promise<string> {
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8')
         // Redirecionamento não é seguido (poderia levar para a rede interna).
-        if (status >= 200 && status < 300) finish(null, body)
-        else finish(new HttpStatusError(status, body.slice(0, 500)))
+        const headers: Record<string, string> = {}
+        for (const [k, v] of Object.entries(res.headers)) if (v !== undefined) headers[k.toLowerCase()] = Array.isArray(v) ? v.join(', ') : String(v)
+        finish(null, { status, headers, body })
       })
       res.on('error', (e) => finish(e))
     })
