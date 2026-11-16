@@ -134,6 +134,16 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    com Tcar e Trier liberadas (migração `20261115120000_integracoes_erps`). Site: faixa "ERPs integrados". Falta
    homologar Bling, Tiny, Omie e CIGAM com contas reais.
 
+30. **1.0.135** (16/11/2026, só no SaaS): integrações com loja virtual **Tray**, **Nuvemshop** e **Loja Integrada**
+   (`apps/api/src/lojas`, adaptadores em `lojas/provedores`, tela `/loja/:loja`), no padrão da Magazord: clientes →
+   leads (origem Ecommerce), pedidos pagos → venda no lead, carrinhos → Carrinhos abandonados (link de recuperação só na
+   Nuvemshop), produtos → Catálogo. Ids externos com prefixo da plataforma (`tray:123`). Liberadas por empresa pela
+   plataforma (`tenants.ecomIntegrations`, migração `20261116010000_integracoes_lojas`); liberar uma loja libera também
+   Catálogo e Carrinhos. Tray e Nuvemshop usam o **aplicativo da SG** (chaves guardadas na empresa da plataforma,
+   quadro "Aplicativo da SG" na tela da loja); retorno do OAuth no painel da plataforma, empresa pelo "state"
+   criptografado. Falta: cadastrar o app da SG na Nuvemshop (portal de parceiros) e pedir à Tray (Parcerias); Loja
+   Integrada pode exigir o IP da VPS liberado. Jet descartada; Olist e Linx Commerce ficam para depois.
+
 ## Como está no ar
 
 - **VPS**: `srv772376`, IP `91.108.125.234`, código em `/opt/saascrm`. Tem outro sistema rodando (não mexer).

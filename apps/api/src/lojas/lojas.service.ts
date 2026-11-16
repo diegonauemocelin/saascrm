@@ -382,8 +382,13 @@ export class LojasService implements OnApplicationBootstrap, OnModuleDestroy {
     if (customerId) {
       const linked = await this.prisma.lead.findFirst({ where: { tenantId, ecommerceId: customerId, deletedAt: null }, select: { id: true } })
       if (linked) return linked.id
+      if (customer) return (await this.upsertCustomer(tenantId, s, customer)).leadId
+      return null
     }
-    return customer ? (await this.upsertCustomer(tenantId, s, customer)).leadId : null
+    // Sem id de cliente (ex.: carrinho da Nuvemshop): acha ou cria o lead pelo e-mail/telefone, sem vincular id.
+    if (!customer) return null
+    const r = await this.capture.capture(tenantId, customer, { title: 'Iniciou um carrinho na loja virtual', originName: ORIGIN, touch: { source: 'ecommerce', medium: 'carrinho' }, tags: s.tags })
+    return r?.leadId ?? null
   }
 
   private async syncOrders(tenantId: string, key: LojaKey, s: LojaSettings, c: LojaCtx) {
