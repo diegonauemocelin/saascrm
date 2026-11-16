@@ -42,6 +42,16 @@ export const ERP_INTEGRATIONS = [
   { key: 'cigam', module: 'erp_cigam', label: 'CIGAM' },
 ] as const
 export const ERP_INTEGRATION_KEYS = ERP_INTEGRATIONS.map((e) => e.key) as readonly string[]
+
+/** Integrações com plataformas de loja virtual: liberadas uma a uma pela plataforma, como as de ERP. */
+export const ECOM_INTEGRATIONS = [
+  { key: 'tray', module: 'loja_tray', label: 'Tray' },
+  { key: 'nuvemshop', module: 'loja_nuvemshop', label: 'Nuvemshop' },
+  { key: 'loja_integrada', module: 'loja_loja_integrada', label: 'Loja Integrada' },
+] as const
+export const ECOM_INTEGRATION_KEYS = ECOM_INTEGRATIONS.map((e) => e.key) as readonly string[]
+const ECOM_MODULES = new Set<string>(ECOM_INTEGRATIONS.map((e) => e.module))
+export const cleanEcomIntegrations = (list: unknown) => (Array.isArray(list) ? [...new Set(list.filter((s): s is string => typeof s === 'string' && ECOM_INTEGRATION_KEYS.includes(s)))] : [])
 const ERP_MODULES = new Set<string>(ERP_INTEGRATIONS.map((e) => e.module))
 export const cleanErpIntegrations = (list: unknown) => (Array.isArray(list) ? [...new Set(list.filter((s): s is string => typeof s === 'string' && ERP_INTEGRATION_KEYS.includes(s)))] : [])
 
@@ -49,11 +59,18 @@ export const cleanErpIntegrations = (list: unknown) => (Array.isArray(list) ? [.
  * Módulos que a empresa pode usar: a base, os dos sistemas do plano e, na empresa dona, todos. Integração com ERP só a
  * liberada pela plataforma para a empresa (erpIntegrations).
  */
-export function allowedModules(t: { isPlatform: boolean; systems: readonly string[]; erpIntegrations?: readonly string[] }): Set<string> {
+export function allowedModules(t: { isPlatform: boolean; systems: readonly string[]; erpIntegrations?: readonly string[]; ecomIntegrations?: readonly string[] }): Set<string> {
   if (t.isPlatform) return new Set(MODULE_KEYS)
   const out = new Set<string>(BASE_MODULES)
   for (const s of SYSTEMS) if (t.systems.includes(s.key)) for (const m of s.modules) if (!ERP_MODULES.has(m)) out.add(m)
   for (const e of ERP_INTEGRATIONS) if (t.erpIntegrations?.includes(e.key)) out.add(e.module)
+  // Loja virtual liberada: a tela dela e as do e-commerce que ela abastece (Catálogo e Carrinhos abandonados).
+  for (const e of ECOM_INTEGRATIONS)
+    if (t.ecomIntegrations?.includes(e.key)) {
+      out.add(e.module)
+      out.add('catalogo')
+      out.add('carrinhos')
+    }
   return out
 }
 
@@ -61,7 +78,7 @@ export function allowedModules(t: { isPlatform: boolean; systems: readonly strin
  * Rotinas e páginas públicas de um módulo (sem usuário logado): só rodam para a empresa que tem o módulo no plano e
  * com o acesso liberado (assinatura em dia ou em teste).
  */
-export function moduleActive(t: { isPlatform: boolean; systems: readonly string[]; erpIntegrations?: readonly string[]; status: string; trialEndsAt: Date | null; paidUntil: Date | null }, module: string, now = Date.now()): boolean {
+export function moduleActive(t: { isPlatform: boolean; systems: readonly string[]; erpIntegrations?: readonly string[]; ecomIntegrations?: readonly string[]; status: string; trialEndsAt: Date | null; paidUntil: Date | null }, module: string, now = Date.now()): boolean {
   return allowedModules(t).has(module) && !accessOf(t, now).blocked
 }
 
@@ -71,7 +88,7 @@ export function moduleActive(t: { isPlatform: boolean; systems: readonly string[
  */
 export function onRequestModules(allowed: Set<string>): string[] {
   // Integrações com ERP não liberadas não aparecem (cada empresa vê só a do ERP que usa).
-  return SYSTEMS.filter((s) => 'onRequest' in s && s.onRequest).flatMap((s) => s.modules).filter((m) => !allowed.has(m) && !ERP_MODULES.has(m))
+  return SYSTEMS.filter((s) => 'onRequest' in s && s.onRequest).flatMap((s) => s.modules).filter((m) => !allowed.has(m) && !ERP_MODULES.has(m) && !ECOM_MODULES.has(m))
 }
 
 /** Permissões do usuário só nos módulos liberados para a empresa (o administrador recebe todos os liberados). */

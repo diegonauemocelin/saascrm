@@ -52,6 +52,8 @@ class CompanyUpdateDto {
   @IsOptional() @IsArray() @IsString({ each: true }) extraSystems?: string[]
   /** Integrações com ERP liberadas (tcar, trier, bling, tiny, omie, linx_farma, linx_moda, cigam). */
   @IsOptional() @IsArray() @IsString({ each: true }) erpIntegrations?: string[]
+  /** Integrações com loja virtual liberadas (tray, nuvemshop, loja_integrada). */
+  @IsOptional() @IsArray() @IsString({ each: true }) ecomIntegrations?: string[]
   @IsOptional() @IsString() @MaxLength(20) document?: string
   @IsOptional() @IsString() @MaxLength(120) contactName?: string
   @IsOptional() @IsString() @MaxLength(200) contactEmail?: string
@@ -144,6 +146,11 @@ export class PlataformaController {
   @Get('integracoes-erp')
   erpIntegrations() {
     return this.svc.erpIntegrations()
+  }
+
+  @Get('integracoes-ecom')
+  ecomIntegrations() {
+    return this.svc.ecomIntegrations()
   }
 
   @Get('planos')

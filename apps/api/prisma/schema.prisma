@@ -111,6 +111,8 @@ model Tenant {
   extraSystems        String[]  @default([])
   /// Integrações com ERP liberadas pela plataforma (tcar, trier, bling, tiny, omie, linx_farma, linx_moda, cigam): só elas aparecem para a empresa.
   erpIntegrations     String[]  @default([])
+  /// Integrações com loja virtual liberadas pela plataforma (tray, nuvemshop, loja_integrada).
+  ecomIntegrations    String[]  @default([])
   /// Usuários e números de WhatsApp contratados além do plano.
   extraUsers          Int       @default(0)
   extraWhatsapp       Int       @default(0)
