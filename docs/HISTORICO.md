@@ -148,6 +148,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    web, ou Gemini no plano gratuito, escolhido na Configuração da tela) procura empresas por cidade/CEP, raio, segmento e
    palavras; o CRM completa com OpenStreetMap, cadastro público do CNPJ (sem sócios) e confere e-mail (MX) e WhatsApp.
    Tira quem já é lead ou está em "não contatar". Chaves: Claude da Análise das perdas (IA), Gemini do Assistente ML/e-mail.
+32. **1.0.138** (16/11/2026, da v3.0.43 da Usaparts): busca de leads chama no WhatsApp e envia em fila
+   (`prospeccao/envio.service.ts`: intervalo aleatório 2–10 min, limite por dia, horário comercial, SAIR vira "não
+   contatar"; tabelas `prospect_campaigns`/`prospect_sends`); respostas rápidas com até 3 arquivos (`files` JSON);
+   marca "Encaminhada" no encaminhar; notificações do celular voltam (consulta inválida em `push.service.ts`).
 
 ## Como está no ar
 
