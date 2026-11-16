@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.136",
+      "date": "2026-11-16",
+      "title": "Site: integrações pela API oficial",
+      "changes": [
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Todas as integrações do site levam o selo \"API oficial\"; as exceções aparecem indicadas: o WhatsApp (conexão por QR Code) e o e-mail (servidor SMTP da empresa)."
+        }
+      ]
+    },
+    {
       "version": "1.0.135",
       "date": "2026-11-16",
       "title": "Integrações com Tray, Nuvemshop e Loja Integrada",

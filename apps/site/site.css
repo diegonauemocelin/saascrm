@@ -163,6 +163,7 @@ img, video { display: block; max-width: 100%; }
 .erp-destaque .erp-topo { height: auto; }
 .erp-destaque strong { font-size: 19px; }
 .selo-api { margin-left: auto; flex: none; padding: 3px 8px; border-radius: 999px; font: 700 11px var(--fonte); letter-spacing: .02em; color: #15803D; background: #DCFCE7; white-space: nowrap; }
+.selo-neutro { color: #4B5063; background: #ECEDF2; }
 .erp-logo-faixa { height: 28px; border-radius: 5px; }
 .erp-texto { margin: 0; color: #3F4357; font-size: 15px; line-height: 1.55; max-width: 760px; }
 .erps-quadro { max-width: 1180px; margin: 0 auto; padding: 48px 40px; border-radius: 28px; background: linear-gradient(180deg, #F4F3FB 0%, #fff 100%); border: 1px solid var(--borda); box-shadow: 0 30px 60px -40px rgba(91, 63, 214, .45); text-align: center; }
