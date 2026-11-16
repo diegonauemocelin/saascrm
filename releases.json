@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.134",
+      "date": "2026-11-16",
+      "title": "Site: correção do visual depois da atualização",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "Site",
+          "text": "O navegador podia usar o estilo antigo do site guardado em cache, deixando os logos das integrações enormes. Agora o estilo novo é baixado a cada versão e os logos têm tamanho fixo."
+        }
+      ]
+    },
+    {
       "version": "1.0.133",
       "date": "2026-11-15",
       "title": "Site: integrações organizadas por área",
