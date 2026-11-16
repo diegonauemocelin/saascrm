@@ -152,6 +152,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`prospeccao/envio.service.ts`: intervalo aleatório 2–10 min, limite por dia, horário comercial, SAIR vira "não
    contatar"; tabelas `prospect_campaigns`/`prospect_sends`); respostas rápidas com até 3 arquivos (`files` JSON);
    marca "Encaminhada" no encaminhar; notificações do celular voltam (consulta inválida em `push.service.ts`).
+33. **1.0.139** (16/11/2026, da v3.0.44 da Usaparts): aviso "Novidades do sistema" uma vez por usuário depois de cada
+   versão (`users.seenVersion`, `GET /system/novidades`, `POST /system/novidades/visto`, `layout/whats-new.tsx`).
 
 ## Como está no ar
 
