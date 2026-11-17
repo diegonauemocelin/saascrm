@@ -176,6 +176,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `/api/app/manifest-chat.webmanifest` pela empresa do endereço, PWA própria `id: /chat-app`); filial pelo DDD
    (`whatsapp_filiais_ddd`, sem regras iniciais no SaaS); Web Push aceita FCM `jmtNN.google.com` e refaz a inscrição
    cancelada por outro sistema (ex.: Webpushr); filtro de número do chat ao sair do Monitoramento.
+40. **1.0.146** (17/11/2026, da v3.0.54 da Usaparts): app instalado aberto no computador (`isDesktopApp`) vai para
+   `/chat-app`; `?completo=1` abre o CRM inteiro (só pula os redirecionamentos; assinatura bloqueada continua valendo).
 
 ## Como está no ar
 
