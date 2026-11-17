@@ -12,6 +12,7 @@ import { Prisma } from '../generated/prisma/client'
 import { TenantService } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
+import { monthly, overdueByCompany, PAID_STATUSES } from './painel'
 import { createDefaultRoles } from './perfis-padrao'
 import { accessOf, avulsoTotal, cleanEcomIntegrations, cleanErpIntegrations, ECOM_INTEGRATIONS, cleanSale, cleanSlug, cleanSystems, ERP_INTEGRATIONS, nextStatus, PLATFORM_MODULE, SALE_DEFAULTS, type SaleSettings, STATUS_LABEL, SYSTEMS, TENANT_STATUSES, type TenantStatus } from './sistemas'
 
@@ -157,6 +158,35 @@ export class PlataformaService implements OnApplicationBootstrap, OnModuleDestro
     const mrrCents = companies.filter((c) => c.status === 'ATIVA' || c.status === 'ATRASADA').reduce((s, c) => s + (c.plan ? c.plan.priceCents : avulsoTotal(c.extraSystems, sale)), 0)
     const overdue = await this.prisma.tenantPayment.aggregate({ where: { status: 'VENCIDA' }, _sum: { valueCents: true }, _count: true })
     return { total: companies.length, byStatus, mrrCents, overdueCents: overdue._sum.valueCents ?? 0, overdueCount: overdue._count, platformDomain: env.platformDomain }
+  }
+
+  /**
+   * Painel da plataforma: empresas por situação, receita mensal das ativas, faturamento recebido por mês (Asaas),
+   * empresas novas e cancelamentos por mês, e quem está com pagamento atrasado. Empresas de demonstração não contam.
+   */
+  async dashboard(user: AuthUser) {
+    await this.assertCan(user, 'view')
+    const now = new Date()
+    const since = new Date(now.getFullYear(), now.getMonth() - 12, 1)
+    const real = { isPlatform: false, isDemo: false }
+    const [base, companies, payments, overdue] = await Promise.all([
+      this.summary(user),
+      this.prisma.tenant.findMany({ where: real, select: { id: true, name: true, slug: true, status: true, createdAt: true, canceledAt: true, contactName: true, contactEmail: true, contactPhone: true, plan: { select: { name: true, priceCents: true } } } }),
+      this.prisma.tenantPayment.findMany({ where: { status: { in: PAID_STATUSES }, paidAt: { gte: since }, tenant: real }, select: { valueCents: true, paidAt: true } }),
+      this.prisma.tenantPayment.findMany({ where: { status: 'VENCIDA', tenant: real }, select: { tenantId: true, valueCents: true, dueDate: true, invoiceUrl: true } }),
+    ])
+    const byId = new Map(companies.map((c) => [c.id, c]))
+    const months = monthly(now, 12, { payments, created: companies.map((c) => c.createdAt), canceled: companies.map((c) => c.canceledAt).filter((d): d is Date => !!d) })
+    const late = overdueByCompany(now, overdue).flatMap((o) => {
+      const c = byId.get(o.tenantId)
+      return c ? [{ ...o, oldestDue: o.oldestDue.toISOString(), name: c.name, slug: c.slug, status: c.status, statusLabel: STATUS_LABEL[c.status as TenantStatus] ?? c.status, plan: c.plan?.name ?? null, contactName: c.contactName, contactEmail: c.contactEmail, contactPhone: c.contactPhone }] : []
+    })
+    const canceledRecent = companies
+      .filter((c) => c.canceledAt && now.getTime() - c.canceledAt.getTime() <= 90 * 86_400_000)
+      .sort((a, b) => b.canceledAt!.getTime() - a.canceledAt!.getTime())
+      .map((c) => ({ id: c.id, name: c.name, plan: c.plan?.name ?? null, priceCents: c.plan?.priceCents ?? null, canceledAt: c.canceledAt!.toISOString(), createdAt: c.createdAt.toISOString() }))
+    const cur = months.at(-1)!
+    return { ...base, months, late, canceledRecent, thisMonth: cur }
   }
 
   // ---------- Sistemas e planos ----------

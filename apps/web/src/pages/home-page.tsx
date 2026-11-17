@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CircleDashedIcon, GraduationCapIcon, ShieldCheckIcon } from 'lucide-react'
+import { ArrowRightIcon, GraduationCapIcon, ShieldCheckIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { useVersion } from '@/components/layout/app-footer'
 import { formatDateTime, PageHeader } from '@/components/page'
@@ -6,15 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { PrimeirosPassos } from '@/components/primeiros-passos'
 import { MinhaFila } from './minha-fila'
-
-/** Primeiros passos de uma empresa nova: cada um aparece só para quem tem acesso ao módulo. */
-const STEPS = [
-  { module: 'configuracoes', title: 'Sua marca', text: 'Nome, logo e cores da empresa no sistema e nos e-mails.', to: '/configuracoes' },
-  { module: 'usuarios', title: 'Equipe', text: 'Convide os usuários e defina o que cada perfil pode acessar.', to: '/usuarios' },
-  { module: 'whatsapp', title: 'WhatsApp', text: 'Conecte os números de atendimento lendo o QR Code no celular.', to: '/configuracoes?secao=whatsapp-numeros' },
-  { module: 'leads', title: 'Contatos', text: 'Importe a sua base de leads e clientes por planilha.', to: '/leads' },
-]
 
 function greeting() {
   const h = Number(new Intl.DateTimeFormat('pt-BR', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }).format(new Date()))
@@ -89,35 +82,12 @@ export function HomePage() {
         )}
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Primeiros passos</CardTitle>
-          <CardDescription>O básico para começar a usar. A Trilha de conhecimento explica cada tela em detalhes.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {STEPS.filter((s) => can(s.module)).map((s, i) => (
-              <li key={s.to} className="rounded-lg border p-3">
-                <span className="flex items-center gap-1.5 text-sm font-medium">
-                  <CircleDashedIcon className="size-4 text-muted-foreground" /> Passo {i + 1}
-                </span>
-                <p className="mt-1 font-medium">{s.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{s.text}</p>
-                <Button asChild variant="link" size="sm" className="h-auto px-0">
-                  <Link to={s.to}>
-                    Abrir <ArrowRightIcon />
-                  </Link>
-                </Button>
-              </li>
-            ))}
-          </ol>
-          <Button asChild variant="outline" size="sm" className="mt-3">
-            <Link to="/trilha">
-              <GraduationCapIcon /> Trilha de conhecimento
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <PrimeirosPassos className="mt-6" />
+      <Button asChild variant="outline" size="sm" className="mt-4">
+        <Link to="/trilha">
+          <GraduationCapIcon /> Trilha de conhecimento
+        </Link>
+      </Button>
     </div>
   )
 }

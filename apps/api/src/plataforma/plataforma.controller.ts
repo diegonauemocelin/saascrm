@@ -12,6 +12,7 @@ import { CobrancaService } from './cobranca.service'
 import type { AuthUser } from '../common/types'
 import { PlataformaService } from './plataforma.service'
 import { TENANT_STATUSES } from './sistemas'
+import { PrimeirosPassosService } from './primeiros-passos.service'
 
 class PlanDto {
   @IsOptional() @IsString() @MaxLength(60) name?: string
@@ -136,6 +137,11 @@ export class PlataformaController {
   @Get('resumo')
   summary(@CurrentUser() user: AuthUser) {
     return this.svc.summary(user)
+  }
+
+  @Get('painel')
+  dashboard(@CurrentUser() user: AuthUser) {
+    return this.svc.dashboard(user)
   }
 
   @Get('sistemas')
@@ -372,3 +378,22 @@ export class CertificadosController {
     res.type('text/plain').send((await this.tenants.certificateHosts()).join('\n') + '\n')
   }
 }
+
+/** Primeiros passos do cliente novo (checklist na tela inicial do administrador da empresa). */
+@ApiTags('Plataforma')
+@Controller('primeiros-passos')
+export class PrimeirosPassosController {
+  constructor(private readonly svc: PrimeirosPassosService) {}
+
+  @Get()
+  view(@CurrentUser() user: AuthUser) {
+    return this.svc.view(user)
+  }
+
+  @Post('dispensar')
+  @HttpCode(200)
+  dismiss(@CurrentUser() user: AuthUser) {
+    return this.svc.dismiss(user)
+  }
+}
+

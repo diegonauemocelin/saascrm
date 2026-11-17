@@ -180,6 +180,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `/chat-app`; `?completo=1` abre o CRM inteiro (só pula os redirecionamentos; assinatura bloqueada continua valendo).
 41. **1.0.147** (17/11/2026, da v3.0.55 da Usaparts): pesquisa do app de Chat traz contatos (`/chat/contatos-para-compartilhar`)
    e conversa nova pega o nome da agenda (`whatsappContact` do número ou geral).
+42. **1.0.148** (17/11/2026, só do SaaS): Plataforma › Painel (`GET /plataforma/painel`, `plataforma/painel.ts`: recebido por
+   mês pelos `tenant_payments` RECEBIDA/CONFIRMADA, novas e canceladas por mês, atrasadas pelas VENCIDA; empresas demo e
+   a dona ficam fora) e primeiros passos (`/primeiros-passos`, só `role.isSystem` de empresa cliente; dispensar fica na
+   configuração `primeiros_passos`).
 
 ## Como está no ar
 

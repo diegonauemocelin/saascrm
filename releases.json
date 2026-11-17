@@ -2,6 +2,23 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.148",
+      "date": "2026-11-17",
+      "title": "Painel da plataforma e primeiros passos do cliente novo",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Plataforma",
+          "text": "Aba Painel: empresas ativas e em teste, receita mensal, faturamento recebido por mês no Asaas, empresas novas e cancelamentos por mês, a lista de quem está com pagamento atrasado (valor, dias de atraso, contato e fatura) e os cancelamentos dos últimos 90 dias."
+        },
+        {
+          "type": "novo",
+          "area": "Início",
+          "text": "Primeiros passos para a empresa nova: conectar o WhatsApp, cadastrar a equipe e importar os contatos, com cada passo marcado quando estiver feito. Aparece para o administrador na tela inicial e some quando tudo estiver pronto (ou ao dispensar)."
+        }
+      ]
+    },
+    {
       "version": "1.0.147",
       "date": "2026-11-17",
       "title": "App de Chat: contatos da agenda na pesquisa",

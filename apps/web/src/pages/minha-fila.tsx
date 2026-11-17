@@ -1,3 +1,4 @@
+import { PrimeirosPassos } from '@/components/primeiros-passos'
 import { useQuery } from '@tanstack/react-query'
 import { AlarmClockIcon, ArrowRightIcon, BellRingIcon, HeadsetIcon, MessageCircleIcon, PhoneOutgoingIcon, PlusIcon, UndoIcon, UserRoundXIcon } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
@@ -207,6 +208,7 @@ export function MinhaFila() {
           </>
         }
       />
+      <PrimeirosPassos className="mb-4" />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {can('chat') && (

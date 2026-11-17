@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { usePageTitle } from '@/lib/page-title'
+import { PlataformaPainel } from './plataforma-painel'
 import { cn } from '@/lib/utils'
 
 interface Plan {
@@ -101,7 +102,7 @@ function StatusBadge({ s, label }: { s: string; label?: string }) {
 
 export function PlataformaPage() {
   usePageTitle('Plataforma')
-  const [tab, setTab] = useState('empresas')
+  const [tab, setTab] = useState('painel')
   const summary = useQuery({ queryKey: ['plataforma-resumo'], queryFn: () => api.get<Summary>('/plataforma/resumo') })
   const systems = useQuery({ queryKey: ['plataforma-sistemas'], queryFn: () => api.get<System[]>('/plataforma/sistemas'), staleTime: Infinity })
   const plans = useQuery({ queryKey: ['plataforma-planos'], queryFn: () => api.get<Plan[]>('/plataforma/planos') })
@@ -109,7 +110,7 @@ export function PlataformaPage() {
   return (
     <RequirePermission module="plataforma">
       <PageHeader title="Plataforma" description="Empresas clientes, planos e cobranças da SG Multiconecta. Cada empresa usa o sistema no endereço dela, com os sistemas do plano." />
-      {s && (
+      {s && tab !== 'painel' && (
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
           {[
             ['Empresas', String(s.total)],
@@ -128,12 +129,14 @@ export function PlataformaPage() {
       {s && !s.platformDomain && <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">PLATFORM_DOMAIN não configurado no servidor: as empresas ainda não têm endereço próprio (vale só a empresa padrão).</p>}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-3">
+          <TabsTrigger value="painel">Painel</TabsTrigger>
           <TabsTrigger value="empresas">Empresas</TabsTrigger>
           <TabsTrigger value="planos">Planos</TabsTrigger>
           <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
           <TabsTrigger value="venda">Venda</TabsTrigger>
           <TabsTrigger value="site">Site</TabsTrigger>
         </TabsList>
+        <TabsContent value="painel">{tab === 'painel' && <PlataformaPainel onOpenPayments={() => setTab('cobrancas')} />}</TabsContent>
         <TabsContent value="empresas">
           <Companies plans={plans.data ?? []} systems={systems.data ?? []} />
         </TabsContent>
