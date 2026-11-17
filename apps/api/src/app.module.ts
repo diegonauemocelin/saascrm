@@ -26,6 +26,7 @@ import { GoogleAdsModule } from './googleads/googleads.module'
 import { SugestoesModule } from './sugestoes/sugestoes.module'
 import { MarketingModule } from './marketing/marketing.module'
 import { MarketplacesModule } from './marketplaces/marketplaces.module'
+import { CanaisModule } from './marketplaces/canais/canais.module'
 import { AssistenteModule } from './assistente/assistente.module'
 import { TcarModule } from './tcar/tcar.module'
 import { TrierModule } from './trier/trier.module'
@@ -99,6 +100,7 @@ import { UsersService } from './users/users.service'
     SugestoesModule,
     MarketingModule,
     MarketplacesModule,
+    CanaisModule,
     AssistenteModule,
     TcarModule,
     TrierModule, ErpsModule, LojasModule,

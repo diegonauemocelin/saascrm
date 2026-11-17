@@ -154,6 +154,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    marca "Encaminhada" no encaminhar; notificações do celular voltam (consulta inválida em `push.service.ts`).
 33. **1.0.139** (16/11/2026, da v3.0.44 da Usaparts): aviso "Novidades do sistema" uma vez por usuário depois de cada
    versão (`users.seenVersion`, `GET /system/novidades`, `POST /system/novidades/visto`, `layout/whats-new.tsx`).
+34. **1.0.140** (17/11/2026, da v3.0.45 da Usaparts): Shopee, Amazon e TikTok Shop prontos para conectar
+   (`marketplaces/canais`, adaptadores pela API oficial; tabelas `channel_listings`/`channel_price_changes`; módulos
+   `mkt_shopee`/`mkt_amazon`/`mkt_tiktok` no sistema Marketplaces; retorno da autorização no endereço da empresa).
+   Menu com submenus (`NavItem.section`). Cada empresa cria o próprio aplicativo de desenvolvedor em cada plataforma.
 
 ## Como está no ar
 
