@@ -172,6 +172,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`BACKUP_DIR_API`); filtro de promoção em Preços; concorrentes pelas referências do ERP e vínculo manual.
 38. **1.0.144** (17/11/2026, da v3.0.50 da Usaparts): a verificação do `crm-push-sw.js` (Web Push) se identifica como
    navegador; firewalls de loja (Magazord) recusavam com 403 só a conferência.
+39. **1.0.145** (17/11/2026, das v3.0.51 a 3.0.53 da Usaparts): app de Chat do computador (`/chat-app`, manifesto
+   `/api/app/manifest-chat.webmanifest` pela empresa do endereço, PWA própria `id: /chat-app`); filial pelo DDD
+   (`whatsapp_filiais_ddd`, sem regras iniciais no SaaS); Web Push aceita FCM `jmtNN.google.com` e refaz a inscrição
+   cancelada por outro sistema (ex.: Webpushr); filtro de número do chat ao sair do Monitoramento.
 
 ## Como está no ar
 

@@ -28,6 +28,7 @@ import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { api, errorMessage } from '@/lib/api'
 import { formatPhone, maskPhone, useOptions } from '@/lib/atendimento'
+import { FILIAL_COLOR_CLASS, filialOf, useFiliais } from '@/lib/filiais'
 import { dateShort, dateTime, time } from '@/lib/format'
 import { useAuth } from '@/lib/auth'
 import { setSoundOn, soundOn, useChatAlerts } from '@/lib/chat-alerts'
@@ -298,6 +299,15 @@ function Chat({ onlyMonitor = false }: { onlyMonitor?: boolean }) {
   const [archived, setArchived] = useState(false)
   const [category, setCategory] = useState<ContactCategory | null>(null)
   const [labelId, setLabelId] = useState<string | null>(null)
+  // Monitorar e Minhas conversas usam números diferentes: ao trocar de modo, o filtro de número e de vendedor recomeça
+  // (antes ficava o número do monitoramento, em branco no campo, e a lista continuava filtrada por ele).
+  const [modeKey, setModeKey] = useState(monitor)
+  if (modeKey !== monitor) {
+    setModeKey(monitor)
+    setNumberId(null)
+    setSellerId(null)
+    setAwaiting(false)
+  }
   const labels = useLabels()
   // Monitorar: tudo (permissão) ou a equipe de quem é gestor (Configurações › Setores e equipes).
   const monitorAccess = useQuery({ queryKey: ['chat-monitoramento'], queryFn: () => api.get<{ scope: 'TODOS' | 'NUMEROS' | 'PESSOAS' | 'EQUIPE' | null }>('/chat/monitoramento'), staleTime: 5 * 60_000 })
@@ -322,6 +332,8 @@ function Chat({ onlyMonitor = false }: { onlyMonitor?: boolean }) {
   const qs = new URLSearchParams({ ...(numberId ? { numero: numberId } : {}), ...(unread ? { naoLidas: 'true' } : {}), ...(archived ? { arquivadas: 'true' } : {}), ...(groups ? { tipo: 'GRUPO' } : category ? { tipo: category } : {}), ...(waitingSeller ? { aguardandoVendedor: 'true' } : {}), ...(q ? { busca: q } : {}), ...(monitor ? { monitorar: 'true' } : {}), ...(monitor && sellerId ? { vendedor: sellerId } : {}), ...(monitor && awaiting ? { aguardando: 'true' } : {}), ...(queue ? { fila: 'true' } : {}), ...(labelId ? { etiqueta: labelId } : {}) }).toString()
   const list = useQuery({ queryKey: ['chat-conversas', qs], queryFn: () => api.get<ListData>(`/chat/conversas?${qs}`), refetchInterval: 5000, placeholderData: keepPreviousData })
   const numbers = useMemo(() => new Map((list.data?.numbers ?? []).map((n) => [n.id, n])), [list.data?.numbers])
+  // Número escolhido que não está mais na lista (ex.: veio de outro modo): volta para Todos os números.
+  if (numberId && list.data && !list.isPlaceholderData && !numbers.has(numberId)) setNumberId(null)
   const open = (id: string | null) => setParams((p) => {
     const n = new URLSearchParams(p)
     if (id) n.set('conversa', id)
@@ -811,6 +823,7 @@ export function ThreadView({ id, onBack, monitor = false, compact = false }: { i
             <p className="truncate font-medium">{title}</p>
             <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
               {d.conversation.phone && <span className="whitespace-nowrap">{formatPhone(d.conversation.phone)}</span>}
+              <FilialBadge phone={d.conversation.category === 'GRUPO' ? null : d.conversation.phone} />
               {d.number && (
                 <span className="inline-flex items-center gap-1 whitespace-nowrap">
                   <SmartphoneIcon className="size-3" /> {d.number.name}
@@ -2867,5 +2880,17 @@ function AlertSettings() {
         </span>
       )}
     </>
+  )
+}
+
+/** Filial sugerida pelo DDD do contato (Configurações › Números de WhatsApp). Só sinaliza: não transfere. */
+function FilialBadge({ phone }: { phone: string | null | undefined }) {
+  const q = useFiliais()
+  const f = filialOf(phone, q.data?.rules)
+  if (!f) return null
+  return (
+    <span className={cn('inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium', FILIAL_COLOR_CLASS[f.color] ?? FILIAL_COLOR_CLASS.azul)} title={`Sugestão pelo DDD ${f.ddd}: atendimento da ${f.name}`}>
+      {f.name} · DDD {f.ddd}
+    </span>
   )
 }

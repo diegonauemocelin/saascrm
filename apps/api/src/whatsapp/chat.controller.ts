@@ -29,6 +29,8 @@ class ListDto {
   @IsOptional() @Transform(({ value }) => value === 'true' || value === '1' || value === true) @IsBoolean() aguardando?: boolean
   /** Aba "Aguardando vendedor": pré-venda repassada, sem retorno do vendedor. */
   @IsOptional() @Transform(({ value }) => value === 'true' || value === '1' || value === true) @IsBoolean() aguardandoVendedor?: boolean
+  /** App de Chat do computador: grupos e conversas juntos, como no WhatsApp (sem separar a aba Aguardando vendedor). */
+  @IsOptional() @Transform(({ value }) => value === 'true' || value === '1' || value === true) @IsBoolean() juntos?: boolean
 }
 
 class MentionDto {
@@ -332,6 +334,10 @@ class TranscricaoDto {
   @IsBoolean() ativa!: boolean
 }
 
+class FiliaisDto {
+  @IsArray() @ArrayMaxSize(20) regras!: unknown[]
+}
+
 /** Chat WhatsApp: conversas visíveis para o usuário (permissão "Chat WhatsApp", com escopo). */
 @ApiTags('WhatsApp')
 @Controller('chat')
@@ -359,6 +365,17 @@ export class ChatController {
   setTranscribe(@CurrentUser() user: AuthUser, @Body() dto: TranscricaoDto) {
     this.chat.assertWhatsappAdmin(user)
     return this.ia.setTranscribe(user.tenantId, dto.ativa)
+  }
+
+  /** Filial sugerida pelo DDD do contato (só sinaliza no chat). */
+  @Get('filiais')
+  filiais(@CurrentUser() user: AuthUser) {
+    return this.chat.filiais(user)
+  }
+
+  @Put('filiais')
+  setFiliais(@CurrentUser() user: AuthUser, @Body() dto: FiliaisDto) {
+    return this.chat.setFiliais(user, dto.regras)
   }
 
   /** Finalizar atendimento: mensagem de encerramento (opcional), sai do atendente e da fila, arquiva. */
@@ -399,7 +416,7 @@ export class ChatController {
 
   @Get('conversas')
   list(@CurrentUser() user: AuthUser, @Query() q: ListDto) {
-    return this.chat.conversations(user, { numberId: q.numero, unread: q.naoLidas, archived: q.arquivadas, search: q.busca, page: q.pagina, category: q.tipo, leadId: q.lead, reminders: q.lembretes, monitor: q.monitorar, sellerId: q.vendedor, awaiting: q.aguardando, queue: q.fila, labelId: q.etiqueta, waitingSeller: q.aguardandoVendedor })
+    return this.chat.conversations(user, { numberId: q.numero, unread: q.naoLidas, archived: q.arquivadas, search: q.busca, page: q.pagina, category: q.tipo, leadId: q.lead, reminders: q.lembretes, monitor: q.monitorar, sellerId: q.vendedor, awaiting: q.aguardando, queue: q.fila, labelId: q.etiqueta, waitingSeller: q.aguardandoVendedor, together: q.juntos })
   }
 
   /** Números em que o usuário pode iniciar conversa. */

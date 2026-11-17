@@ -2,6 +2,33 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.145",
+      "date": "2026-11-17",
+      "title": "App de Chat para o computador; filial sugerida pelo DDD; Web Push mais confiável",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Chat WhatsApp",
+          "text": "App de Chat para o computador: abra o endereço da sua empresa com /chat-app no Chrome ou no Edge e clique em Instalar. Abre numa janela própria, com a cara do WhatsApp Web: conversas e grupos juntos, filtros, número e o pré e o pós-venda do contato ao lado da conversa."
+        },
+        {
+          "type": "novo",
+          "area": "Chat WhatsApp",
+          "text": "Filial sugerida pelo DDD: monte as regras em Configurações › Números de WhatsApp (ex.: DDD 41 a 46, filial do Paraná) e o chat mostra um selo colorido ao lado do número do contato. Só sinaliza, não transfere."
+        },
+        {
+          "type": "correcao",
+          "area": "Chat WhatsApp",
+          "text": "Ao voltar do Monitoramento para Minhas conversas, o filtro de número volta para Todos os números."
+        },
+        {
+          "type": "correcao",
+          "area": "Web Push",
+          "text": "Inscrições de alguns navegadores Chrome passam a entrar, e a inscrição cancelada por outro sistema de notificação da loja é refeita na visita seguinte."
+        }
+      ]
+    },
+    {
       "version": "1.0.144",
       "date": "2026-11-17",
       "title": "Web Push: verificação do arquivo da loja",
