@@ -1,4 +1,5 @@
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
+import { PasskeyLoginButton } from '@/components/passkey'
 import { ArrowRightIcon, BuildingIcon, Loader2Icon, MailIcon, ShieldCheckIcon, UserPlusIcon } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
@@ -222,6 +223,7 @@ export function LoginPage() {
             {busy && <Loader2Icon className="animate-spin" />}
             Entrar
           </Button>
+          <PasskeyLoginButton onDone={finish} onError={setError} />
           {b.signup && (
             <button
               type="button"

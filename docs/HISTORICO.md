@@ -164,6 +164,12 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 36. **1.0.142** (17/11/2026, da v3.0.47 da Usaparts): eventos CONTACTS_UPSERT/UPDATE da Evolution dão nome às
    conversas sem nome e ficam na tabela `whatsapp_wa_contacts` (no CRM, não na Evolution: decisão de LGPD), que a
    importação "Contatos do WhatsApp" da Agenda também lê.
+37. **1.0.143** (17/11/2026, da v3.0.48 da Usaparts): Face ID/digital (passkey, tabela `passkeys`) com rpID e origem
+   pelo endereço acessado (`relyingParty` + `requireFromHost`; a chave só abre a empresa dela e só vale no endereço em
+   que foi criada); resposta sugerida e transcrição automática de áudios com o Gemini da empresa; Monitoramento
+   (`/administracao/monitoramento`, só `role.isSystem`): servidor, banco, backup e gráficos só na empresa da plataforma
+   (`isPlatform`), as demais veem números de WhatsApp e atividades; compose monta os backups só leitura na API
+   (`BACKUP_DIR_API`); filtro de promoção em Preços; concorrentes pelas referências do ERP e vínculo manual.
 
 ## Como está no ar
 
