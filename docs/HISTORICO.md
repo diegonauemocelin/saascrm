@@ -161,6 +161,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 35. **1.0.141** (17/11/2026, da v3.0.46 da Usaparts): busca de leads com mensagem única por empresa (Gemini gratuito,
    `POST /prospeccao/buscas/:id/mensagens-unicas`, texto guardado em `prospect_sends.text`); site com Shopee, Amazon e
    TikTok Shop (logos Simple Icons, como Meta e TikTok) e Busca de leads nos recursos.
+36. **1.0.142** (17/11/2026, da v3.0.47 da Usaparts): eventos CONTACTS_UPSERT/UPDATE da Evolution dão nome às
+   conversas sem nome e ficam na tabela `whatsapp_wa_contacts` (no CRM, não na Evolution: decisão de LGPD), que a
+   importação "Contatos do WhatsApp" da Agenda também lê.
 
 ## Como está no ar
 
