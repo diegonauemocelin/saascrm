@@ -158,6 +158,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`marketplaces/canais`, adaptadores pela API oficial; tabelas `channel_listings`/`channel_price_changes`; módulos
    `mkt_shopee`/`mkt_amazon`/`mkt_tiktok` no sistema Marketplaces; retorno da autorização no endereço da empresa).
    Menu com submenus (`NavItem.section`). Cada empresa cria o próprio aplicativo de desenvolvedor em cada plataforma.
+35. **1.0.141** (17/11/2026, da v3.0.46 da Usaparts): busca de leads com mensagem única por empresa (Gemini gratuito,
+   `POST /prospeccao/buscas/:id/mensagens-unicas`, texto guardado em `prospect_sends.text`); site com Shopee, Amazon e
+   TikTok Shop (logos Simple Icons, como Meta e TikTok) e Busca de leads nos recursos.
 
 ## Como está no ar
 

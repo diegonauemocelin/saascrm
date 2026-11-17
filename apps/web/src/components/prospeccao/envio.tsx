@@ -54,10 +54,21 @@ export interface Campaign {
   sends: SendRow[]
 }
 
-export const SEND_LABEL: Record<SendRow['status'], string> = { FILA: 'na fila', ENVIANDO: 'enviando', ENVIADA: 'mensagem enviada', PULADA: 'não enviada', ERRO: 'erro no envio', CANCELADA: 'envio cancelado' }
+export const SEND_LABEL: Record<SendRow['status'], string> = {
+  FILA: 'na fila',
+  ENVIANDO: 'enviando',
+  ENVIADA: 'mensagem enviada',
+  PULADA: 'não enviada',
+  ERRO: 'erro no envio',
+  CANCELADA: 'envio cancelado',
+}
 
 export function useNumbers() {
-  return useQuery({ queryKey: ['prospeccao-numeros'], queryFn: () => api.get<NumberRef[]>('/prospeccao/numeros'), staleTime: 60_000 })
+  return useQuery({
+    queryKey: ['prospeccao-numeros'],
+    queryFn: () => api.get<NumberRef[]>('/prospeccao/numeros'),
+    staleTime: 60_000,
+  })
 }
 
 export function useCampaigns(searchId: string) {
@@ -68,7 +79,12 @@ export function useCampaigns(searchId: string) {
   })
 }
 
-const STATUS: Record<Campaign['status'], string> = { RODANDO: 'enviando', PAUSADA: 'pausado', CONCLUIDA: 'concluído', CANCELADA: 'cancelado' }
+const STATUS: Record<Campaign['status'], string> = {
+  RODANDO: 'enviando',
+  PAUSADA: 'pausado',
+  CONCLUIDA: 'concluído',
+  CANCELADA: 'cancelado',
+}
 
 /** Andamento dos envios da busca, com pausar, retomar e cancelar. */
 export function EnviosPainel({ searchId, edit }: { searchId: string; edit: boolean }) {
@@ -114,7 +130,14 @@ export function EnviosPainel({ searchId, edit }: { searchId: string; edit: boole
                     variant="ghost"
                     disabled={act.isPending}
                     onClick={async () => {
-                      if (await confirm({ title: 'Cancelar o envio?', description: `As ${c.queued} mensagem(ns) que ainda estão na fila não serão enviadas.`, confirmLabel: 'Cancelar envio' })) act.mutate({ id: c.id, acao: 'cancelar' })
+                      if (
+                        await confirm({
+                          title: 'Cancelar o envio?',
+                          description: `As ${c.queued} mensagem(ns) que ainda estão na fila não serão enviadas.`,
+                          confirmLabel: 'Cancelar envio',
+                        })
+                      )
+                        act.mutate({ id: c.id, acao: 'cancelar' })
                     }}
                   >
                     <XIcon aria-hidden /> Cancelar
@@ -123,7 +146,12 @@ export function EnviosPainel({ searchId, edit }: { searchId: string; edit: boole
               )}
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={c.total} aria-valuenow={c.sent}>
-              <div className="h-full bg-primary" style={{ width: `${c.total ? Math.round(((c.sent + c.failed) / c.total) * 100) : 0}%` }} />
+              <div
+                className="h-full bg-primary"
+                style={{
+                  width: `${c.total ? Math.round(((c.sent + c.failed) / c.total) * 100) : 0}%`,
+                }}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               {c.sent} de {c.total} enviada(s) · {c.sentToday} hoje · {c.queued} na fila · {c.replied} respondeu(ram)
@@ -206,7 +234,8 @@ export function ChamarDialog({ prospect, onClose }: { prospect: { id: string; na
 const VARIABLES = '{empresa} nome da empresa · {vendedor} seu primeiro nome · {cidade} · {segmento}'
 
 /** Envio em fila para as empresas marcadas: mensagem (escrita pela IA ou à mão), número, intervalo e limite por dia. */
-export function EnvioDialog({ searchId, prospectIds, onClose, onDone }: { searchId: string; prospectIds: string[]; onClose: () => void; onDone: () => void }) {
+export function EnvioDialog({ searchId, prospects, onClose, onDone }: { searchId: string; prospects: { id: string; name: string }[]; onClose: () => void; onDone: () => void }) {
+  const prospectIds = prospects.map((p) => p.id)
   const numbers = useNumbers()
   const usable = (numbers.data ?? []).filter((n) => n.status === 'CONECTADO')
   const [numberId, setNumberId] = useState('')
@@ -217,64 +246,139 @@ export function EnvioDialog({ searchId, prospectIds, onClose, onDone }: { search
   const [gapMax, setGapMax] = useState(10)
   const [dailyMax, setDailyMax] = useState(30)
   const [optOut, setOptOut] = useState(true)
+  // Uma mensagem diferente para cada empresa (Gemini gratuito), revisada aqui antes de ir para a fila.
+  const [unique, setUnique] = useState(prospects.length <= 50)
+  const [perProspect, setPerProspect] = useState<Record<string, string>>({})
+  const writeUnique = useMutation({
+    mutationFn: () => api.post<{ messages: Record<string, string>; missing: string[] }>(`/prospeccao/buscas/${searchId}/mensagens-unicas`, { offer, prospectIds }),
+    onSuccess: (r) => {
+      setPerProspect(r.messages)
+      if (r.missing.length) toast.warning(`${r.missing.length} empresa(s) ficaram sem mensagem: escreva à mão ou gere de novo.`)
+      else toast.success(`${Object.keys(r.messages).length} mensagens escritas, uma para cada empresa. Revise antes de enviar.`)
+    },
+    onError: (e) => toast.error(errorMessage(e)),
+  })
   const write = useMutation({
     mutationFn: () => api.post<{ variations: string[] }>(`/prospeccao/buscas/${searchId}/mensagem`, { offer }),
     onSuccess: (r) => (setMessages(r.variations), toast.success(`${r.variations.length} variação(ões) escrita(s). Revise antes de enviar.`)),
     onError: (e) => toast.error(errorMessage(e)),
   })
   const send = useMutation({
-    mutationFn: () => api.post<{ queued: number; skipped: number }>(`/prospeccao/buscas/${searchId}/envios`, { numberId: chosen, prospectIds, messages: messages.filter((m) => m.trim()), gapMin, gapMax, dailyMax, optOut }),
+    mutationFn: () =>
+      api.post<{ queued: number; skipped: number }>(`/prospeccao/buscas/${searchId}/envios`, {
+        numberId: chosen,
+        prospectIds,
+        messages: unique ? [] : messages.filter((m) => m.trim()),
+        perProspect: unique ? perProspect : {},
+        gapMin,
+        gapMax,
+        dailyMax,
+        optOut,
+      }),
     onSuccess: (r) => {
       toast.success(`${r.queued} empresa(s) na fila de envio${r.skipped ? ` (${r.skipped} sem celular ou já recebeu)` : ''}.`)
       onDone()
     },
     onError: (e) => toast.error(errorMessage(e)),
   })
-  const valid = chosen && messages.some((m) => m.trim().length >= 10) && gapMin >= 1 && gapMax >= gapMin && dailyMax >= 1
+  const textsOk = unique ? prospects.every((p) => (perProspect[p.id] ?? '').trim().length >= 10) : messages.some((m) => m.trim().length >= 10)
+  const valid = chosen && textsOk && gapMin >= 1 && gapMax >= gapMin && dailyMax >= 1
   const days = Math.ceil(prospectIds.length / Math.max(1, dailyMax))
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="flex max-h-[92vh] flex-col sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Enviar mensagem para {prospectIds.length} empresa(s)</DialogTitle>
-          <DialogDescription>Uma de cada vez, com intervalo aleatório, só no horário comercial. Cada empresa que recebe vira lead (origem Prospecção) e a resposta cai no chat.</DialogDescription>
+          <DialogDescription>
+            Uma de cada vez, com intervalo aleatório, só no horário comercial. Cada empresa que recebe vira lead (origem Prospecção) e a resposta cai no chat.
+          </DialogDescription>
         </DialogHeader>
         <div className="-mx-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-1 text-sm">
           <div className="space-y-1.5">
             <Label>Número que vai enviar</Label>
-            {numbers.data && !numbers.data.length ? <p className="text-destructive">Você não tem número de WhatsApp para iniciar conversas.</p> : <NumberSelect numbers={numbers.data ?? []} value={chosen} onChange={setNumberId} />}
+            {numbers.data && !numbers.data.length ? (
+              <p className="text-destructive">Você não tem número de WhatsApp para iniciar conversas.</p>
+            ) : (
+              <NumberSelect numbers={numbers.data ?? []} value={chosen} onChange={setNumberId} />
+            )}
           </div>
-          <div className="space-y-1.5 rounded-md border p-3">
-            <Label htmlFor="pe-offer">Escrever com a IA</Label>
+          <label className="flex items-start justify-between gap-3 rounded-md border p-3">
+            <span>
+              Uma mensagem diferente para cada empresa
+              <span className="block text-xs text-muted-foreground">
+                O Gemini (plano gratuito do Google) escreve uma mensagem para cada empresa, com o nome, o segmento e a cidade dela. Até 50 empresas por vez. Desligado: as mesmas
+                variações para todas.
+              </span>
+            </span>
+            <Switch checked={unique} onCheckedChange={setUnique} disabled={prospects.length > 50} />
+          </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="pe-offer">O que você oferece</Label>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Input id="pe-offer" placeholder="O que você oferece? Ex.: sistema de gestão para clínicas, com suporte e treinamento" value={offer} maxLength={600} onChange={(e) => setOffer(e.target.value)} />
-              <Button type="button" variant="outline" disabled={offer.trim().length < 10 || write.isPending} onClick={() => write.mutate()}>
-                {write.isPending ? <Loader2Icon className="animate-spin" aria-hidden /> : <SparklesIcon aria-hidden />} Gerar mensagem
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">A IA escreve 3 variações curtas, sem inventar preço, prazo ou promoção. Revise antes de enviar.</p>
-          </div>
-          <div className="space-y-2">
-            <Label>Mensagem (cada empresa recebe uma das variações, ao acaso)</Label>
-            {messages.map((m, i) => (
-              <div key={i} className="flex gap-2">
-                <Textarea rows={3} maxLength={1500} value={m} placeholder="Olá, {empresa}! Aqui é {vendedor}…" onChange={(e) => setMessages((xs) => xs.map((x, j) => (j === i ? e.target.value : x)))} />
-                {messages.length > 1 && (
-                  <Button type="button" size="icon" variant="ghost" aria-label="Tirar esta variação" onClick={() => setMessages((xs) => xs.filter((_, j) => j !== i))}>
-                    <XIcon aria-hidden />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <div className="flex flex-wrap items-center gap-2">
-              {messages.length < 5 && (
-                <Button type="button" size="sm" variant="outline" onClick={() => setMessages((xs) => [...xs, ''])}>
-                  <PlusIcon aria-hidden /> Nova variação
+              <Input
+                id="pe-offer"
+                placeholder="Ex.: sistema de gestão para clínicas, com suporte e treinamento"
+                value={offer}
+                maxLength={600}
+                onChange={(e) => setOffer(e.target.value)}
+              />
+              {unique ? (
+                <Button type="button" variant="outline" disabled={offer.trim().length < 10 || writeUnique.isPending} onClick={() => writeUnique.mutate()}>
+                  {writeUnique.isPending ? <Loader2Icon className="animate-spin" aria-hidden /> : <SparklesIcon aria-hidden />} Gerar {prospects.length} mensagens
+                </Button>
+              ) : (
+                <Button type="button" variant="outline" disabled={offer.trim().length < 10 || write.isPending} onClick={() => write.mutate()}>
+                  {write.isPending ? <Loader2Icon className="animate-spin" aria-hidden /> : <SparklesIcon aria-hidden />} Gerar mensagem
                 </Button>
               )}
-              <span className="text-xs text-muted-foreground">{VARIABLES}</span>
             </div>
+            <p className="text-xs text-muted-foreground">A IA não inventa preço, prazo nem promoção. Revise antes de enviar.</p>
           </div>
+          {unique ? (
+            <div className="space-y-2">
+              <Label>Mensagem de cada empresa</Label>
+              {prospects.map((p) => (
+                <div key={p.id} className="space-y-1">
+                  <p className="text-xs font-medium">{p.name}</p>
+                  <Textarea
+                    rows={3}
+                    maxLength={1500}
+                    value={perProspect[p.id] ?? ''}
+                    placeholder="Clique em Gerar mensagens ou escreva aqui."
+                    onChange={(e) => setPerProspect((m) => ({ ...m, [p.id]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Mensagem (cada empresa recebe uma das variações, ao acaso)</Label>
+              {messages.map((m, i) => (
+                <div key={i} className="flex gap-2">
+                  <Textarea
+                    rows={3}
+                    maxLength={1500}
+                    value={m}
+                    placeholder="Olá, {empresa}! Aqui é {vendedor}…"
+                    onChange={(e) => setMessages((xs) => xs.map((x, j) => (j === i ? e.target.value : x)))}
+                  />
+                  {messages.length > 1 && (
+                    <Button type="button" size="icon" variant="ghost" aria-label="Tirar esta variação" onClick={() => setMessages((xs) => xs.filter((_, j) => j !== i))}>
+                      <XIcon aria-hidden />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center gap-2">
+                {messages.length < 5 && (
+                  <Button type="button" size="sm" variant="outline" onClick={() => setMessages((xs) => [...xs, ''])}>
+                    <PlusIcon aria-hidden /> Nova variação
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground">{VARIABLES}</span>
+              </div>
+            </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="pe-min">Intervalo mínimo (min)</Label>
@@ -290,12 +394,15 @@ export function EnvioDialog({ searchId, prospectIds, onClose, onDone }: { search
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Com {prospectIds.length} empresa(s) e até {dailyMax} por dia, termina em cerca de {days} dia(s) útil(eis). Números novos ou pouco usados: comece com poucas por dia (10 a 20) e intervalo maior.
+            Com {prospectIds.length} empresa(s) e até {dailyMax} por dia, termina em cerca de {days} dia(s) útil(eis). Números novos ou pouco usados: comece com poucas por dia (10
+            a 20) e intervalo maior.
           </p>
           <label className="flex items-start justify-between gap-3 rounded-md border p-3">
             <span>
               Avisar como sair da lista
-              <span className="block text-xs text-muted-foreground">Acrescenta “Se não quiser receber mensagens nossas, é só responder SAIR.” Quem responder SAIR (ou “não tenho interesse”) vira “não contatar”.</span>
+              <span className="block text-xs text-muted-foreground">
+                Acrescenta “Se não quiser receber mensagens nossas, é só responder SAIR.” Quem responder SAIR (ou “não tenho interesse”) vira “não contatar”.
+              </span>
             </span>
             <Switch checked={optOut} onCheckedChange={setOptOut} />
           </label>
