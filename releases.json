@@ -2,6 +2,18 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.144",
+      "date": "2026-11-17",
+      "title": "Web Push: verificação do arquivo da loja",
+      "changes": [
+        {
+          "type": "correcao",
+          "area": "Web Push",
+          "text": "O botão Verificar de Gerenciar coleta reconhece o arquivo crm-push-sw.js em lojas com firewall, que antes respondiam \"403\" só para a conferência."
+        }
+      ]
+    },
+    {
       "version": "1.0.143",
       "date": "2026-11-17",
       "title": "Entrar com Face ID, resposta sugerida pela IA, transcrição automática de áudios e Monitoramento",

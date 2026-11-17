@@ -170,6 +170,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`/administracao/monitoramento`, só `role.isSystem`): servidor, banco, backup e gráficos só na empresa da plataforma
    (`isPlatform`), as demais veem números de WhatsApp e atividades; compose monta os backups só leitura na API
    (`BACKUP_DIR_API`); filtro de promoção em Preços; concorrentes pelas referências do ERP e vínculo manual.
+38. **1.0.144** (17/11/2026, da v3.0.50 da Usaparts): a verificação do `crm-push-sw.js` (Web Push) se identifica como
+   navegador; firewalls de loja (Magazord) recusavam com 403 só a conferência.
 
 ## Como está no ar
 
