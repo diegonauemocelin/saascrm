@@ -178,6 +178,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    cancelada por outro sistema (ex.: Webpushr); filtro de número do chat ao sair do Monitoramento.
 40. **1.0.146** (17/11/2026, da v3.0.54 da Usaparts): app instalado aberto no computador (`isDesktopApp`) vai para
    `/chat-app`; `?completo=1` abre o CRM inteiro (só pula os redirecionamentos; assinatura bloqueada continua valendo).
+41. **1.0.147** (17/11/2026, da v3.0.55 da Usaparts): pesquisa do app de Chat traz contatos (`/chat/contatos-para-compartilhar`)
+   e conversa nova pega o nome da agenda (`whatsappContact` do número ou geral).
 
 ## Como está no ar
 
