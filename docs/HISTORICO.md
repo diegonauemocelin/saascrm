@@ -190,6 +190,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 44. **1.0.150** (18/11/2026, da v3.0.57 da Usaparts): regras do destino na cotação em três buscas (CEP, UF, cidade) em vez
    de um OR que lia `freight_rules` inteira; índices `(versionId, cityKey)` e `(cityKey, uf)`; etapas da cotação com tempo
    no log e limite (`step`).
+45. **1.0.151** (18/11/2026, da v3.0.58 da Usaparts): campanhas de frete `PERCENT_NF_ACIMA` (`tableAbove`: até o valor vale a
+   tabela) e `REPASSE` (% da nota sem limite pela tabela, desconto zero); cotação mostra a diferença paga pela empresa.
 
 ## Como está no ar
 
