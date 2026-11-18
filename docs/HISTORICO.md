@@ -192,6 +192,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    no log e limite (`step`).
 45. **1.0.151** (18/11/2026, da v3.0.58 da Usaparts): campanhas de frete `PERCENT_NF_ACIMA` (`tableAbove`: até o valor vale a
    tabela) e `REPASSE` (% da nota sem limite pela tabela, desconto zero); cotação mostra a diferença paga pela empresa.
+46. **1.0.152** (18/11/2026, da v3.0.59 da Usaparts): validação de e-mail dos leads (`email/validar.ts`, `EmailValidationService`,
+   campos `emailCheckedFor`/`emailInvalidAt`/`emailInvalidReason`; inválido fora do e-mail marketing); CT-e filtro `tipo`
+   VENDA/COMPRA por `companyRoles` (migração preenche os antigos); NF-e guarda o vendedor (`seller`, do infCpl) e a
+   conciliação mostra vendedor e frete da nota.
 
 ## Como está no ar
 
