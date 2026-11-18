@@ -196,6 +196,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    campos `emailCheckedFor`/`emailInvalidAt`/`emailInvalidReason`; inválido fora do e-mail marketing); CT-e filtro `tipo`
    VENDA/COMPRA por `companyRoles` (migração preenche os antigos); NF-e guarda o vendedor (`seller`, do infCpl) e a
    conciliação mostra vendedor e frete da nota.
+47. **1.0.153** (18/11/2026, da v3.0.60 da Usaparts): importação de NF-e aceita até 10.000 XMLs e 300 MB por vez
+   (`NFE_IMPORT_LIMITS` em `fretes/nfe.ts`).
 
 ## Como está no ar
 
