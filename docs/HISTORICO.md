@@ -187,6 +187,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 43. **1.0.149** (18/11/2026, da v3.0.56 da Usaparts): no app instalado no computador, `/chat?conversa=` vira `/chat-app?conversa=`;
    `associatedChildMessage` (álbum), `groupMentionedMessage`, `botInvokeMessage` e `lottieStickerMessage` são embalagens;
    `ptvMessage` é vídeo; vídeo com Baixar vídeo.
+44. **1.0.150** (18/11/2026, da v3.0.57 da Usaparts): regras do destino na cotação em três buscas (CEP, UF, cidade) em vez
+   de um OR que lia `freight_rules` inteira; índices `(versionId, cityKey)` e `(cityKey, uf)`; etapas da cotação com tempo
+   no log e limite (`step`).
 
 ## Como está no ar
 
