@@ -184,6 +184,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    mês pelos `tenant_payments` RECEBIDA/CONFIRMADA, novas e canceladas por mês, atrasadas pelas VENCIDA; empresas demo e
    a dona ficam fora) e primeiros passos (`/primeiros-passos`, só `role.isSystem` de empresa cliente; dispensar fica na
    configuração `primeiros_passos`).
+43. **1.0.149** (18/11/2026, da v3.0.56 da Usaparts): no app instalado no computador, `/chat?conversa=` vira `/chat-app?conversa=`;
+   `associatedChildMessage` (álbum), `groupMentionedMessage`, `botInvokeMessage` e `lottieStickerMessage` são embalagens;
+   `ptvMessage` é vídeo; vídeo com Baixar vídeo.
 
 ## Como está no ar
 
