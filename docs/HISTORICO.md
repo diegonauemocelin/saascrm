@@ -198,6 +198,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    conciliação mostra vendedor e frete da nota.
 47. **1.0.153** (18/11/2026, da v3.0.60 da Usaparts): importação de NF-e aceita até 10.000 XMLs e 300 MB por vez
    (`NFE_IMPORT_LIMITS` em `fretes/nfe.ts`).
+48. **1.0.154** (19/11/2026, da v3.0.61 da Usaparts): WhatsApp parava de receber (Evolution 2.3.7 / Baileys rc.9 não
+   confirmava os avisos de Status; evolution-api#2778): `deploy/evolution/baileys-status.cjs` corrige o Baileys ao subir
+   o contêiner (entrypoint no `docker-compose.yml`); `whatsapp.sh status` mostra se está aplicada. Vendedor da NF-e em
+   Pedidos e expedição.
 
 ## Como está no ar
 
