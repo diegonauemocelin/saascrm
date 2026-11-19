@@ -205,6 +205,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 49. **1.0.155** (19/11/2026, da v3.0.62 da Usaparts): tela Conferência de frete (`fretes/conferencia.ts`, rotas
    `GET/PATCH fretes/conferencia`, migração `20261119120000_conferencia_frete` com `auditStatus`/`auditCause`/`auditNote`
    em `freight_shipments`); Pedidos com filtro de vendedor, `NOTA_MENOR_ESPERADO` e valor da tabela (`tableExpected`).
+50. **1.0.156** (19/11/2026, da v3.0.63 da Usaparts): poupança de frete dos vendedores (`fretes/poupanca.ts`, tabela
+   `freight_wallet_moves`, campanhas em `fretes_poupanca_campanhas`); painel gerencial (`fretes/gerencial.ts`, `GET
+   fretes/gerencial`); resumo semanal de fretes por e-mail (`resumo-semanal.service.ts`); cotação com produto pelo SKU
+   (`produto-sku.ts`) e caixas (`caixas.ts`); Conferência com filtro CIF/FOB; chat "Conversas da equipe".
 
 ## Como está no ar
 
