@@ -202,6 +202,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    confirmava os avisos de Status; evolution-api#2778): `deploy/evolution/baileys-status.cjs` corrige o Baileys ao subir
    o contêiner (entrypoint no `docker-compose.yml`); `whatsapp.sh status` mostra se está aplicada. Vendedor da NF-e em
    Pedidos e expedição.
+49. **1.0.155** (19/11/2026, da v3.0.62 da Usaparts): tela Conferência de frete (`fretes/conferencia.ts`, rotas
+   `GET/PATCH fretes/conferencia`, migração `20261119120000_conferencia_frete` com `auditStatus`/`auditCause`/`auditNote`
+   em `freight_shipments`); Pedidos com filtro de vendedor, `NOTA_MENOR_ESPERADO` e valor da tabela (`tableExpected`).
 
 ## Como está no ar
 

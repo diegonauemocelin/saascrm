@@ -2,6 +2,23 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.155",
+      "date": "2026-11-19",
+      "title": "Conferência de frete; filtros de vendedor e de frete cobrado a menos",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Fretes",
+          "text": "Nova tela Conferência de frete (Fretes › Conferência de frete): pedido a pedido, o frete cobrado na nota, o cobrado no CT-e e o esperado pela tabela de frete, com as diferenças apontadas. Quem confere marca \"sem problema\" ou registra a divergência com a causa e uma observação."
+        },
+        {
+          "type": "melhoria",
+          "area": "Fretes",
+          "text": "Pedidos e expedição: filtro por vendedor da NF-e, filtro \"Cobrado na nota abaixo do CT-e, da tabela ou do cotado\" e o valor esperado pela tabela de frete junto do cotado."
+        }
+      ]
+    },
+    {
       "version": "1.0.154",
       "date": "2026-11-19",
       "title": "WhatsApp para de cair no recebimento; vendedor em Pedidos e expedição",
