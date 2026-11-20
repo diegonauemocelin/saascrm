@@ -213,6 +213,14 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`walletEntry`); Mapa de vendas usa o DDD do telefone sem estado no cadastro (`MapRow.phoneUf`, `byPhone`).
 52. **1.0.158** (20/11/2026, da v3.0.65 da Usaparts): Prisma 7.10.1 e override `effect` ^3.22.5 (alerta alto do
    `npm audit` no @prisma/config). node-forge 1.4.2 (moderado) segue: a 1.4.3 quebrou o `npm ci`.
+53. **1.0.159** (20/11/2026): redes sociais pelo app da PLATAFORMA (modelo mLabs): as empresas só fazem o login.
+   Apps cadastrados uma vez no painel (Postagens › Contas): Instagram (`postagens_ig_app`), Facebook (`postagens_fb_app`),
+   Google/YouTube (`postagens_yt_app`) e TikTok (`postagens_tt_app`). Retorno único no painel (`/instagram/retorno`,
+   `/facebook/retorno`, `/youtube/retorno`, `/tiktok/retorno`), que manda a pessoa ao endereço da empresa pelo state
+   `<tenantId>.<código>` (rotas públicas `GET /api/public/postagens/<rede>/destino`). Código: `postagens/facebook-login.ts`,
+   `youtube.ts`, `tiktok.ts`. Aparelho confiável no app instalado (da v3.0.66 da Usaparts, tabela `trusted_devices`).
+   **Pendente (fora do código):** verificação da empresa e análise das permissões na Meta; verificação do app no Google
+   (escopo youtube.upload); auditoria do app no TikTok (sem ela, os vídeos saem só como privados).
 
 ## Como está no ar
 

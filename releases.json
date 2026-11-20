@@ -2,6 +2,38 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.159",
+      "date": "2026-11-20",
+      "title": "Redes sociais conectadas só com o login: Instagram, Facebook, YouTube e TikTok",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Postagens",
+          "text": "As empresas conectam o Instagram, as páginas do Facebook, o canal do YouTube e a conta do TikTok só com o login de cada rede (usuário e senha na tela da própria rede), sem criar conta de desenvolvedor nem configurar app. A plataforma cadastra uma vez o app de cada rede."
+        },
+        {
+          "type": "novo",
+          "area": "Postagens",
+          "text": "YouTube: postar vídeos e Shorts (Reels sai como Shorts) e ver inscritos, visualizações e os números de cada vídeo."
+        },
+        {
+          "type": "novo",
+          "area": "Postagens",
+          "text": "TikTok: postar vídeos e ver seguidores, curtidas e os números de cada vídeo."
+        },
+        {
+          "type": "melhoria",
+          "area": "Postagens",
+          "text": "Facebook: páginas conectadas pelo login do Facebook publicam e mostram as métricas sem o token da Meta da empresa."
+        },
+        {
+          "type": "melhoria",
+          "area": "Acesso",
+          "text": "No app instalado (chat no computador e celular), \"Não pedir o código neste aparelho por 30 dias\" na tela do código de 2 fatores. Pelo site, o código continua sendo pedido sempre."
+        }
+      ]
+    },
+    {
       "version": "1.0.158",
       "date": "2026-11-20",
       "title": "Atualização de segurança das dependências",
