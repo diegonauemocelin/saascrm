@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { authorizeUrl, cleanCode, IG_GRAPH, igLoginAccounts, InstagramLogin, needsRenewal } from '../src/postagens/instagram-login'
+import { authorizeUrl, cleanCode, IG_GRAPH, igLoginAccounts, InstagramLogin, needsRenewal, tenantOfState } from '../src/postagens/instagram-login'
 import { MetaPublisher } from '../src/postagens/meta'
 import { cleanAccounts } from '../src/postagens/postagens'
 
@@ -88,5 +88,13 @@ describe('Postagens: contas conectadas pelo login do Instagram', () => {
       now,
     )
     expect(list).toEqual([{ id: '1', username: 'loja', tokenEnc: 'x' }])
+  })
+})
+
+describe('app da plataforma: empresa pelo state', () => {
+  it('lê o id da empresa no começo do state e recusa o resto', () => {
+    expect(tenantOfState('0b9c6a2e-1d2f-4c3a-9e8b-7a6f5d4c3b2a.abcDEF_123')).toBe('0b9c6a2e-1d2f-4c3a-9e8b-7a6f5d4c3b2a')
+    expect(tenantOfState('abc.def')).toBeNull()
+    expect(tenantOfState('')).toBeNull()
   })
 })

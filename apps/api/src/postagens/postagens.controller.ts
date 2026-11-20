@@ -331,6 +331,14 @@ export class PostagensController {
 export class PublicPostagensController {
   constructor(private readonly svc: PostagensService) {}
 
+  /** Retorno do login do Instagram no painel da plataforma: endereço da empresa que começou a conexão. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('instagram/destino')
+  igDestination(@Query('state') state: string) {
+    return this.svc.igDestination(typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
   @Public()
   @SkipThrottle()
   @Get(':token/:media')

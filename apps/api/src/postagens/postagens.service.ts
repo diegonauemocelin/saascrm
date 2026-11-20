@@ -15,7 +15,7 @@ import { postTimes } from '../marketing/instagram'
 import { beatSheet, checkCaption, hookScore, parseReels, reelsPrompt } from './conteudo-ig'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
-import { IG_CALLBACK_PATH, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
+import { IG_CALLBACK_PATH, IG_PLATFORM_CALLBACK_PATH, tenantOfState, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
 import { type AccountMetrics, MetaPublisher, type PostMetrics } from './meta'
 import {
   type Account,
@@ -126,9 +126,41 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
 
   // ---------- Contas conectadas pelo login do Instagram ----------
 
-  /** Endereço de retorno do login do Instagram (no endereço da própria empresa). */
+  /** Endereço de retorno do login do Instagram com o app próprio da empresa (no endereço dela). */
   async igRedirectUri(tenantId: string) {
     return `${await this.tenants.url(tenantId)}${IG_CALLBACK_PATH}`
+  }
+
+  private async platformTenantId() {
+    return (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id ?? null
+  }
+
+  /**
+   * App da Meta usado para conectar: o da plataforma (SG Multiconecta, cadastrado no painel da plataforma) para todas as
+   * empresas, que só fazem o login no Instagram; o próprio da empresa só se ela cadastrou um. O retorno do app da
+   * plataforma é um endereço só (IG_PLATFORM_CALLBACK_PATH no painel), que devolve a pessoa ao endereço da empresa.
+   */
+  private async igAppFor(tenantId: string): Promise<{ app: IgApp; platform: boolean; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    const own = await this.igApp(tenantId)
+    if (own.appId && own.secretEnc) {
+      return { app: own, platform: tenantId === pid, redirectUri: tenantId === pid ? `${await this.tenants.url(tenantId)}${IG_PLATFORM_CALLBACK_PATH}` : await this.igRedirectUri(tenantId) }
+    }
+    if (!pid || pid === tenantId) return null
+    const p = await this.igApp(pid)
+    if (!p.appId || !p.secretEnc) return null
+    return { app: p, platform: true, redirectUri: `${await this.tenants.url(pid)}${IG_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Página de retorno do painel: para onde mandar a pessoa (o endereço da empresa que começou a conexão). */
+  async igDestination(state: string) {
+    const tenantId = tenantOfState(state)
+    if (!tenantId) throw new BadRequestException('Autorização inválida. Clique em Conectar conta do Instagram de novo.')
+    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, IG_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar conta do Instagram de novo.')
+    }
+    return { url: `${await this.tenants.url(tenantId)}${IG_CALLBACK_PATH}` }
   }
 
   private async igApp(tenantId: string): Promise<IgApp> {
@@ -153,26 +185,26 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   /** Botão "Conectar conta do Instagram": endereço do login do Instagram. */
   async startInstagram(user: AuthUser) {
     this.assertCan(user, 'edit')
-    const c = await this.igApp(user.tenantId)
-    if (!c.appId || !c.secretEnc) throw new BadRequestException('Cadastre o ID e a chave secreta do app do Instagram antes de conectar.')
-    const state = randomBytes(24).toString('base64url')
-    await this.settings.set(user.tenantId, IG_OAUTH_KEY, { state, userId: user.id, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
-    return { url: authorizeUrl(c.appId, await this.igRedirectUri(user.tenantId), state) }
+    const sel = await this.igAppFor(user.tenantId)
+    if (!sel) throw new BadRequestException('A conexão com o Instagram ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, IG_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: authorizeUrl(sel.app.appId, sel.redirectUri, state) }
   }
 
   /** Volta do Instagram: a tela do CRM manda o code e o state; a conta entra (ou é atualizada) na lista. */
   async completeInstagram(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
     this.assertCan(user, 'edit')
-    const pending = await this.settings.get<{ state?: string; userId?: string; expiresAt?: string }>(user.tenantId, IG_OAUTH_KEY, {})
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, IG_OAUTH_KEY, {})
     if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
       throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar conta do Instagram de novo.')
     }
     await this.settings.set(user.tenantId, IG_OAUTH_KEY, {})
-    const app = await this.igApp(user.tenantId)
-    if (!app.appId || !app.secretEnc) throw new BadRequestException('Cadastre o ID e a chave secreta do app do Instagram.')
+    const sel = await this.igAppFor(user.tenantId)
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o Instagram ainda não está liberada nesta plataforma. Fale com o suporte.')
     let r
     try {
-      r = await this.igLogin.connect({ appId: app.appId, secret: decrypt(app.secretEnc) }, code, await this.igRedirectUri(user.tenantId))
+      r = await this.igLogin.connect({ appId: sel.app.appId, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
     } catch (err) {
       throw new BadRequestException((err as Error).message)
     }
@@ -255,12 +287,18 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const c = await this.integrations(user.tenantId)
     const app = await this.igApp(user.tenantId)
     const tokens = await this.igTokens(user.tenantId)
+    const sel = await this.igAppFor(user.tenantId)
+    const isPlatform = (await this.platformTenantId()) === user.tenantId
     return {
       hasToken: !!c.metaAds.tokenEnc,
       instagram: {
         appId: app.appId,
         hasSecret: !!app.secretEnc,
-        redirectUri: await this.igRedirectUri(user.tenantId),
+        // Empresa cliente: conecta pelo app da plataforma (sem app próprio). Painel da plataforma: cadastra o app.
+        ready: !!sel,
+        platformApp: !!sel?.platform && !isPlatform,
+        isPlatform,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${IG_PLATFORM_CALLBACK_PATH}` : await this.igRedirectUri(user.tenantId),
         connections: Object.fromEntries(Object.entries(tokens).map(([id, t]) => [id, { username: t.username, expiresAt: t.expiresAt, connectedBy: t.connectedBy, lastError: t.lastError }])),
       },
       accounts: await this.accounts(user.tenantId),

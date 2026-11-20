@@ -14,6 +14,17 @@ const IG_GRAPH_ROOT = 'https://graph.instagram.com'
 export const IG_SCOPES = ['instagram_business_basic', 'instagram_business_content_publish', 'instagram_business_manage_insights']
 /** Tela do CRM que recebe a volta do Instagram (cadastrada no app da Meta como URL de redirecionamento). */
 export const IG_CALLBACK_PATH = '/postagens/instagram/retorno'
+/**
+ * Retorno do login do Instagram pelo app da plataforma (SG Multiconecta): um endereço só, no painel da plataforma, que
+ * manda a pessoa de volta ao endereço da empresa dela (pelo state). Assim as empresas não precisam de app na Meta.
+ */
+export const IG_PLATFORM_CALLBACK_PATH = '/instagram/retorno'
+
+/** Empresa do state "<id da empresa>.<código>" (o resto é conferido com o que foi guardado ao começar). */
+export function tenantOfState(state: string) {
+  const id = state.split('.')[0] ?? ''
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id.toLowerCase() : null
+}
 /** Renova quando faltam menos dias que isto (o token vale 60 dias e só renova depois de 24 h de criado). */
 export const RENEW_BEFORE_DAYS = 20
 

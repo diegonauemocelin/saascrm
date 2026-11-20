@@ -112,6 +112,7 @@ const pages = {
   postagens: () => page(() => import('@/pages/postagens-page'), 'PostagensPage'),
   sistemas: () => page(() => import('@/pages/sistemas-page'), 'SistemasPage'),
   postagensIgRetorno: () => page(() => import('@/components/postagens/contas'), 'InstagramRetornoPage'),
+  postagensIgPlataforma: () => page(() => import('@/components/postagens/contas'), 'InstagramPlataformaRetornoPage'),
   plataforma: () => page(() => import('@/pages/plataforma-page'), 'PlataformaPage'),
   sobConsulta: () => page(() => import('@/pages/sob-consulta-page'), 'SobConsultaPage'),
   assinatura: () => page(() => import('@/pages/assinatura-page'), 'AssinaturaPage'),
@@ -309,6 +310,7 @@ const router = createBrowserRouter([
   { path: '/cadastro', element: <Lazy fullscreen>{pages.cadastro()}</Lazy> },
   { path: '/esqueci-senha', element: <Lazy fullscreen>{pages.forgot()}</Lazy> },
   { path: '/redefinir-senha', element: <Lazy fullscreen>{pages.reset()}</Lazy> },
+  { path: '/instagram/retorno', element: <Lazy fullscreen>{pages.postagensIgPlataforma()}</Lazy> },
   { path: '/configurar-conta', element: <Lazy fullscreen>{pages.setup()}</Lazy> },
   { path: '/descadastro/:token', element: <Lazy fullscreen>{pages.unsubscribe()}</Lazy> },
   // Página do cliente no programa de fidelidade (sem login do CRM: link assinado ou código).
