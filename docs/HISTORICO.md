@@ -209,6 +209,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `freight_wallet_moves`, campanhas em `fretes_poupanca_campanhas`); painel gerencial (`fretes/gerencial.ts`, `GET
    fretes/gerencial`); resumo semanal de fretes por e-mail (`resumo-semanal.service.ts`); cotação com produto pelo SKU
    (`produto-sku.ts`) e caixas (`caixas.ts`); Conferência com filtro CIF/FOB; chat "Conversas da equipe".
+51. **1.0.157** (20/11/2026, da v3.0.64 da Usaparts): poupança de frete = nota − (cotação + acréscimo), sem o CT-e
+   (`walletEntry`); Mapa de vendas usa o DDD do telefone sem estado no cadastro (`MapRow.phoneUf`, `byPhone`).
 
 ## Como está no ar
 
