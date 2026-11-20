@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { useConfirm } from '@/components/confirm'
 import { Can, EmptyState, ErrorState, formatDateTime, PageHeader, RequirePermission, TableSkeleton } from '@/components/page'
 import { CaptionCheckPanel, ReelsDialog, splitKeywords } from '@/components/postagens/conteudo'
-import { type Account, AccountPicker, AccountsTab, type FacebookLoginConfig, type InstagramLoginConfig, type YoutubeLoginConfig, MetricsTab, NetBadge } from '@/components/postagens/contas'
+import { type Account, AccountPicker, AccountsTab, type FacebookLoginConfig, type InstagramLoginConfig, type TiktokLoginConfig, type YoutubeLoginConfig, MetricsTab, NetBadge } from '@/components/postagens/contas'
 import { type Frame } from '@/components/postagens/imagem'
 import { LibraryTab, MediaPicker, mediaSrc, Thumb, useMediaLibrary } from '@/components/postagens/midias'
 import { Badge } from '@/components/ui/badge'
@@ -52,6 +52,7 @@ interface Config {
   instagram: InstagramLoginConfig
   facebook?: FacebookLoginConfig
   youtube?: YoutubeLoginConfig
+  tiktok?: TiktokLoginConfig
   accounts: Account[]
   hasAi: boolean
   canApprove: boolean
@@ -160,7 +161,7 @@ export function PostagensPage() {
         </TabsContent>
         <TabsContent value="metricas">{tab === 'metricas' && <MetricsTab />}</TabsContent>
         <TabsContent value="contas">
-          <AccountsTab accounts={c?.accounts ?? []} instagram={c?.instagram} facebook={c?.facebook} youtube={c?.youtube} />
+          <AccountsTab accounts={c?.accounts ?? []} instagram={c?.instagram} facebook={c?.facebook} youtube={c?.youtube} tiktok={c?.tiktok} />
         </TabsContent>
       </Tabs>
       {open && (

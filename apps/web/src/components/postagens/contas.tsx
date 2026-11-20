@@ -16,7 +16,7 @@ import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { mediaSrc } from './midias'
 
-export type Network = 'instagram' | 'facebook' | 'youtube'
+export type Network = 'instagram' | 'facebook' | 'youtube' | 'tiktok'
 export interface Account {
   id: string
   network: Network
@@ -24,7 +24,7 @@ export interface Account {
   name: string
   group: string
   /** Conectada pelo login do Instagram. */
-  via?: 'instagram' | 'facebook' | 'youtube'
+  via?: 'instagram' | 'facebook' | 'youtube' | 'tiktok'
 }
 
 const IG_CHANNEL = 'postagens-instagram'
@@ -283,6 +283,126 @@ function YoutubeConnect({ fb }: { fb: YoutubeLoginConfig }) {
   )
 }
 
+/** Conexão pelo login do TikTok (app da plataforma): contas conectadas por open_id. */
+export interface TiktokLoginConfig {
+  ready: boolean
+  isPlatform: boolean
+  clientKey: string
+  hasSecret: boolean
+  redirectUri: string
+  connections: Record<string, { name: string; connectedBy: string; lastError: string | null }>
+}
+
+const TT_CHANNEL = 'postagens-tiktok'
+
+/** Login do TikTok: a pessoa entra na conta e autoriza. No painel da plataforma, cadastra o app do TikTok for Developers. */
+function TiktokConnect({ fb }: { fb: TiktokLoginConfig }) {
+  const qc = useQueryClient()
+  const [appId, setAppId] = useState(fb.clientKey)
+  const [secret, setSecret] = useState('')
+  const [setup, setSetup] = useState(fb.isPlatform && (!fb.clientKey || !fb.hasSecret))
+  const save = useMutation({
+    mutationFn: () => api.put('/postagens/tiktok/app', { clientKey: appId.trim(), ...(secret.trim() ? { secret: secret.trim() } : {}) }),
+    onSuccess: () => {
+      toast.success('App do TikTok salvo.')
+      setSecret('')
+      setSetup(false)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  })
+  const tab = useRef<Window | null>(null)
+  const connect = useMutation({
+    mutationFn: () => api.post<{ url: string }>('/postagens/tiktok/conectar'),
+    onMutate: () => {
+      tab.current = window.open('', '_blank')
+      if (tab.current) tab.current.opener = null
+    },
+    onSuccess: (r) => {
+      if (tab.current && !tab.current.closed) tab.current.location.href = r.url
+      else window.open(r.url, '_blank', 'noopener')
+    },
+    onError: (err) => {
+      tab.current?.close()
+      toast.error(errorMessage(err), { duration: 10_000 })
+    },
+  })
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return
+    const ch = new BroadcastChannel(TT_CHANNEL)
+    ch.onmessage = (e: MessageEvent<{ account?: string }>) => {
+      toast.success(`TikTok conectado${e.data?.account ? `: ${e.data.account}` : ''}.`)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+      void qc.invalidateQueries({ queryKey: ['postagens-metricas'] })
+    }
+    return () => ch.close()
+  }, [qc])
+  return (
+    <Card className="gap-3 p-4">
+      <div className="flex flex-wrap items-start gap-3">
+        <NetBadge n="tiktok" className="size-8 rounded-md text-xs" />
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Conectar conta do TikTok</p>
+          <p className="text-sm text-muted-foreground">Abre a tela do TikTok: entre com o usuário e a senha da conta e autorize. A senha fica só no TikTok; o CRM recebe o acesso para postar vídeos e ver as métricas. Repita para cada conta.</p>
+          {!fb.ready && !fb.isPlatform && <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">A conexão com o TikTok ainda não está liberada. Fale com o suporte.</p>}
+        </div>
+        <div className="flex gap-2">
+          {fb.ready && (
+            <Button onClick={() => connect.mutate()} disabled={connect.isPending}>
+              {connect.isPending ? <Loader2Icon className="animate-spin" /> : <LogInIcon />} Conectar conta do TikTok
+            </Button>
+          )}
+          {fb.isPlatform && !setup && (
+            <Button variant="ghost" onClick={() => setSetup(true)}>
+              App do TikTok
+            </Button>
+          )}
+        </div>
+      </div>
+      {setup && (
+        <div className="space-y-3 rounded-md border p-3">
+          <p className="text-sm text-muted-foreground">
+            App da plataforma, usado por todas as empresas para conectar o TikTok só com o login. Em developers.tiktok.com, no app da SG Multiconecta: adicione Login Kit e Content Posting API (com Direct Post), peça os escopos user.info.basic, user.info.stats, video.publish e video.list e cadastre este Redirect URI. Copie o Client key e o Client secret:
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{fb.redirectUri}</code>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                void navigator.clipboard.writeText(fb.redirectUri)
+                toast.success('Endereço copiado.')
+              }}
+            >
+              <CopyIcon /> Copiar
+            </Button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label htmlFor="tt-client-key">Client key</Label>
+              <Input id="tt-client-key" value={appId} maxLength={64} onChange={(e) => setAppId(e.target.value.trim())} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="tt-client-secret">Client secret</Label>
+              <Input id="tt-client-secret" type="password" autoComplete="off" value={secret} maxLength={200} onChange={(e) => setSecret(e.target.value)} placeholder={fb.hasSecret ? 'Guardada (preencha só para trocar)' : ''} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !appId || (!secret.trim() && !fb.hasSecret)}>
+              {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar app
+            </Button>
+            {fb.ready && (
+              <Button variant="ghost" onClick={() => setSetup(false)}>
+                Fechar
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+}
+
 /** Login do Instagram: ID e chave do app e o botão de conectar (abre a tela de login do Instagram). */
 function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
   const qc = useQueryClient()
@@ -417,7 +537,7 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
  * Retorno do login (Instagram ou Facebook) no painel da plataforma: manda a pessoa para o endereço da empresa dela,
  * que conclui a conexão. Pública: a pessoa está logada no endereço da empresa, não no painel.
  */
-export function PlataformaRetornoPage({ network }: { network: 'instagram' | 'facebook' | 'youtube' }) {
+export function PlataformaRetornoPage({ network }: { network: 'instagram' | 'facebook' | 'youtube' | 'tiktok' }) {
   const [params] = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
@@ -447,6 +567,7 @@ export function PlataformaRetornoPage({ network }: { network: 'instagram' | 'fac
 export const InstagramPlataformaRetornoPage = () => <PlataformaRetornoPage network="instagram" />
 export const FacebookPlataformaRetornoPage = () => <PlataformaRetornoPage network="facebook" />
 export const YoutubePlataformaRetornoPage = () => <PlataformaRetornoPage network="youtube" />
+export const TiktokPlataformaRetornoPage = () => <PlataformaRetornoPage network="tiktok" />
 
 /** Volta do login do Facebook: as páginas entram na lista e a aba fecha. */
 export function FacebookRetornoPage() {
@@ -572,6 +693,68 @@ export function YoutubeRetornoPage() {
   )
 }
 
+/** Volta do login do TikTok: a conta entra na lista e a aba fecha. */
+export function TiktokRetornoPage() {
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const done = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+  const [channel, setChannel] = useState<string | null>(null)
+  useEffect(() => {
+    if (done.current) return
+    done.current = true
+    const code = params.get('code')
+    const state = params.get('state')
+    if (!code || !state) {
+      setError(params.get('error_description') ?? params.get('error_reason') ?? 'O TikTok não devolveu a autorização. Tente conectar de novo.')
+      return
+    }
+    api
+      .post<{ account: string }>('/postagens/tiktok/retorno', { code, state })
+      .then((r) => {
+        setChannel(r.account)
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel(TT_CHANNEL)
+          ch.postMessage({ account: r.account })
+          ch.close()
+        }
+        setTimeout(() => {
+          window.close()
+          setTimeout(() => {
+            toast.success(`TikTok conectado: ${r.account}.`)
+            navigate('/postagens?aba=contas', { replace: true })
+          }, 300)
+        }, 1500)
+      })
+      .catch((err: unknown) => setError(errorMessage(err)))
+  }, [params, navigate])
+  return (
+    <div>
+      <PageHeader title="Conectando o TikTok" />
+      {error ? (
+        <EmptyState
+          icon={UnplugIcon}
+          title="Não foi possível conectar"
+          description={error}
+          action={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/postagens?aba=contas">Voltar para as contas</Link>
+            </Button>
+          }
+        />
+      ) : channel !== null ? (
+        <p className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+          <CheckIcon className="size-4" /> TikTok conectado: {channel}. Esta aba vai fechar sozinha.
+        </p>
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" /> Concluindo a conexão...
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function InstagramRetornoPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -637,8 +820,8 @@ export function InstagramRetornoPage() {
 /** Marca da rede (o pacote de ícones não tem as logomarcas): IG e f nas cores de cada uma. */
 export function NetBadge({ n, className }: { n: Network; className?: string }) {
   return (
-    <span className={cn('inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] text-[9px] leading-none font-bold text-white', n === 'instagram' ? 'bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600' : n === 'youtube' ? 'bg-[#ff0000]' : 'bg-[#1877f2]', className)} aria-label={n === 'instagram' ? 'Instagram' : n === 'youtube' ? 'YouTube' : 'Facebook'}>
-      {n === 'instagram' ? 'IG' : n === 'youtube' ? 'YT' : 'f'}
+    <span className={cn('inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] text-[9px] leading-none font-bold text-white', n === 'instagram' ? 'bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600' : n === 'youtube' ? 'bg-[#ff0000]' : n === 'tiktok' ? 'bg-black ring-1 ring-white/30' : 'bg-[#1877f2]', className)} aria-label={n === 'instagram' ? 'Instagram' : n === 'youtube' ? 'YouTube' : n === 'tiktok' ? 'TikTok' : 'Facebook'}>
+      {n === 'instagram' ? 'IG' : n === 'youtube' ? 'YT' : n === 'tiktok' ? 'TT' : 'f'}
     </span>
   )
 }
@@ -691,7 +874,7 @@ export function AccountPicker({ accounts, value, onChange, disabled }: { account
 
 // ---------- Aba Contas ----------
 
-export function AccountsTab({ accounts, instagram, facebook, youtube }: { accounts: Account[]; instagram?: InstagramLoginConfig; facebook?: FacebookLoginConfig; youtube?: YoutubeLoginConfig }) {
+export function AccountsTab({ accounts, instagram, facebook, youtube, tiktok }: { accounts: Account[]; instagram?: InstagramLoginConfig; facebook?: FacebookLoginConfig; youtube?: YoutubeLoginConfig; tiktok?: TiktokLoginConfig }) {
   const qc = useQueryClient()
   const { can } = useAuth()
   const edit = can('postagens', 'edit')
@@ -720,6 +903,7 @@ export function AccountsTab({ accounts, instagram, facebook, youtube }: { accoun
       {edit && instagram && <InstagramConnect ig={instagram} />}
       {edit && facebook && <FacebookConnect fb={facebook} />}
       {edit && youtube && <YoutubeConnect fb={youtube} />}
+      {edit && tiktok && <TiktokConnect fb={tiktok} />}
       <p className="text-sm text-muted-foreground">
         Também dá para usar o token da Meta (Configurações › Marketing Inteligente). Cada conta é um Instagram profissional ou uma página do Facebook. A empresa pode ter várias (ex.: a conta oficial e a de cada vendedor). Use os grupos para escolher várias de uma vez nas postagens e para somar as métricas. As contas precisam estar no Gerenciador de Negócios da empresa, atribuídas ao usuário do sistema do token (o Instagram de cada vendedor ligado a uma página).
       </p>

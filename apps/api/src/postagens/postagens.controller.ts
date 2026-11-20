@@ -35,6 +35,11 @@ class YtAppDto {
   @IsOptional() @IsString() @MaxLength(200) secret?: string
 }
 
+class TtAppDto {
+  @IsString() @MaxLength(64) clientKey!: string
+  @IsOptional() @IsString() @MaxLength(200) secret?: string
+}
+
 class IgCallbackDto {
   @IsString() @MaxLength(2000) code!: string
   @IsString() @MaxLength(200) state!: string
@@ -217,6 +222,25 @@ export class PostagensController {
     return this.svc.completeYoutube(user, dto.code, dto.state, ctx)
   }
 
+  /** Painel da plataforma: app do TikTok for Developers, usado por todas as empresas. */
+  @Put('tiktok/app')
+  saveTtApp(@CurrentUser() user: AuthUser, @Body() dto: TtAppDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveTtApp(user, dto.clientKey, dto.secret, ctx)
+  }
+
+  @Post('tiktok/conectar')
+  @HttpCode(200)
+  startTiktok(@CurrentUser() user: AuthUser) {
+    return this.svc.startTiktok(user)
+  }
+
+  @Post('tiktok/retorno')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  completeTiktok(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.completeTiktok(user, dto.code, dto.state, ctx)
+  }
+
   @Post('instagram/retorno')
   @HttpCode(200)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -380,6 +404,14 @@ export class PublicPostagensController {
   @Get('instagram/destino')
   igDestination(@Query('state') state: string) {
     return this.svc.oauthDestination('instagram', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
+  /** Retorno do login do TikTok no painel da plataforma. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('tiktok/destino')
+  ttDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('tiktok', typeof state === 'string' ? state.slice(0, 200) : '')
   }
 
   /** Retorno do login do Google (YouTube) no painel da plataforma. */

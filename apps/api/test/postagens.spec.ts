@@ -49,7 +49,7 @@ describe('postagens: regras', () => {
     expect(cleanAccounts([{ network: 'instagram', externalId: '17841400009', name: '@vendedora', group: 'Vendedores' }, { network: 'instagram', externalId: '17841400009', name: 'repetida' }])).toEqual([
       { id: 'ig-17841400009', network: 'instagram', externalId: '17841400009', name: '@vendedora', group: 'Vendedores' },
     ])
-    expect(cleanAccounts([{ network: 'tiktok', externalId: '123456', name: 'x' }])).toEqual({ error: expect.stringMatching(/Instagram, Facebook ou YouTube/) })
+    expect(cleanAccounts([{ network: 'linkedin', externalId: '123456', name: 'x' }])).toEqual({ error: expect.stringMatching(/Instagram, Facebook, YouTube ou TikTok/) })
     expect(cleanAccounts([{ network: 'facebook', externalId: 'abc', name: 'x' }])).toEqual({ error: expect.stringMatching(/ID inválido/) })
   })
 

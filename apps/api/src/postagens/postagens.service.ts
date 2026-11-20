@@ -15,6 +15,7 @@ import { postTimes } from '../marketing/instagram'
 import { beatSheet, checkCaption, hookScore, parseReels, reelsPrompt } from './conteudo-ig'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
+import { TikTokClient, tiktokAuthorizeUrl, TT_APP_KEY, TT_CALLBACK_PATH, TT_OAUTH_KEY, TT_PLATFORM_CALLBACK_PATH, TT_TOKENS_KEY, type TtApp, type TtToken } from './tiktok'
 import { videoMeta, YouTubeClient, youtubeAuthorizeUrl, YT_APP_KEY, YT_CALLBACK_PATH, YT_OAUTH_KEY, YT_PLATFORM_CALLBACK_PATH, YT_TOKENS_KEY, type YtApp, type YtToken } from './youtube'
 import { FacebookLogin, FB_APP_KEY, FB_CALLBACK_PATH, FB_OAUTH_KEY, FB_PLATFORM_CALLBACK_PATH, FB_TOKENS_KEY, type FbApp, type FbPageToken, facebookAuthorizeUrl } from './facebook-login'
 import { IG_CALLBACK_PATH, IG_PLATFORM_CALLBACK_PATH, tenantOfState, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
@@ -74,6 +75,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   igLogin = new InstagramLogin()
   fbLogin = new FacebookLogin()
   youtube = new YouTubeClient()
+  tiktok = new TikTokClient()
 
   constructor(
     private readonly prisma: PrismaService,
@@ -132,6 +134,9 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const yt = await this.ytTokens(user.tenantId)
     const ytKept = Object.fromEntries(Object.entries(yt).filter(([id]) => accounts.some((a) => a.network === 'youtube' && a.externalId === id)))
     if (Object.keys(ytKept).length !== Object.keys(yt).length) await this.settings.set(user.tenantId, YT_TOKENS_KEY, ytKept)
+    const tt = await this.ttTokens(user.tenantId)
+    const ttKept = Object.fromEntries(Object.entries(tt).filter(([id]) => accounts.some((a) => a.network === 'tiktok' && a.externalId === id)))
+    if (Object.keys(ttKept).length !== Object.keys(tt).length) await this.settings.set(user.tenantId, TT_TOKENS_KEY, ttKept)
     await this.audit.byUser(user, ctx, 'postagens.contas', 'settings', ACCOUNTS_KEY, { contas: accounts.map((a) => `${a.network}:${a.name}`) })
     return { accounts }
   }
@@ -312,15 +317,17 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   }
 
   /** Retorno no painel da plataforma: endereço da empresa que começou (Instagram, Facebook ou YouTube). */
-  async oauthDestination(network: 'instagram' | 'facebook' | 'youtube', state: string) {
+  async oauthDestination(network: 'instagram' | 'facebook' | 'youtube' | 'tiktok', state: string) {
     if (network === 'instagram') return this.igDestination(state)
     const tenantId = tenantOfState(state)
     if (!tenantId) throw new BadRequestException('Autorização inválida. Clique em Conectar de novo.')
-    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, network === 'youtube' ? YT_OAUTH_KEY : FB_OAUTH_KEY, {})
+    const key = network === 'youtube' ? YT_OAUTH_KEY : network === 'tiktok' ? TT_OAUTH_KEY : FB_OAUTH_KEY
+    const path = network === 'youtube' ? YT_CALLBACK_PATH : network === 'tiktok' ? TT_CALLBACK_PATH : FB_CALLBACK_PATH
+    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, key, {})
     if (!pending.state || !safeEqual(pending.state, state) || Date.parse(pending.expiresAt ?? '') < Date.now()) {
       throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar de novo.')
     }
-    return { url: `${await this.tenants.url(tenantId)}${network === 'youtube' ? YT_CALLBACK_PATH : FB_CALLBACK_PATH}` }
+    return { url: `${await this.tenants.url(tenantId)}${path}` }
   }
 
   // ---------- Canais do YouTube pelo login do Google (app da plataforma) ----------
@@ -389,6 +396,96 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     this.metricsCache.delete(user.tenantId)
     await this.audit.byUser(user, ctx, 'postagens.youtube_conectado', 'settings', YT_TOKENS_KEY, { canal: r.title, id: r.channelId })
     return { channel: r.title, accounts }
+  }
+
+  // ---------- Contas do TikTok pelo login do TikTok (app da plataforma) ----------
+
+  private async ttApp(tenantId: string): Promise<TtApp> {
+    return { clientKey: '', secretEnc: null, ...(await this.settings.get<Partial<TtApp>>(tenantId, TT_APP_KEY, {})) }
+  }
+
+  private async ttTokens(tenantId: string) {
+    return this.settings.get<Record<string, TtToken>>(tenantId, TT_TOKENS_KEY, {})
+  }
+
+  private async ttAppFor(): Promise<{ app: TtApp; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    if (!pid) return null
+    const app = await this.ttApp(pid)
+    if (!app.clientKey || !app.secretEnc) return null
+    return { app, redirectUri: `${await this.tenants.url(pid)}${TT_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Painel da plataforma: Client key e Client secret do app no TikTok for Developers. */
+  async saveTtApp(user: AuthUser, clientKey: string, secret: string | undefined, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    if ((await this.platformTenantId()) !== user.tenantId) throw new BadRequestException('O app do TikTok é cadastrado só no painel da plataforma.')
+    const c = await this.ttApp(user.tenantId)
+    if (!/^[\w-]{8,64}$/.test(clientKey.trim())) throw new BadRequestException('Client key do TikTok inválida.')
+    if (!secret?.trim() && !c.secretEnc) throw new BadRequestException('Informe o Client secret do app do TikTok.')
+    await this.settings.set(user.tenantId, TT_APP_KEY, { clientKey: clientKey.trim(), secretEnc: secret?.trim() ? encrypt(secret.trim()) : c.secretEnc })
+    await this.audit.byUser(user, ctx, 'postagens.tiktok_app', 'settings', TT_APP_KEY, { clientKey: clientKey.trim(), chaveNova: !!secret?.trim() })
+    return { ok: true }
+  }
+
+  async startTiktok(user: AuthUser) {
+    this.assertCan(user, 'edit')
+    const sel = await this.ttAppFor()
+    if (!sel) throw new BadRequestException('A conexão com o TikTok ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, TT_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: tiktokAuthorizeUrl(sel.app.clientKey, sel.redirectUri, state) }
+  }
+
+  async completeTiktok(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, TT_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar conta do TikTok de novo.')
+    }
+    await this.settings.set(user.tenantId, TT_OAUTH_KEY, {})
+    const sel = await this.ttAppFor()
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o TikTok ainda não está liberada nesta plataforma. Fale com o suporte.')
+    let r
+    try {
+      r = await this.tiktok.connect({ clientKey: sel.app.clientKey, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
+    } catch (err) {
+      throw new BadRequestException((err as Error).message)
+    }
+    const tokens = await this.ttTokens(user.tenantId)
+    tokens[r.openId] = { refreshEnc: encrypt(r.refresh), name: r.name, issuedAt: new Date().toISOString(), refreshExpiresAt: r.refreshExpiresAt, connectedBy: user.name, lastError: null }
+    const accounts = await this.accounts(user.tenantId)
+    const i = accounts.findIndex((a) => a.network === 'tiktok' && a.externalId === r.openId)
+    if (i >= 0) accounts[i] = { ...accounts[i]!, name: r.name, via: 'tiktok' }
+    else accounts.push({ id: `tt-${r.openId}`.slice(0, 40), network: 'tiktok', externalId: r.openId, name: r.name, group: accounts[0]?.group ?? 'Oficial', via: 'tiktok' })
+    if (accounts.length > 30) throw new BadRequestException('Limite de 30 contas atingido: tire uma conta da lista antes de conectar outra.')
+    await this.settings.set(user.tenantId, TT_TOKENS_KEY, tokens)
+    await this.settings.set(user.tenantId, ACCOUNTS_KEY, { accounts })
+    this.metricsCache.delete(user.tenantId)
+    await this.audit.byUser(user, ctx, 'postagens.tiktok_conectado', 'settings', TT_TOKENS_KEY, { conta: r.name })
+    return { account: r.name, accounts }
+  }
+
+  /** Acesso de 24 h à conta do TikTok; guarda o acesso de renovação novo que o TikTok devolve. */
+  private async ttAccess(tenantId: string, openId: string, cache: Map<string, string>) {
+    const hit = cache.get(openId)
+    if (hit) return hit
+    const tokens = await this.ttTokens(tenantId)
+    const t = tokens[openId]
+    if (!t) throw new Error('Conta sem conexão com o TikTok: clique em Conectar conta do TikTok na aba Contas.')
+    const sel = await this.ttAppFor()
+    if (!sel?.app.secretEnc) throw new Error('A conexão com o TikTok não está liberada nesta plataforma.')
+    try {
+      const r = await this.tiktok.access({ clientKey: sel.app.clientKey, secret: decrypt(sel.app.secretEnc) }, decrypt(t.refreshEnc))
+      tokens[openId] = { ...t, refreshEnc: encrypt(r.refresh), refreshExpiresAt: r.refreshExpiresAt, lastError: null }
+      await this.settings.set(tenantId, TT_TOKENS_KEY, tokens)
+      cache.set(openId, r.access)
+      return r.access
+    } catch (err) {
+      tokens[openId] = { ...t, lastError: (err as Error).message.slice(0, 300) }
+      await this.settings.set(tenantId, TT_TOKENS_KEY, tokens)
+      throw err
+    }
   }
 
   /** Acesso de 1 hora ao canal (renovado a partir do guardado). */
@@ -510,6 +607,14 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${YT_PLATFORM_CALLBACK_PATH}` : '',
         connections: Object.fromEntries(Object.entries(await this.ytTokens(user.tenantId)).map(([id, t]) => [id, { name: t.title, connectedBy: t.connectedBy, lastError: t.lastError }])),
       },
+      tiktok: {
+        ready: !!(await this.ttAppFor()),
+        isPlatform,
+        clientKey: isPlatform ? (await this.ttApp(user.tenantId)).clientKey : '',
+        hasSecret: isPlatform ? !!(await this.ttApp(user.tenantId)).secretEnc : false,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${TT_PLATFORM_CALLBACK_PATH}` : '',
+        connections: Object.fromEntries(Object.entries(await this.ttTokens(user.tenantId)).map(([id, t]) => [id, { name: t.name, connectedBy: t.connectedBy, lastError: t.lastError }])),
+      },
       accounts: await this.accounts(user.tenantId),
       hasAi: await this.ai.available(user.tenantId),
       canApprove: can(user.permissions, user.role.isSystem, 'postagens', 'edit'),
@@ -526,9 +631,10 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const viaIg = accounts.filter((a) => a.via === 'instagram')
     const viaFb = accounts.filter((a) => a.via === 'facebook')
     const viaYt = accounts.filter((a) => a.network === 'youtube')
-    if (!c.metaAds.tokenEnc && !viaIg.length && !viaFb.length && !viaYt.length) throw new BadRequestException('Conecte uma conta do Instagram, do Facebook ou do YouTube na aba Contas.')
+    const viaTt = accounts.filter((a) => a.network === 'tiktok')
+    if (!c.metaAds.tokenEnc && !viaIg.length && !viaFb.length && !viaYt.length && !viaTt.length) throw new BadRequestException('Conecte uma conta na aba Contas (Instagram, Facebook, YouTube ou TikTok).')
     const checks: { name: string; ok: boolean; message: string }[] = []
-    if (c.metaAds.tokenEnc && (viaMeta.length || (!viaIg.length && !viaFb.length && !viaYt.length))) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
+    if (c.metaAds.tokenEnc && (viaMeta.length || (!viaIg.length && !viaFb.length && !viaYt.length && !viaTt.length))) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
     const cache = new Map<string, MetaPublisher>()
     for (const a of viaIg) {
       try {
@@ -547,12 +653,21 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
       }
     }
     const ytCache = new Map<string, string>()
+    const ttCache = new Map<string, string>()
     for (const a of viaYt) {
       try {
         const ch = await this.youtube.channel(await this.ytAccess(user.tenantId, a.externalId, ytCache))
         checks.push({ name: `YouTube ${a.name}`, ok: true, message: `Canal ${ch.title} conectado pelo login do Google` })
       } catch (err) {
         checks.push({ name: `YouTube ${a.name}`, ok: false, message: (err as Error).message })
+      }
+    }
+    for (const a of viaTt) {
+      try {
+        const u = await this.tiktok.user(await this.ttAccess(user.tenantId, a.externalId, ttCache))
+        checks.push({ name: `TikTok ${a.name}`, ok: true, message: `Conta ${u.name} conectada pelo login do TikTok` })
+      } catch (err) {
+        checks.push({ name: `TikTok ${a.name}`, ok: false, message: (err as Error).message })
       }
     }
     return { checks }
@@ -570,15 +685,22 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     if (!refresh && hit && Date.now() - hit.at < METRICS_TTL_MS) return hit.data
     const c = await this.integrations(user.tenantId)
     const accounts = await this.accounts(user.tenantId)
-    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via)) throw new BadRequestException('Conecte uma conta do Instagram, do Facebook ou do YouTube na aba Contas.')
+    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via)) throw new BadRequestException('Conecte uma conta na aba Contas (Instagram, Facebook, YouTube ou TikTok).')
     const cache = new Map<string, MetaPublisher>()
     const ytCache = new Map<string, string>()
+    const ttCache = new Map<string, string>()
     const rows: (Account & AccountMetrics & { engagement: number | null; error: string | null })[] = []
     for (const a of accounts) {
       try {
         if (a.network === 'youtube') {
           const ch = await this.youtube.channel(await this.ytAccess(user.tenantId, a.externalId, ytCache))
           const m: AccountMetrics = { followers: ch.subscribers, posts: ch.videos, reach: ch.views, engaged: null, interactions: null, likes: null, comments: null, saves: null, shares: null, demographics: null, warnings: ['YouTube: alcance = visualizações totais do canal'] }
+          rows.push({ ...a, ...m, engagement: null, error: null })
+          continue
+        }
+        if (a.network === 'tiktok') {
+          const u = await this.tiktok.user(await this.ttAccess(user.tenantId, a.externalId, ttCache))
+          const m: AccountMetrics = { followers: u.followers, posts: u.videos, reach: null, engaged: null, interactions: u.likes, likes: u.likes, comments: null, saves: null, shares: null, demographics: null, warnings: ['TikTok: curtidas = total da conta'] }
           rows.push({ ...a, ...m, engagement: null, error: null })
           continue
         }
@@ -603,6 +725,13 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
             const v = await this.youtube.videoStats(await this.ytAccess(user.tenantId, a.externalId, ytCache), r.id)
             const m: PostMetrics = { reach: v.views, likes: v.likes, comments: v.comments, saves: null, shares: null, interactions: v.likes + v.comments }
             posts.push({ ...base, metrics: m, engagement: engagementRate({ followers: rows.find((x) => x.id === a.id)?.followers ?? null, reach: m.reach, interactions: m.interactions }), error: null })
+            continue
+          }
+          if (base.network === 'tiktok') {
+            if (!a) throw new Error('Conta removida da lista de contas.')
+            const v = await this.tiktok.videoStats(await this.ttAccess(user.tenantId, a.externalId, ttCache), r.id)
+            const m: PostMetrics = { reach: v.views, likes: v.likes, comments: v.comments, saves: null, shares: v.shares, interactions: v.likes + v.comments + v.shares }
+            posts.push({ ...base, permalink: base.permalink ?? v.url, metrics: m, engagement: engagementRate({ followers: rows.find((x) => x.id === a.id)?.followers ?? null, reach: m.reach, interactions: m.interactions }), error: null })
             continue
           }
           const meta = await this.publisherFor(user.tenantId, a ?? { id: accountId, network: base.network as 'instagram' | 'facebook', externalId: '', name: base.account, group: base.group }, cache)
@@ -907,6 +1036,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
       const cache = new Map<string, MetaPublisher>()
       const media = await this.prisma.socialMedia.findMany({ where: { tenantId: p.tenantId, id: { in: p.mediaIds } }, select: { id: true, kind: true, fileId: true, mime: true } })
       const ytCache = new Map<string, string>()
+      const ttCache = new Map<string, string>()
       const ordered = p.mediaIds.map((m) => media.find((x) => x.id === m)).filter((m): m is NonNullable<typeof m> => !!m)
       if (!ordered.length) throw new Error('As mídias da postagem foram apagadas da biblioteca.')
       const base = await this.tenants.url(p.tenantId)
@@ -924,6 +1054,11 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
             if (!video) throw new Error('YouTube: a postagem precisa de um vídeo.')
             const { content } = await this.files.read(video.fileId)
             r = await this.youtube.upload(await this.ytAccess(p.tenantId, a.externalId, ytCache), { ...videoMeta({ title: p.title, caption: p.caption, shorts: p.format === 'REELS' }), bytes: content, mime: video.mime || 'video/mp4' })
+          } else if (a.network === 'tiktok') {
+            const video = ordered.find((m) => m.kind === 'video')
+            if (!video) throw new Error('TikTok: a postagem precisa de um vídeo.')
+            const { content } = await this.files.read(video.fileId)
+            r = await this.tiktok.publish(await this.ttAccess(p.tenantId, a.externalId, ttCache), { caption: p.caption, bytes: content })
           } else {
             const meta = await this.publisherFor(p.tenantId, a, cache)
             r = a.network === 'instagram' ? await meta.instagram(a.externalId, input) : await meta.facebook(a.externalId, input)
