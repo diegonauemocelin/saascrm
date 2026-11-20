@@ -30,6 +30,11 @@ class IgAppDto {
   @IsOptional() @IsString() @MaxLength(200) secret?: string
 }
 
+class YtAppDto {
+  @IsString() @MaxLength(250) clientId!: string
+  @IsOptional() @IsString() @MaxLength(200) secret?: string
+}
+
 class IgCallbackDto {
   @IsString() @MaxLength(2000) code!: string
   @IsString() @MaxLength(200) state!: string
@@ -191,6 +196,25 @@ export class PostagensController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   completeFacebook(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
     return this.svc.completeFacebook(user, dto.code, dto.state, ctx)
+  }
+
+  /** Painel da plataforma: cliente OAuth do Google (YouTube), usado por todas as empresas. */
+  @Put('youtube/app')
+  saveYtApp(@CurrentUser() user: AuthUser, @Body() dto: YtAppDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveYtApp(user, dto.clientId, dto.secret, ctx)
+  }
+
+  @Post('youtube/conectar')
+  @HttpCode(200)
+  startYoutube(@CurrentUser() user: AuthUser) {
+    return this.svc.startYoutube(user)
+  }
+
+  @Post('youtube/retorno')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  completeYoutube(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.completeYoutube(user, dto.code, dto.state, ctx)
   }
 
   @Post('instagram/retorno')
@@ -356,6 +380,14 @@ export class PublicPostagensController {
   @Get('instagram/destino')
   igDestination(@Query('state') state: string) {
     return this.svc.oauthDestination('instagram', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
+  /** Retorno do login do Google (YouTube) no painel da plataforma. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('youtube/destino')
+  ytDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('youtube', typeof state === 'string' ? state.slice(0, 200) : '')
   }
 
   /** Retorno do login do Facebook no painel da plataforma: endereço da empresa que começou a conexão. */

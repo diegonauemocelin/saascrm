@@ -49,7 +49,7 @@ describe('postagens: regras', () => {
     expect(cleanAccounts([{ network: 'instagram', externalId: '17841400009', name: '@vendedora', group: 'Vendedores' }, { network: 'instagram', externalId: '17841400009', name: 'repetida' }])).toEqual([
       { id: 'ig-17841400009', network: 'instagram', externalId: '17841400009', name: '@vendedora', group: 'Vendedores' },
     ])
-    expect(cleanAccounts([{ network: 'tiktok', externalId: '123456', name: 'x' }])).toEqual({ error: expect.stringMatching(/Instagram ou Facebook/) })
+    expect(cleanAccounts([{ network: 'tiktok', externalId: '123456', name: 'x' }])).toEqual({ error: expect.stringMatching(/Instagram, Facebook ou YouTube/) })
     expect(cleanAccounts([{ network: 'facebook', externalId: 'abc', name: 'x' }])).toEqual({ error: expect.stringMatching(/ID inválido/) })
   })
 
@@ -167,5 +167,17 @@ describe('postagens: publicação na Meta', () => {
 
   it('erro de permissão vira mensagem com a dica', () => {
     expect(metaMessage(403, { error: { message: '(#10) Application does not have permission', code: 10 } })).toMatch(/instagram_content_publish/)
+  })
+})
+
+describe('postagens: YouTube', () => {
+  it('canal do YouTube só entra pelo login (ID UC...) e pede um vídeo', () => {
+    const ok = cleanAccounts([{ network: 'youtube', externalId: 'UC1234567890abcdefghijkl', name: 'Canal', via: 'youtube' }])
+    expect(ok).toEqual([{ id: 'yt-UC1234567890abcdefghijkl', network: 'youtube', externalId: 'UC1234567890abcdefghijkl', name: 'Canal', group: 'Geral', via: 'youtube' }])
+    expect(cleanAccounts([{ network: 'youtube', externalId: '123456', name: 'X' }])).toHaveProperty('error')
+    const post = { title: 't', caption: 'c', accountIds: ['yt-1'], networks: ['youtube' as const], format: 'STORIES' as const, mediaIds: ['m'], scheduledAt: null }
+    const miss = missingForApproval(post, [{ id: 'm', kind: 'imagem', width: 100, height: 100 }])
+    expect(miss).toContain('YouTube: escolha um vídeo (só um).')
+    expect(miss.some((m) => m.startsWith('YouTube não tem Stories'))).toBe(true)
   })
 })

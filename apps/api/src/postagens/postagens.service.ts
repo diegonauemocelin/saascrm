@@ -15,6 +15,7 @@ import { postTimes } from '../marketing/instagram'
 import { beatSheet, checkCaption, hookScore, parseReels, reelsPrompt } from './conteudo-ig'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
+import { videoMeta, YouTubeClient, youtubeAuthorizeUrl, YT_APP_KEY, YT_CALLBACK_PATH, YT_OAUTH_KEY, YT_PLATFORM_CALLBACK_PATH, YT_TOKENS_KEY, type YtApp, type YtToken } from './youtube'
 import { FacebookLogin, FB_APP_KEY, FB_CALLBACK_PATH, FB_OAUTH_KEY, FB_PLATFORM_CALLBACK_PATH, FB_TOKENS_KEY, type FbApp, type FbPageToken, facebookAuthorizeUrl } from './facebook-login'
 import { IG_CALLBACK_PATH, IG_PLATFORM_CALLBACK_PATH, tenantOfState, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
 import { type AccountMetrics, MetaPublisher, type PostMetrics } from './meta'
@@ -44,6 +45,7 @@ import {
   type PostResults,
   postSystem,
   VIDEO_MAX_BYTES,
+  NETWORK_LABEL,
 } from './postagens'
 
 const TICK_MS = 60_000
@@ -71,6 +73,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   private lastRenew = 0
   igLogin = new InstagramLogin()
   fbLogin = new FacebookLogin()
+  youtube = new YouTubeClient()
 
   constructor(
     private readonly prisma: PrismaService,
@@ -126,6 +129,9 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const fb = await this.fbTokens(user.tenantId)
     const fbKept = Object.fromEntries(Object.entries(fb).filter(([id]) => accounts.some((a) => a.via === 'facebook' && a.externalId === id)))
     if (Object.keys(fbKept).length !== Object.keys(fb).length) await this.settings.set(user.tenantId, FB_TOKENS_KEY, fbKept)
+    const yt = await this.ytTokens(user.tenantId)
+    const ytKept = Object.fromEntries(Object.entries(yt).filter(([id]) => accounts.some((a) => a.network === 'youtube' && a.externalId === id)))
+    if (Object.keys(ytKept).length !== Object.keys(yt).length) await this.settings.set(user.tenantId, YT_TOKENS_KEY, ytKept)
     await this.audit.byUser(user, ctx, 'postagens.contas', 'settings', ACCOUNTS_KEY, { contas: accounts.map((a) => `${a.network}:${a.name}`) })
     return { accounts }
   }
@@ -305,16 +311,106 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     return { pages: pages.map((p) => p.name), accounts }
   }
 
-  /** Retorno no painel da plataforma: endereço da empresa que começou (Instagram ou Facebook). */
-  async oauthDestination(network: 'instagram' | 'facebook', state: string) {
+  /** Retorno no painel da plataforma: endereço da empresa que começou (Instagram, Facebook ou YouTube). */
+  async oauthDestination(network: 'instagram' | 'facebook' | 'youtube', state: string) {
     if (network === 'instagram') return this.igDestination(state)
     const tenantId = tenantOfState(state)
     if (!tenantId) throw new BadRequestException('Autorização inválida. Clique em Conectar de novo.')
-    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, FB_OAUTH_KEY, {})
+    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, network === 'youtube' ? YT_OAUTH_KEY : FB_OAUTH_KEY, {})
     if (!pending.state || !safeEqual(pending.state, state) || Date.parse(pending.expiresAt ?? '') < Date.now()) {
       throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar de novo.')
     }
-    return { url: `${await this.tenants.url(tenantId)}${FB_CALLBACK_PATH}` }
+    return { url: `${await this.tenants.url(tenantId)}${network === 'youtube' ? YT_CALLBACK_PATH : FB_CALLBACK_PATH}` }
+  }
+
+  // ---------- Canais do YouTube pelo login do Google (app da plataforma) ----------
+
+  private async ytApp(tenantId: string): Promise<YtApp> {
+    return { clientId: '', secretEnc: null, ...(await this.settings.get<Partial<YtApp>>(tenantId, YT_APP_KEY, {})) }
+  }
+
+  private async ytTokens(tenantId: string) {
+    return this.settings.get<Record<string, YtToken>>(tenantId, YT_TOKENS_KEY, {})
+  }
+
+  private async ytAppFor(): Promise<{ app: YtApp; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    if (!pid) return null
+    const app = await this.ytApp(pid)
+    if (!app.clientId || !app.secretEnc) return null
+    return { app, redirectUri: `${await this.tenants.url(pid)}${YT_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Painel da plataforma: cliente OAuth do Google (Google Cloud › Credenciais) com a API do YouTube ligada. */
+  async saveYtApp(user: AuthUser, clientId: string, secret: string | undefined, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    if ((await this.platformTenantId()) !== user.tenantId) throw new BadRequestException('O app do Google é cadastrado só no painel da plataforma.')
+    const c = await this.ytApp(user.tenantId)
+    if (!/^[\w.-]{10,200}\.apps\.googleusercontent\.com$/.test(clientId.trim())) throw new BadRequestException('O ID do cliente do Google termina em .apps.googleusercontent.com.')
+    if (!secret?.trim() && !c.secretEnc) throw new BadRequestException('Informe a chave secreta do cliente do Google.')
+    await this.settings.set(user.tenantId, YT_APP_KEY, { clientId: clientId.trim(), secretEnc: secret?.trim() ? encrypt(secret.trim()) : c.secretEnc })
+    await this.audit.byUser(user, ctx, 'postagens.youtube_app', 'settings', YT_APP_KEY, { clientId: clientId.trim(), chaveNova: !!secret?.trim() })
+    return { ok: true }
+  }
+
+  async startYoutube(user: AuthUser) {
+    this.assertCan(user, 'edit')
+    const sel = await this.ytAppFor()
+    if (!sel) throw new BadRequestException('A conexão com o YouTube ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, YT_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: youtubeAuthorizeUrl(sel.app.clientId, sel.redirectUri, state) }
+  }
+
+  async completeYoutube(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, YT_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar canal do YouTube de novo.')
+    }
+    await this.settings.set(user.tenantId, YT_OAUTH_KEY, {})
+    const sel = await this.ytAppFor()
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o YouTube ainda não está liberada nesta plataforma. Fale com o suporte.')
+    let r
+    try {
+      r = await this.youtube.connect({ clientId: sel.app.clientId, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
+    } catch (err) {
+      throw new BadRequestException((err as Error).message)
+    }
+    const tokens = await this.ytTokens(user.tenantId)
+    tokens[r.channelId] = { refreshEnc: encrypt(r.refresh), title: r.title, issuedAt: new Date().toISOString(), connectedBy: user.name, lastError: null }
+    const accounts = await this.accounts(user.tenantId)
+    const i = accounts.findIndex((a) => a.network === 'youtube' && a.externalId === r.channelId)
+    if (i >= 0) accounts[i] = { ...accounts[i]!, name: r.title, via: 'youtube' }
+    else accounts.push({ id: `yt-${r.channelId}`, network: 'youtube', externalId: r.channelId, name: r.title, group: accounts[0]?.group ?? 'Oficial', via: 'youtube' })
+    if (accounts.length > 30) throw new BadRequestException('Limite de 30 contas atingido: tire uma conta da lista antes de conectar outra.')
+    await this.settings.set(user.tenantId, YT_TOKENS_KEY, tokens)
+    await this.settings.set(user.tenantId, ACCOUNTS_KEY, { accounts })
+    this.metricsCache.delete(user.tenantId)
+    await this.audit.byUser(user, ctx, 'postagens.youtube_conectado', 'settings', YT_TOKENS_KEY, { canal: r.title, id: r.channelId })
+    return { channel: r.title, accounts }
+  }
+
+  /** Acesso de 1 hora ao canal (renovado a partir do guardado). */
+  private async ytAccess(tenantId: string, channelId: string, cache: Map<string, string>) {
+    const hit = cache.get(channelId)
+    if (hit) return hit
+    const t = (await this.ytTokens(tenantId))[channelId]
+    if (!t) throw new Error('Canal sem conexão com o YouTube: clique em Conectar canal do YouTube na aba Contas.')
+    const sel = await this.ytAppFor()
+    if (!sel?.app.secretEnc) throw new Error('A conexão com o YouTube não está liberada nesta plataforma.')
+    try {
+      const access = await this.youtube.access({ clientId: sel.app.clientId, secret: decrypt(sel.app.secretEnc) }, decrypt(t.refreshEnc))
+      cache.set(channelId, access)
+      return access
+    } catch (err) {
+      const tokens = await this.ytTokens(tenantId)
+      if (tokens[channelId]) {
+        tokens[channelId] = { ...tokens[channelId]!, lastError: (err as Error).message.slice(0, 300) }
+        await this.settings.set(tenantId, YT_TOKENS_KEY, tokens)
+      }
+      throw err
+    }
   }
 
   /** Renova os tokens do Instagram perto de vencer (todas as empresas). */
@@ -406,6 +502,14 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${FB_PLATFORM_CALLBACK_PATH}` : '',
         connections: Object.fromEntries(Object.entries(await this.fbTokens(user.tenantId)).map(([id, t]) => [id, { name: t.name, connectedBy: t.connectedBy, lastError: t.lastError }])),
       },
+      youtube: {
+        ready: !!(await this.ytAppFor()),
+        isPlatform,
+        clientId: isPlatform ? (await this.ytApp(user.tenantId)).clientId : '',
+        hasSecret: isPlatform ? !!(await this.ytApp(user.tenantId)).secretEnc : false,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${YT_PLATFORM_CALLBACK_PATH}` : '',
+        connections: Object.fromEntries(Object.entries(await this.ytTokens(user.tenantId)).map(([id, t]) => [id, { name: t.title, connectedBy: t.connectedBy, lastError: t.lastError }])),
+      },
       accounts: await this.accounts(user.tenantId),
       hasAi: await this.ai.available(user.tenantId),
       canApprove: can(user.permissions, user.role.isSystem, 'postagens', 'edit'),
@@ -421,9 +525,10 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const viaMeta = accounts.filter((a) => !a.via)
     const viaIg = accounts.filter((a) => a.via === 'instagram')
     const viaFb = accounts.filter((a) => a.via === 'facebook')
-    if (!c.metaAds.tokenEnc && !viaIg.length && !viaFb.length) throw new BadRequestException('Conecte uma conta do Instagram ou do Facebook na aba Contas.')
+    const viaYt = accounts.filter((a) => a.network === 'youtube')
+    if (!c.metaAds.tokenEnc && !viaIg.length && !viaFb.length && !viaYt.length) throw new BadRequestException('Conecte uma conta do Instagram, do Facebook ou do YouTube na aba Contas.')
     const checks: { name: string; ok: boolean; message: string }[] = []
-    if (c.metaAds.tokenEnc && (viaMeta.length || (!viaIg.length && !viaFb.length))) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
+    if (c.metaAds.tokenEnc && (viaMeta.length || (!viaIg.length && !viaFb.length && !viaYt.length))) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
     const cache = new Map<string, MetaPublisher>()
     for (const a of viaIg) {
       try {
@@ -441,6 +546,15 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         checks.push({ name: `Facebook ${a.name}`, ok: false, message: (err as Error).message })
       }
     }
+    const ytCache = new Map<string, string>()
+    for (const a of viaYt) {
+      try {
+        const ch = await this.youtube.channel(await this.ytAccess(user.tenantId, a.externalId, ytCache))
+        checks.push({ name: `YouTube ${a.name}`, ok: true, message: `Canal ${ch.title} conectado pelo login do Google` })
+      } catch (err) {
+        checks.push({ name: `YouTube ${a.name}`, ok: false, message: (err as Error).message })
+      }
+    }
     return { checks }
   }
 
@@ -456,11 +570,18 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     if (!refresh && hit && Date.now() - hit.at < METRICS_TTL_MS) return hit.data
     const c = await this.integrations(user.tenantId)
     const accounts = await this.accounts(user.tenantId)
-    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via)) throw new BadRequestException('Conecte uma conta do Instagram ou do Facebook na aba Contas.')
+    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via)) throw new BadRequestException('Conecte uma conta do Instagram, do Facebook ou do YouTube na aba Contas.')
     const cache = new Map<string, MetaPublisher>()
+    const ytCache = new Map<string, string>()
     const rows: (Account & AccountMetrics & { engagement: number | null; error: string | null })[] = []
     for (const a of accounts) {
       try {
+        if (a.network === 'youtube') {
+          const ch = await this.youtube.channel(await this.ytAccess(user.tenantId, a.externalId, ytCache))
+          const m: AccountMetrics = { followers: ch.subscribers, posts: ch.videos, reach: ch.views, engaged: null, interactions: null, likes: null, comments: null, saves: null, shares: null, demographics: null, warnings: ['YouTube: alcance = visualizações totais do canal'] }
+          rows.push({ ...a, ...m, engagement: null, error: null })
+          continue
+        }
         const meta = await this.publisherFor(user.tenantId, a, cache)
         const m = a.network === 'instagram' ? await meta.instagramMetrics(a.externalId) : await meta.facebookMetrics(a.externalId)
         rows.push({ ...a, ...m, engagement: engagementRate(m), error: null })
@@ -477,6 +598,13 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         const a = accounts.find((x) => x.id === accountId)
         const base = { postId: p.id, title: p.title, format: p.format, publishedAt: p.publishedAt, mediaId: p.mediaIds[0] ?? null, accountId, account: a?.name ?? r.name ?? accountId, network: a?.network ?? r.network ?? 'instagram', group: a?.group ?? 'Geral', permalink: r.permalink ?? null }
         try {
+          if (base.network === 'youtube') {
+            if (!a) throw new Error('Canal removido da lista de contas.')
+            const v = await this.youtube.videoStats(await this.ytAccess(user.tenantId, a.externalId, ytCache), r.id)
+            const m: PostMetrics = { reach: v.views, likes: v.likes, comments: v.comments, saves: null, shares: null, interactions: v.likes + v.comments }
+            posts.push({ ...base, metrics: m, engagement: engagementRate({ followers: rows.find((x) => x.id === a.id)?.followers ?? null, reach: m.reach, interactions: m.interactions }), error: null })
+            continue
+          }
           const meta = await this.publisherFor(user.tenantId, a ?? { id: accountId, network: base.network as 'instagram' | 'facebook', externalId: '', name: base.account, group: base.group }, cache)
           const m = await meta.postMetrics(base.network as 'instagram' | 'facebook', r.id, a?.network === 'facebook' ? a.externalId : undefined)
           posts.push({ ...base, metrics: m, engagement: engagementRate({ followers: a ? (rows.find((x) => x.id === a.id)?.followers ?? null) : null, reach: m.reach, interactions: m.interactions }), error: null })
@@ -777,7 +905,8 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     let error: string | null = null
     try {
       const cache = new Map<string, MetaPublisher>()
-      const media = await this.prisma.socialMedia.findMany({ where: { tenantId: p.tenantId, id: { in: p.mediaIds } }, select: { id: true, kind: true } })
+      const media = await this.prisma.socialMedia.findMany({ where: { tenantId: p.tenantId, id: { in: p.mediaIds } }, select: { id: true, kind: true, fileId: true, mime: true } })
+      const ytCache = new Map<string, string>()
       const ordered = p.mediaIds.map((m) => media.find((x) => x.id === m)).filter((m): m is NonNullable<typeof m> => !!m)
       if (!ordered.length) throw new Error('As mídias da postagem foram apagadas da biblioteca.')
       const base = await this.tenants.url(p.tenantId)
@@ -788,15 +917,24 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         const a = accounts.find((x) => x.id === id)
         try {
           if (!a) throw new Error('Conta removida da lista de contas de Postagens.')
-          const meta = await this.publisherFor(p.tenantId, a, cache)
-          const r = a.network === 'instagram' ? await meta.instagram(a.externalId, input) : await meta.facebook(a.externalId, input)
+          let r
+          if (a.network === 'youtube') {
+            // YouTube recebe o arquivo (não baixa pelo endereço): um vídeo; Reels sai como Shorts.
+            const video = ordered.find((m) => m.kind === 'video')
+            if (!video) throw new Error('YouTube: a postagem precisa de um vídeo.')
+            const { content } = await this.files.read(video.fileId)
+            r = await this.youtube.upload(await this.ytAccess(p.tenantId, a.externalId, ytCache), { ...videoMeta({ title: p.title, caption: p.caption, shorts: p.format === 'REELS' }), bytes: content, mime: video.mime || 'video/mp4' })
+          } else {
+            const meta = await this.publisherFor(p.tenantId, a, cache)
+            r = a.network === 'instagram' ? await meta.instagram(a.externalId, input) : await meta.facebook(a.externalId, input)
+          }
           results[id] = { ...r, network: a.network, name: a.name }
         } catch (err) {
           results[id] = { error: (err as Error).message.slice(0, 400), at: new Date().toISOString(), network: a?.network, name: a?.name ?? id }
         }
       }
       const failed = p.accountIds.filter((id) => !results[id]?.id)
-      if (failed.length) error = failed.map((id) => `${results[id]?.network === 'facebook' ? 'Facebook' : 'Instagram'} ${results[id]?.name ?? ''}: ${results[id]?.error ?? 'não publicou'}`).join(' · ')
+      if (failed.length) error = failed.map((id) => `${NETWORK_LABEL[results[id]?.network ?? 'instagram']} ${results[id]?.name ?? ''}: ${results[id]?.error ?? 'não publicou'}`).join(' · ')
     } catch (err) {
       error = (err as Error).message.slice(0, 400)
     }
