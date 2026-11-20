@@ -211,6 +211,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`produto-sku.ts`) e caixas (`caixas.ts`); Conferência com filtro CIF/FOB; chat "Conversas da equipe".
 51. **1.0.157** (20/11/2026, da v3.0.64 da Usaparts): poupança de frete = nota − (cotação + acréscimo), sem o CT-e
    (`walletEntry`); Mapa de vendas usa o DDD do telefone sem estado no cadastro (`MapRow.phoneUf`, `byPhone`).
+52. **1.0.158** (20/11/2026, da v3.0.65 da Usaparts): Prisma 7.10.1 e override `effect` ^3.22.5 (alerta alto do
+   `npm audit` no @prisma/config). node-forge 1.4.2 (moderado) segue: a 1.4.3 quebrou o `npm ci`.
 
 ## Como está no ar
 
