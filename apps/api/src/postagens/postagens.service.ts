@@ -15,7 +15,10 @@ import { postTimes } from '../marketing/instagram'
 import { beatSheet, checkCaption, hookScore, parseReels, reelsPrompt } from './conteudo-ig'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
-import { IG_CALLBACK_PATH, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
+import { TikTokClient, tiktokAuthorizeUrl, TT_APP_KEY, TT_CALLBACK_PATH, TT_OAUTH_KEY, TT_PLATFORM_CALLBACK_PATH, TT_TOKENS_KEY, type TtApp, type TtToken } from './tiktok'
+import { videoMeta, YouTubeClient, youtubeAuthorizeUrl, YT_APP_KEY, YT_CALLBACK_PATH, YT_OAUTH_KEY, YT_PLATFORM_CALLBACK_PATH, YT_TOKENS_KEY, type YtApp, type YtToken } from './youtube'
+import { FacebookLogin, FB_APP_KEY, FB_CALLBACK_PATH, FB_OAUTH_KEY, FB_PLATFORM_CALLBACK_PATH, FB_TOKENS_KEY, type FbApp, type FbPageToken, facebookAuthorizeUrl } from './facebook-login'
+import { IG_CALLBACK_PATH, IG_PLATFORM_CALLBACK_PATH, tenantOfState, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
 import { type AccountMetrics, MetaPublisher, type PostMetrics } from './meta'
 import {
   type Account,
@@ -43,6 +46,7 @@ import {
   type PostResults,
   postSystem,
   VIDEO_MAX_BYTES,
+  NETWORK_LABEL,
 } from './postagens'
 
 const TICK_MS = 60_000
@@ -69,6 +73,9 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   private readonly metricsCache = new Map<string, { at: number; data: unknown }>()
   private lastRenew = 0
   igLogin = new InstagramLogin()
+  fbLogin = new FacebookLogin()
+  youtube = new YouTubeClient()
+  tiktok = new TikTokClient()
 
   constructor(
     private readonly prisma: PrismaService,
@@ -120,15 +127,57 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const tokens = await this.igTokens(user.tenantId)
     const kept = Object.fromEntries(Object.entries(tokens).filter(([id]) => accounts.some((a) => a.via === 'instagram' && a.externalId === id)))
     if (Object.keys(kept).length !== Object.keys(tokens).length) await this.settings.set(user.tenantId, IG_TOKENS_KEY, kept)
+    // página do Facebook tirada da lista: o acesso dela também
+    const fb = await this.fbTokens(user.tenantId)
+    const fbKept = Object.fromEntries(Object.entries(fb).filter(([id]) => accounts.some((a) => a.via === 'facebook' && a.externalId === id)))
+    if (Object.keys(fbKept).length !== Object.keys(fb).length) await this.settings.set(user.tenantId, FB_TOKENS_KEY, fbKept)
+    const yt = await this.ytTokens(user.tenantId)
+    const ytKept = Object.fromEntries(Object.entries(yt).filter(([id]) => accounts.some((a) => a.network === 'youtube' && a.externalId === id)))
+    if (Object.keys(ytKept).length !== Object.keys(yt).length) await this.settings.set(user.tenantId, YT_TOKENS_KEY, ytKept)
+    const tt = await this.ttTokens(user.tenantId)
+    const ttKept = Object.fromEntries(Object.entries(tt).filter(([id]) => accounts.some((a) => a.network === 'tiktok' && a.externalId === id)))
+    if (Object.keys(ttKept).length !== Object.keys(tt).length) await this.settings.set(user.tenantId, TT_TOKENS_KEY, ttKept)
     await this.audit.byUser(user, ctx, 'postagens.contas', 'settings', ACCOUNTS_KEY, { contas: accounts.map((a) => `${a.network}:${a.name}`) })
     return { accounts }
   }
 
   // ---------- Contas conectadas pelo login do Instagram ----------
 
-  /** Endereço de retorno do login do Instagram (no endereço da própria empresa). */
+  /** Endereço de retorno do login do Instagram com o app próprio da empresa (no endereço dela). */
   async igRedirectUri(tenantId: string) {
     return `${await this.tenants.url(tenantId)}${IG_CALLBACK_PATH}`
+  }
+
+  private async platformTenantId() {
+    return (await this.prisma.tenant.findFirst({ where: { isPlatform: true }, select: { id: true } }))?.id ?? null
+  }
+
+  /**
+   * App da Meta usado para conectar: o da plataforma (SG Multiconecta, cadastrado no painel da plataforma) para todas as
+   * empresas, que só fazem o login no Instagram; o próprio da empresa só se ela cadastrou um. O retorno do app da
+   * plataforma é um endereço só (IG_PLATFORM_CALLBACK_PATH no painel), que devolve a pessoa ao endereço da empresa.
+   */
+  private async igAppFor(tenantId: string): Promise<{ app: IgApp; platform: boolean; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    const own = await this.igApp(tenantId)
+    if (own.appId && own.secretEnc) {
+      return { app: own, platform: tenantId === pid, redirectUri: tenantId === pid ? `${await this.tenants.url(tenantId)}${IG_PLATFORM_CALLBACK_PATH}` : await this.igRedirectUri(tenantId) }
+    }
+    if (!pid || pid === tenantId) return null
+    const p = await this.igApp(pid)
+    if (!p.appId || !p.secretEnc) return null
+    return { app: p, platform: true, redirectUri: `${await this.tenants.url(pid)}${IG_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Página de retorno do painel: para onde mandar a pessoa (o endereço da empresa que começou a conexão). */
+  async igDestination(state: string) {
+    const tenantId = tenantOfState(state)
+    if (!tenantId) throw new BadRequestException('Autorização inválida. Clique em Conectar conta do Instagram de novo.')
+    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, IG_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar conta do Instagram de novo.')
+    }
+    return { url: `${await this.tenants.url(tenantId)}${IG_CALLBACK_PATH}` }
   }
 
   private async igApp(tenantId: string): Promise<IgApp> {
@@ -153,26 +202,26 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   /** Botão "Conectar conta do Instagram": endereço do login do Instagram. */
   async startInstagram(user: AuthUser) {
     this.assertCan(user, 'edit')
-    const c = await this.igApp(user.tenantId)
-    if (!c.appId || !c.secretEnc) throw new BadRequestException('Cadastre o ID e a chave secreta do app do Instagram antes de conectar.')
-    const state = randomBytes(24).toString('base64url')
-    await this.settings.set(user.tenantId, IG_OAUTH_KEY, { state, userId: user.id, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
-    return { url: authorizeUrl(c.appId, await this.igRedirectUri(user.tenantId), state) }
+    const sel = await this.igAppFor(user.tenantId)
+    if (!sel) throw new BadRequestException('A conexão com o Instagram ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, IG_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: authorizeUrl(sel.app.appId, sel.redirectUri, state) }
   }
 
   /** Volta do Instagram: a tela do CRM manda o code e o state; a conta entra (ou é atualizada) na lista. */
   async completeInstagram(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
     this.assertCan(user, 'edit')
-    const pending = await this.settings.get<{ state?: string; userId?: string; expiresAt?: string }>(user.tenantId, IG_OAUTH_KEY, {})
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, IG_OAUTH_KEY, {})
     if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
       throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar conta do Instagram de novo.')
     }
     await this.settings.set(user.tenantId, IG_OAUTH_KEY, {})
-    const app = await this.igApp(user.tenantId)
-    if (!app.appId || !app.secretEnc) throw new BadRequestException('Cadastre o ID e a chave secreta do app do Instagram.')
+    const sel = await this.igAppFor(user.tenantId)
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o Instagram ainda não está liberada nesta plataforma. Fale com o suporte.')
     let r
     try {
-      r = await this.igLogin.connect({ appId: app.appId, secret: decrypt(app.secretEnc) }, code, await this.igRedirectUri(user.tenantId))
+      r = await this.igLogin.connect({ appId: sel.app.appId, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
     } catch (err) {
       throw new BadRequestException((err as Error).message)
     }
@@ -191,6 +240,274 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     this.metricsCache.delete(user.tenantId)
     await this.audit.byUser(user, ctx, 'postagens.instagram_conectado', 'settings', IG_TOKENS_KEY, { conta: name, id: r.userId })
     return { username: r.username, accounts }
+  }
+
+  // ---------- Páginas conectadas pelo login do Facebook (app da plataforma) ----------
+
+  private async fbApp(tenantId: string): Promise<FbApp> {
+    return { appId: '', secretEnc: null, ...(await this.settings.get<Partial<FbApp>>(tenantId, FB_APP_KEY, {})) }
+  }
+
+  private async fbTokens(tenantId: string) {
+    return this.settings.get<Record<string, FbPageToken>>(tenantId, FB_TOKENS_KEY, {})
+  }
+
+  /** App da Meta do login do Facebook: o da plataforma (cadastrado no painel) para todas as empresas. */
+  private async fbAppFor(): Promise<{ app: FbApp; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    if (!pid) return null
+    const app = await this.fbApp(pid)
+    if (!app.appId || !app.secretEnc) return null
+    return { app, redirectUri: `${await this.tenants.url(pid)}${FB_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Painel da plataforma: ID e chave secreta do app da Meta (Login do Facebook). */
+  async saveFbApp(user: AuthUser, appId: string, secret: string | undefined, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    if ((await this.platformTenantId()) !== user.tenantId) throw new BadRequestException('O app do Facebook é cadastrado só no painel da plataforma.')
+    const c = await this.fbApp(user.tenantId)
+    if (!/^\d{5,25}$/.test(appId.trim())) throw new BadRequestException('O ID do app da Meta tem só números.')
+    if (!secret?.trim() && !c.secretEnc) throw new BadRequestException('Informe a chave secreta do app da Meta.')
+    await this.settings.set(user.tenantId, FB_APP_KEY, { appId: appId.trim(), secretEnc: secret?.trim() ? encrypt(secret.trim()) : c.secretEnc })
+    await this.audit.byUser(user, ctx, 'postagens.facebook_app', 'settings', FB_APP_KEY, { appId: appId.trim(), chaveNova: !!secret?.trim() })
+    return { ok: true }
+  }
+
+  /** Botão "Conectar páginas do Facebook": endereço do login do Facebook. */
+  async startFacebook(user: AuthUser) {
+    this.assertCan(user, 'edit')
+    const sel = await this.fbAppFor()
+    if (!sel) throw new BadRequestException('A conexão com o Facebook ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, FB_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: facebookAuthorizeUrl(sel.app.appId, sel.redirectUri, state) }
+  }
+
+  /** Volta do Facebook: as páginas liberadas entram (ou são atualizadas) na lista. */
+  async completeFacebook(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, FB_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar páginas do Facebook de novo.')
+    }
+    await this.settings.set(user.tenantId, FB_OAUTH_KEY, {})
+    const sel = await this.fbAppFor()
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o Facebook ainda não está liberada nesta plataforma. Fale com o suporte.')
+    let pages
+    try {
+      pages = await this.fbLogin.connect({ appId: sel.app.appId, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
+    } catch (err) {
+      throw new BadRequestException((err as Error).message)
+    }
+    const tokens = await this.fbTokens(user.tenantId)
+    const accounts = await this.accounts(user.tenantId)
+    const now = new Date().toISOString()
+    for (const pg of pages) {
+      tokens[pg.id] = { tokenEnc: encrypt(pg.token), name: pg.name, issuedAt: now, connectedBy: user.name, lastError: null }
+      const i = accounts.findIndex((a) => a.network === 'facebook' && a.externalId === pg.id)
+      if (i >= 0) accounts[i] = { ...accounts[i]!, name: pg.name, via: 'facebook' }
+      else accounts.push({ id: `fb-${pg.id}`, network: 'facebook', externalId: pg.id, name: pg.name, group: accounts[0]?.group ?? 'Oficial', via: 'facebook' })
+    }
+    if (accounts.length > 30) throw new BadRequestException('Limite de 30 contas atingido: tire contas da lista antes de conectar outras.')
+    await this.settings.set(user.tenantId, FB_TOKENS_KEY, tokens)
+    await this.settings.set(user.tenantId, ACCOUNTS_KEY, { accounts })
+    this.metricsCache.delete(user.tenantId)
+    await this.audit.byUser(user, ctx, 'postagens.facebook_conectado', 'settings', FB_TOKENS_KEY, { paginas: pages.map((p) => p.name) })
+    return { pages: pages.map((p) => p.name), accounts }
+  }
+
+  /** Retorno no painel da plataforma: endereço da empresa que começou (Instagram, Facebook ou YouTube). */
+  async oauthDestination(network: 'instagram' | 'facebook' | 'youtube' | 'tiktok', state: string) {
+    if (network === 'instagram') return this.igDestination(state)
+    const tenantId = tenantOfState(state)
+    if (!tenantId) throw new BadRequestException('Autorização inválida. Clique em Conectar de novo.')
+    const key = network === 'youtube' ? YT_OAUTH_KEY : network === 'tiktok' ? TT_OAUTH_KEY : FB_OAUTH_KEY
+    const path = network === 'youtube' ? YT_CALLBACK_PATH : network === 'tiktok' ? TT_CALLBACK_PATH : FB_CALLBACK_PATH
+    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, key, {})
+    if (!pending.state || !safeEqual(pending.state, state) || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar de novo.')
+    }
+    return { url: `${await this.tenants.url(tenantId)}${path}` }
+  }
+
+  // ---------- Canais do YouTube pelo login do Google (app da plataforma) ----------
+
+  private async ytApp(tenantId: string): Promise<YtApp> {
+    return { clientId: '', secretEnc: null, ...(await this.settings.get<Partial<YtApp>>(tenantId, YT_APP_KEY, {})) }
+  }
+
+  private async ytTokens(tenantId: string) {
+    return this.settings.get<Record<string, YtToken>>(tenantId, YT_TOKENS_KEY, {})
+  }
+
+  private async ytAppFor(): Promise<{ app: YtApp; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    if (!pid) return null
+    const app = await this.ytApp(pid)
+    if (!app.clientId || !app.secretEnc) return null
+    return { app, redirectUri: `${await this.tenants.url(pid)}${YT_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Painel da plataforma: cliente OAuth do Google (Google Cloud › Credenciais) com a API do YouTube ligada. */
+  async saveYtApp(user: AuthUser, clientId: string, secret: string | undefined, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    if ((await this.platformTenantId()) !== user.tenantId) throw new BadRequestException('O app do Google é cadastrado só no painel da plataforma.')
+    const c = await this.ytApp(user.tenantId)
+    if (!/^[\w.-]{10,200}\.apps\.googleusercontent\.com$/.test(clientId.trim())) throw new BadRequestException('O ID do cliente do Google termina em .apps.googleusercontent.com.')
+    if (!secret?.trim() && !c.secretEnc) throw new BadRequestException('Informe a chave secreta do cliente do Google.')
+    await this.settings.set(user.tenantId, YT_APP_KEY, { clientId: clientId.trim(), secretEnc: secret?.trim() ? encrypt(secret.trim()) : c.secretEnc })
+    await this.audit.byUser(user, ctx, 'postagens.youtube_app', 'settings', YT_APP_KEY, { clientId: clientId.trim(), chaveNova: !!secret?.trim() })
+    return { ok: true }
+  }
+
+  async startYoutube(user: AuthUser) {
+    this.assertCan(user, 'edit')
+    const sel = await this.ytAppFor()
+    if (!sel) throw new BadRequestException('A conexão com o YouTube ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, YT_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: youtubeAuthorizeUrl(sel.app.clientId, sel.redirectUri, state) }
+  }
+
+  async completeYoutube(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, YT_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar canal do YouTube de novo.')
+    }
+    await this.settings.set(user.tenantId, YT_OAUTH_KEY, {})
+    const sel = await this.ytAppFor()
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o YouTube ainda não está liberada nesta plataforma. Fale com o suporte.')
+    let r
+    try {
+      r = await this.youtube.connect({ clientId: sel.app.clientId, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
+    } catch (err) {
+      throw new BadRequestException((err as Error).message)
+    }
+    const tokens = await this.ytTokens(user.tenantId)
+    tokens[r.channelId] = { refreshEnc: encrypt(r.refresh), title: r.title, issuedAt: new Date().toISOString(), connectedBy: user.name, lastError: null }
+    const accounts = await this.accounts(user.tenantId)
+    const i = accounts.findIndex((a) => a.network === 'youtube' && a.externalId === r.channelId)
+    if (i >= 0) accounts[i] = { ...accounts[i]!, name: r.title, via: 'youtube' }
+    else accounts.push({ id: `yt-${r.channelId}`, network: 'youtube', externalId: r.channelId, name: r.title, group: accounts[0]?.group ?? 'Oficial', via: 'youtube' })
+    if (accounts.length > 30) throw new BadRequestException('Limite de 30 contas atingido: tire uma conta da lista antes de conectar outra.')
+    await this.settings.set(user.tenantId, YT_TOKENS_KEY, tokens)
+    await this.settings.set(user.tenantId, ACCOUNTS_KEY, { accounts })
+    this.metricsCache.delete(user.tenantId)
+    await this.audit.byUser(user, ctx, 'postagens.youtube_conectado', 'settings', YT_TOKENS_KEY, { canal: r.title, id: r.channelId })
+    return { channel: r.title, accounts }
+  }
+
+  // ---------- Contas do TikTok pelo login do TikTok (app da plataforma) ----------
+
+  private async ttApp(tenantId: string): Promise<TtApp> {
+    return { clientKey: '', secretEnc: null, ...(await this.settings.get<Partial<TtApp>>(tenantId, TT_APP_KEY, {})) }
+  }
+
+  private async ttTokens(tenantId: string) {
+    return this.settings.get<Record<string, TtToken>>(tenantId, TT_TOKENS_KEY, {})
+  }
+
+  private async ttAppFor(): Promise<{ app: TtApp; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    if (!pid) return null
+    const app = await this.ttApp(pid)
+    if (!app.clientKey || !app.secretEnc) return null
+    return { app, redirectUri: `${await this.tenants.url(pid)}${TT_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Painel da plataforma: Client key e Client secret do app no TikTok for Developers. */
+  async saveTtApp(user: AuthUser, clientKey: string, secret: string | undefined, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    if ((await this.platformTenantId()) !== user.tenantId) throw new BadRequestException('O app do TikTok é cadastrado só no painel da plataforma.')
+    const c = await this.ttApp(user.tenantId)
+    if (!/^[\w-]{8,64}$/.test(clientKey.trim())) throw new BadRequestException('Client key do TikTok inválida.')
+    if (!secret?.trim() && !c.secretEnc) throw new BadRequestException('Informe o Client secret do app do TikTok.')
+    await this.settings.set(user.tenantId, TT_APP_KEY, { clientKey: clientKey.trim(), secretEnc: secret?.trim() ? encrypt(secret.trim()) : c.secretEnc })
+    await this.audit.byUser(user, ctx, 'postagens.tiktok_app', 'settings', TT_APP_KEY, { clientKey: clientKey.trim(), chaveNova: !!secret?.trim() })
+    return { ok: true }
+  }
+
+  async startTiktok(user: AuthUser) {
+    this.assertCan(user, 'edit')
+    const sel = await this.ttAppFor()
+    if (!sel) throw new BadRequestException('A conexão com o TikTok ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, TT_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: tiktokAuthorizeUrl(sel.app.clientKey, sel.redirectUri, state) }
+  }
+
+  async completeTiktok(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, TT_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar conta do TikTok de novo.')
+    }
+    await this.settings.set(user.tenantId, TT_OAUTH_KEY, {})
+    const sel = await this.ttAppFor()
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o TikTok ainda não está liberada nesta plataforma. Fale com o suporte.')
+    let r
+    try {
+      r = await this.tiktok.connect({ clientKey: sel.app.clientKey, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
+    } catch (err) {
+      throw new BadRequestException((err as Error).message)
+    }
+    const tokens = await this.ttTokens(user.tenantId)
+    tokens[r.openId] = { refreshEnc: encrypt(r.refresh), name: r.name, issuedAt: new Date().toISOString(), refreshExpiresAt: r.refreshExpiresAt, connectedBy: user.name, lastError: null }
+    const accounts = await this.accounts(user.tenantId)
+    const i = accounts.findIndex((a) => a.network === 'tiktok' && a.externalId === r.openId)
+    if (i >= 0) accounts[i] = { ...accounts[i]!, name: r.name, via: 'tiktok' }
+    else accounts.push({ id: `tt-${r.openId}`.slice(0, 40), network: 'tiktok', externalId: r.openId, name: r.name, group: accounts[0]?.group ?? 'Oficial', via: 'tiktok' })
+    if (accounts.length > 30) throw new BadRequestException('Limite de 30 contas atingido: tire uma conta da lista antes de conectar outra.')
+    await this.settings.set(user.tenantId, TT_TOKENS_KEY, tokens)
+    await this.settings.set(user.tenantId, ACCOUNTS_KEY, { accounts })
+    this.metricsCache.delete(user.tenantId)
+    await this.audit.byUser(user, ctx, 'postagens.tiktok_conectado', 'settings', TT_TOKENS_KEY, { conta: r.name })
+    return { account: r.name, accounts }
+  }
+
+  /** Acesso de 24 h à conta do TikTok; guarda o acesso de renovação novo que o TikTok devolve. */
+  private async ttAccess(tenantId: string, openId: string, cache: Map<string, string>) {
+    const hit = cache.get(openId)
+    if (hit) return hit
+    const tokens = await this.ttTokens(tenantId)
+    const t = tokens[openId]
+    if (!t) throw new Error('Conta sem conexão com o TikTok: clique em Conectar conta do TikTok na aba Contas.')
+    const sel = await this.ttAppFor()
+    if (!sel?.app.secretEnc) throw new Error('A conexão com o TikTok não está liberada nesta plataforma.')
+    try {
+      const r = await this.tiktok.access({ clientKey: sel.app.clientKey, secret: decrypt(sel.app.secretEnc) }, decrypt(t.refreshEnc))
+      tokens[openId] = { ...t, refreshEnc: encrypt(r.refresh), refreshExpiresAt: r.refreshExpiresAt, lastError: null }
+      await this.settings.set(tenantId, TT_TOKENS_KEY, tokens)
+      cache.set(openId, r.access)
+      return r.access
+    } catch (err) {
+      tokens[openId] = { ...t, lastError: (err as Error).message.slice(0, 300) }
+      await this.settings.set(tenantId, TT_TOKENS_KEY, tokens)
+      throw err
+    }
+  }
+
+  /** Acesso de 1 hora ao canal (renovado a partir do guardado). */
+  private async ytAccess(tenantId: string, channelId: string, cache: Map<string, string>) {
+    const hit = cache.get(channelId)
+    if (hit) return hit
+    const t = (await this.ytTokens(tenantId))[channelId]
+    if (!t) throw new Error('Canal sem conexão com o YouTube: clique em Conectar canal do YouTube na aba Contas.')
+    const sel = await this.ytAppFor()
+    if (!sel?.app.secretEnc) throw new Error('A conexão com o YouTube não está liberada nesta plataforma.')
+    try {
+      const access = await this.youtube.access({ clientId: sel.app.clientId, secret: decrypt(sel.app.secretEnc) }, decrypt(t.refreshEnc))
+      cache.set(channelId, access)
+      return access
+    } catch (err) {
+      const tokens = await this.ytTokens(tenantId)
+      if (tokens[channelId]) {
+        tokens[channelId] = { ...tokens[channelId]!, lastError: (err as Error).message.slice(0, 300) }
+        await this.settings.set(tenantId, YT_TOKENS_KEY, tokens)
+      }
+      throw err
+    }
   }
 
   /** Renova os tokens do Instagram perto de vencer (todas as empresas). */
@@ -219,7 +536,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
    * (Marketing Inteligente).
    */
   private async publisherFor(tenantId: string, a: Account, cache: Map<string, MetaPublisher>) {
-    const key = a.via === 'instagram' ? `ig:${a.externalId}` : 'meta'
+    const key = a.via === 'instagram' ? `ig:${a.externalId}` : a.via === 'facebook' ? `fb:${a.externalId}` : 'meta'
     const hit = cache.get(key)
     if (hit) return hit
     let p: MetaPublisher
@@ -228,6 +545,11 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
       if (!t) throw new Error('Conta sem conexão com o Instagram: clique em Conectar conta do Instagram na aba Contas.')
       if (Date.parse(t.expiresAt) < Date.now()) throw new Error('A conexão desta conta com o Instagram venceu: conecte de novo na aba Contas.')
       p = new MetaPublisher(decrypt(t.tokenEnc), fetch, 5_000, IG_GRAPH)
+    } else if (a.via === 'facebook') {
+      const t = (await this.fbTokens(tenantId))[a.externalId]
+      if (!t) throw new Error('Página sem conexão com o Facebook: clique em Conectar páginas do Facebook na aba Contas.')
+      const pt = decrypt(t.tokenEnc)
+      p = new MetaPublisher(pt, fetch, 5_000, undefined, pt)
     } else {
       const c = await this.integrations(tenantId)
       if (!c.metaAds.tokenEnc) throw new Error('Token da Meta não cadastrado (Configurações › Marketing Inteligente).')
@@ -255,13 +577,43 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const c = await this.integrations(user.tenantId)
     const app = await this.igApp(user.tenantId)
     const tokens = await this.igTokens(user.tenantId)
+    const sel = await this.igAppFor(user.tenantId)
+    const isPlatform = (await this.platformTenantId()) === user.tenantId
     return {
       hasToken: !!c.metaAds.tokenEnc,
       instagram: {
         appId: app.appId,
         hasSecret: !!app.secretEnc,
-        redirectUri: await this.igRedirectUri(user.tenantId),
+        // Empresa cliente: conecta pelo app da plataforma (sem app próprio). Painel da plataforma: cadastra o app.
+        ready: !!sel,
+        platformApp: !!sel?.platform && !isPlatform,
+        isPlatform,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${IG_PLATFORM_CALLBACK_PATH}` : await this.igRedirectUri(user.tenantId),
         connections: Object.fromEntries(Object.entries(tokens).map(([id, t]) => [id, { username: t.username, expiresAt: t.expiresAt, connectedBy: t.connectedBy, lastError: t.lastError }])),
+      },
+      facebook: {
+        ready: !!(await this.fbAppFor()),
+        isPlatform,
+        appId: isPlatform ? (await this.fbApp(user.tenantId)).appId : '',
+        hasSecret: isPlatform ? !!(await this.fbApp(user.tenantId)).secretEnc : false,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${FB_PLATFORM_CALLBACK_PATH}` : '',
+        connections: Object.fromEntries(Object.entries(await this.fbTokens(user.tenantId)).map(([id, t]) => [id, { name: t.name, connectedBy: t.connectedBy, lastError: t.lastError }])),
+      },
+      youtube: {
+        ready: !!(await this.ytAppFor()),
+        isPlatform,
+        clientId: isPlatform ? (await this.ytApp(user.tenantId)).clientId : '',
+        hasSecret: isPlatform ? !!(await this.ytApp(user.tenantId)).secretEnc : false,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${YT_PLATFORM_CALLBACK_PATH}` : '',
+        connections: Object.fromEntries(Object.entries(await this.ytTokens(user.tenantId)).map(([id, t]) => [id, { name: t.title, connectedBy: t.connectedBy, lastError: t.lastError }])),
+      },
+      tiktok: {
+        ready: !!(await this.ttAppFor()),
+        isPlatform,
+        clientKey: isPlatform ? (await this.ttApp(user.tenantId)).clientKey : '',
+        hasSecret: isPlatform ? !!(await this.ttApp(user.tenantId)).secretEnc : false,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${TT_PLATFORM_CALLBACK_PATH}` : '',
+        connections: Object.fromEntries(Object.entries(await this.ttTokens(user.tenantId)).map(([id, t]) => [id, { name: t.name, connectedBy: t.connectedBy, lastError: t.lastError }])),
       },
       accounts: await this.accounts(user.tenantId),
       hasAi: await this.ai.available(user.tenantId),
@@ -275,11 +627,14 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     this.assertCan(user, 'edit')
     const c = await this.integrations(user.tenantId)
     const accounts = await this.accounts(user.tenantId)
-    const viaMeta = accounts.filter((a) => a.via !== 'instagram')
+    const viaMeta = accounts.filter((a) => !a.via)
     const viaIg = accounts.filter((a) => a.via === 'instagram')
-    if (!c.metaAds.tokenEnc && !viaIg.length) throw new BadRequestException('Conecte uma conta do Instagram na aba Contas ou cadastre o token da Meta em Configurações › Marketing Inteligente.')
+    const viaFb = accounts.filter((a) => a.via === 'facebook')
+    const viaYt = accounts.filter((a) => a.network === 'youtube')
+    const viaTt = accounts.filter((a) => a.network === 'tiktok')
+    if (!c.metaAds.tokenEnc && !viaIg.length && !viaFb.length && !viaYt.length && !viaTt.length) throw new BadRequestException('Conecte uma conta na aba Contas (Instagram, Facebook, YouTube ou TikTok).')
     const checks: { name: string; ok: boolean; message: string }[] = []
-    if (c.metaAds.tokenEnc && (viaMeta.length || !viaIg.length)) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
+    if (c.metaAds.tokenEnc && (viaMeta.length || (!viaIg.length && !viaFb.length && !viaYt.length && !viaTt.length))) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
     const cache = new Map<string, MetaPublisher>()
     for (const a of viaIg) {
       try {
@@ -287,6 +642,32 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         checks.push({ ...r, message: `${r.message} · conectada pelo login do Instagram` })
       } catch (err) {
         checks.push({ name: `Instagram ${a.name}`, ok: false, message: (err as Error).message })
+      }
+    }
+    for (const a of viaFb) {
+      try {
+        await (await this.publisherFor(user.tenantId, a, cache)).facebookMetrics(a.externalId)
+        checks.push({ name: `Facebook ${a.name}`, ok: true, message: 'Página conectada pelo login do Facebook' })
+      } catch (err) {
+        checks.push({ name: `Facebook ${a.name}`, ok: false, message: (err as Error).message })
+      }
+    }
+    const ytCache = new Map<string, string>()
+    const ttCache = new Map<string, string>()
+    for (const a of viaYt) {
+      try {
+        const ch = await this.youtube.channel(await this.ytAccess(user.tenantId, a.externalId, ytCache))
+        checks.push({ name: `YouTube ${a.name}`, ok: true, message: `Canal ${ch.title} conectado pelo login do Google` })
+      } catch (err) {
+        checks.push({ name: `YouTube ${a.name}`, ok: false, message: (err as Error).message })
+      }
+    }
+    for (const a of viaTt) {
+      try {
+        const u = await this.tiktok.user(await this.ttAccess(user.tenantId, a.externalId, ttCache))
+        checks.push({ name: `TikTok ${a.name}`, ok: true, message: `Conta ${u.name} conectada pelo login do TikTok` })
+      } catch (err) {
+        checks.push({ name: `TikTok ${a.name}`, ok: false, message: (err as Error).message })
       }
     }
     return { checks }
@@ -304,11 +685,25 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     if (!refresh && hit && Date.now() - hit.at < METRICS_TTL_MS) return hit.data
     const c = await this.integrations(user.tenantId)
     const accounts = await this.accounts(user.tenantId)
-    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via === 'instagram')) throw new BadRequestException('Conecte uma conta do Instagram na aba Contas ou cadastre o token da Meta em Configurações › Marketing Inteligente.')
+    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via)) throw new BadRequestException('Conecte uma conta na aba Contas (Instagram, Facebook, YouTube ou TikTok).')
     const cache = new Map<string, MetaPublisher>()
+    const ytCache = new Map<string, string>()
+    const ttCache = new Map<string, string>()
     const rows: (Account & AccountMetrics & { engagement: number | null; error: string | null })[] = []
     for (const a of accounts) {
       try {
+        if (a.network === 'youtube') {
+          const ch = await this.youtube.channel(await this.ytAccess(user.tenantId, a.externalId, ytCache))
+          const m: AccountMetrics = { followers: ch.subscribers, posts: ch.videos, reach: ch.views, engaged: null, interactions: null, likes: null, comments: null, saves: null, shares: null, demographics: null, warnings: ['YouTube: alcance = visualizações totais do canal'] }
+          rows.push({ ...a, ...m, engagement: null, error: null })
+          continue
+        }
+        if (a.network === 'tiktok') {
+          const u = await this.tiktok.user(await this.ttAccess(user.tenantId, a.externalId, ttCache))
+          const m: AccountMetrics = { followers: u.followers, posts: u.videos, reach: null, engaged: null, interactions: u.likes, likes: u.likes, comments: null, saves: null, shares: null, demographics: null, warnings: ['TikTok: curtidas = total da conta'] }
+          rows.push({ ...a, ...m, engagement: null, error: null })
+          continue
+        }
         const meta = await this.publisherFor(user.tenantId, a, cache)
         const m = a.network === 'instagram' ? await meta.instagramMetrics(a.externalId) : await meta.facebookMetrics(a.externalId)
         rows.push({ ...a, ...m, engagement: engagementRate(m), error: null })
@@ -325,6 +720,20 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         const a = accounts.find((x) => x.id === accountId)
         const base = { postId: p.id, title: p.title, format: p.format, publishedAt: p.publishedAt, mediaId: p.mediaIds[0] ?? null, accountId, account: a?.name ?? r.name ?? accountId, network: a?.network ?? r.network ?? 'instagram', group: a?.group ?? 'Geral', permalink: r.permalink ?? null }
         try {
+          if (base.network === 'youtube') {
+            if (!a) throw new Error('Canal removido da lista de contas.')
+            const v = await this.youtube.videoStats(await this.ytAccess(user.tenantId, a.externalId, ytCache), r.id)
+            const m: PostMetrics = { reach: v.views, likes: v.likes, comments: v.comments, saves: null, shares: null, interactions: v.likes + v.comments }
+            posts.push({ ...base, metrics: m, engagement: engagementRate({ followers: rows.find((x) => x.id === a.id)?.followers ?? null, reach: m.reach, interactions: m.interactions }), error: null })
+            continue
+          }
+          if (base.network === 'tiktok') {
+            if (!a) throw new Error('Conta removida da lista de contas.')
+            const v = await this.tiktok.videoStats(await this.ttAccess(user.tenantId, a.externalId, ttCache), r.id)
+            const m: PostMetrics = { reach: v.views, likes: v.likes, comments: v.comments, saves: null, shares: v.shares, interactions: v.likes + v.comments + v.shares }
+            posts.push({ ...base, permalink: base.permalink ?? v.url, metrics: m, engagement: engagementRate({ followers: rows.find((x) => x.id === a.id)?.followers ?? null, reach: m.reach, interactions: m.interactions }), error: null })
+            continue
+          }
           const meta = await this.publisherFor(user.tenantId, a ?? { id: accountId, network: base.network as 'instagram' | 'facebook', externalId: '', name: base.account, group: base.group }, cache)
           const m = await meta.postMetrics(base.network as 'instagram' | 'facebook', r.id, a?.network === 'facebook' ? a.externalId : undefined)
           posts.push({ ...base, metrics: m, engagement: engagementRate({ followers: a ? (rows.find((x) => x.id === a.id)?.followers ?? null) : null, reach: m.reach, interactions: m.interactions }), error: null })
@@ -554,8 +963,11 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const c = await this.clean(user.tenantId, this.stored(p))
     const missing = missingForApproval(c, await this.mediaInfo(user.tenantId, c.mediaIds))
     if (missing.length) throw new BadRequestException(`Não dá para aprovar: ${missing.join(' ')}`)
+    // Token da Meta só é preciso para contas que não foram conectadas pelo login (Instagram ou Facebook).
+    const accounts = await this.accounts(user.tenantId)
+    const needsMeta = c.accountIds.some((aid) => !accounts.find((a) => a.id === aid)?.via)
     const conn = await this.integrations(user.tenantId)
-    if (!conn.metaAds.tokenEnc) throw new BadRequestException('Cadastre o token da Meta em Configurações › Marketing Inteligente antes de aprovar.')
+    if (needsMeta && !conn.metaAds.tokenEnc) throw new BadRequestException('Conecte as contas pelo login do Instagram ou do Facebook na aba Contas antes de aprovar.')
     await this.prisma.socialPost.update({ where: { id }, data: { status: 'APROVADO', approvedById: user.id, approvedByName: user.name.slice(0, 120), approvedAt: new Date(), reviewNote: null } })
     await this.audit.byUser(user, ctx, 'postagens.aprovada', 'social_post', id, { titulo: p.title, quando: p.scheduledAt?.toISOString() ?? 'assim que aprovada' })
     return { ok: true, message: p.scheduledAt && p.scheduledAt.getTime() > Date.now() + 60_000 ? `Aprovada: sai em ${p.scheduledAt.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })}.` : 'Aprovada: sai no próximo minuto.' }
@@ -622,7 +1034,9 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     let error: string | null = null
     try {
       const cache = new Map<string, MetaPublisher>()
-      const media = await this.prisma.socialMedia.findMany({ where: { tenantId: p.tenantId, id: { in: p.mediaIds } }, select: { id: true, kind: true } })
+      const media = await this.prisma.socialMedia.findMany({ where: { tenantId: p.tenantId, id: { in: p.mediaIds } }, select: { id: true, kind: true, fileId: true, mime: true } })
+      const ytCache = new Map<string, string>()
+      const ttCache = new Map<string, string>()
       const ordered = p.mediaIds.map((m) => media.find((x) => x.id === m)).filter((m): m is NonNullable<typeof m> => !!m)
       if (!ordered.length) throw new Error('As mídias da postagem foram apagadas da biblioteca.')
       const base = await this.tenants.url(p.tenantId)
@@ -633,15 +1047,29 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         const a = accounts.find((x) => x.id === id)
         try {
           if (!a) throw new Error('Conta removida da lista de contas de Postagens.')
-          const meta = await this.publisherFor(p.tenantId, a, cache)
-          const r = a.network === 'instagram' ? await meta.instagram(a.externalId, input) : await meta.facebook(a.externalId, input)
+          let r
+          if (a.network === 'youtube') {
+            // YouTube recebe o arquivo (não baixa pelo endereço): um vídeo; Reels sai como Shorts.
+            const video = ordered.find((m) => m.kind === 'video')
+            if (!video) throw new Error('YouTube: a postagem precisa de um vídeo.')
+            const { content } = await this.files.read(video.fileId)
+            r = await this.youtube.upload(await this.ytAccess(p.tenantId, a.externalId, ytCache), { ...videoMeta({ title: p.title, caption: p.caption, shorts: p.format === 'REELS' }), bytes: content, mime: video.mime || 'video/mp4' })
+          } else if (a.network === 'tiktok') {
+            const video = ordered.find((m) => m.kind === 'video')
+            if (!video) throw new Error('TikTok: a postagem precisa de um vídeo.')
+            const { content } = await this.files.read(video.fileId)
+            r = await this.tiktok.publish(await this.ttAccess(p.tenantId, a.externalId, ttCache), { caption: p.caption, bytes: content })
+          } else {
+            const meta = await this.publisherFor(p.tenantId, a, cache)
+            r = a.network === 'instagram' ? await meta.instagram(a.externalId, input) : await meta.facebook(a.externalId, input)
+          }
           results[id] = { ...r, network: a.network, name: a.name }
         } catch (err) {
           results[id] = { error: (err as Error).message.slice(0, 400), at: new Date().toISOString(), network: a?.network, name: a?.name ?? id }
         }
       }
       const failed = p.accountIds.filter((id) => !results[id]?.id)
-      if (failed.length) error = failed.map((id) => `${results[id]?.network === 'facebook' ? 'Facebook' : 'Instagram'} ${results[id]?.name ?? ''}: ${results[id]?.error ?? 'não publicou'}`).join(' · ')
+      if (failed.length) error = failed.map((id) => `${NETWORK_LABEL[results[id]?.network ?? 'instagram']} ${results[id]?.name ?? ''}: ${results[id]?.error ?? 'não publicou'}`).join(' · ')
     } catch (err) {
       error = (err as Error).message.slice(0, 400)
     }

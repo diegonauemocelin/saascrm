@@ -16,7 +16,7 @@ import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { mediaSrc } from './midias'
 
-export type Network = 'instagram' | 'facebook'
+export type Network = 'instagram' | 'facebook' | 'youtube' | 'tiktok'
 export interface Account {
   id: string
   network: Network
@@ -24,7 +24,7 @@ export interface Account {
   name: string
   group: string
   /** Conectada pelo login do Instagram. */
-  via?: 'instagram'
+  via?: 'instagram' | 'facebook' | 'youtube' | 'tiktok'
 }
 
 const IG_CHANNEL = 'postagens-instagram'
@@ -34,7 +34,373 @@ export interface InstagramLoginConfig {
   appId: string
   hasSecret: boolean
   redirectUri: string
+  /** Há app para conectar (o da plataforma ou o próprio). */
+  ready: boolean
+  /** A empresa conecta pelo app da plataforma: só o login no Instagram, sem configurar nada. */
+  platformApp: boolean
+  /** Painel da plataforma: cadastra o app da Meta que todas as empresas usam. */
+  isPlatform: boolean
   connections: Record<string, { username: string; expiresAt: string; connectedBy: string; lastError: string | null }>
+}
+
+/** Conexão pelo login do Facebook (app da plataforma): páginas conectadas por ID. */
+export interface FacebookLoginConfig {
+  ready: boolean
+  isPlatform: boolean
+  appId: string
+  hasSecret: boolean
+  redirectUri: string
+  connections: Record<string, { name: string; connectedBy: string; lastError: string | null }>
+}
+
+const FB_CHANNEL = 'postagens-facebook'
+
+/** Login do Facebook: a pessoa entra no Facebook e escolhe as páginas. No painel da plataforma, cadastra o app da Meta. */
+function FacebookConnect({ fb }: { fb: FacebookLoginConfig }) {
+  const qc = useQueryClient()
+  const [appId, setAppId] = useState(fb.appId)
+  const [secret, setSecret] = useState('')
+  const [setup, setSetup] = useState(fb.isPlatform && (!fb.appId || !fb.hasSecret))
+  const save = useMutation({
+    mutationFn: () => api.put('/postagens/facebook/app', { appId: appId.trim(), ...(secret.trim() ? { secret: secret.trim() } : {}) }),
+    onSuccess: () => {
+      toast.success('App do Facebook salvo.')
+      setSecret('')
+      setSetup(false)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  })
+  const tab = useRef<Window | null>(null)
+  const connect = useMutation({
+    mutationFn: () => api.post<{ url: string }>('/postagens/facebook/conectar'),
+    onMutate: () => {
+      tab.current = window.open('', '_blank')
+      if (tab.current) tab.current.opener = null
+    },
+    onSuccess: (r) => {
+      if (tab.current && !tab.current.closed) tab.current.location.href = r.url
+      else window.open(r.url, '_blank', 'noopener')
+    },
+    onError: (err) => {
+      tab.current?.close()
+      toast.error(errorMessage(err), { duration: 10_000 })
+    },
+  })
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return
+    const ch = new BroadcastChannel(FB_CHANNEL)
+    ch.onmessage = (e: MessageEvent<{ pages?: string[] }>) => {
+      toast.success(`Facebook conectado${e.data?.pages?.length ? `: ${e.data.pages.join(', ')}` : ''}.`)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+      void qc.invalidateQueries({ queryKey: ['postagens-metricas'] })
+    }
+    return () => ch.close()
+  }, [qc])
+  return (
+    <Card className="gap-3 p-4">
+      <div className="flex flex-wrap items-start gap-3">
+        <NetBadge n="facebook" className="size-8 rounded-md text-xs" />
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Conectar páginas do Facebook</p>
+          <p className="text-sm text-muted-foreground">Abre a tela do Facebook: entre com o usuário e a senha de quem administra as páginas e escolha quais liberar. A senha fica só no Facebook; o CRM recebe o acesso de cada página para publicar e ver as métricas.</p>
+          {!fb.ready && !fb.isPlatform && <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">A conexão com o Facebook ainda não está liberada. Fale com o suporte.</p>}
+        </div>
+        <div className="flex gap-2">
+          {fb.ready && (
+            <Button onClick={() => connect.mutate()} disabled={connect.isPending}>
+              {connect.isPending ? <Loader2Icon className="animate-spin" /> : <LogInIcon />} Conectar páginas do Facebook
+            </Button>
+          )}
+          {fb.isPlatform && !setup && (
+            <Button variant="ghost" onClick={() => setSetup(true)}>
+              App do Facebook
+            </Button>
+          )}
+        </div>
+      </div>
+      {setup && (
+        <div className="space-y-3 rounded-md border p-3">
+          <p className="text-sm text-muted-foreground">
+            App da plataforma, usado por todas as empresas para conectar as páginas só com o login. Em developers.facebook.com, no app da SG Multiconecta, adicione o produto Login do Facebook para Empresas e cadastre este endereço em URIs de redirecionamento do OAuth válidos. Copie o ID e a chave secreta do app (Configurações do app › Básico):
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{fb.redirectUri}</code>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                void navigator.clipboard.writeText(fb.redirectUri)
+                toast.success('Endereço copiado.')
+              }}
+            >
+              <CopyIcon /> Copiar
+            </Button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label htmlFor="fb-app-id">ID do app da Meta</Label>
+              <Input id="fb-app-id" value={appId} inputMode="numeric" maxLength={25} onChange={(e) => setAppId(e.target.value.replace(/\D/g, ''))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="fb-app-secret">Chave secreta do app</Label>
+              <Input id="fb-app-secret" type="password" autoComplete="off" value={secret} maxLength={200} onChange={(e) => setSecret(e.target.value)} placeholder={fb.hasSecret ? 'Guardada (preencha só para trocar)' : ''} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !appId || (!secret.trim() && !fb.hasSecret)}>
+              {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar app
+            </Button>
+            {fb.ready && (
+              <Button variant="ghost" onClick={() => setSetup(false)}>
+                Fechar
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+/** Conexão pelo login do Google (YouTube, app da plataforma): canais conectados por ID. */
+export interface YoutubeLoginConfig {
+  ready: boolean
+  isPlatform: boolean
+  clientId: string
+  hasSecret: boolean
+  redirectUri: string
+  connections: Record<string, { name: string; connectedBy: string; lastError: string | null }>
+}
+
+const YT_CHANNEL = 'postagens-youtube'
+
+/** Login do Google: a pessoa entra com a conta do canal. No painel da plataforma, cadastra o cliente OAuth do Google. */
+function YoutubeConnect({ fb }: { fb: YoutubeLoginConfig }) {
+  const qc = useQueryClient()
+  const [appId, setAppId] = useState(fb.clientId)
+  const [secret, setSecret] = useState('')
+  const [setup, setSetup] = useState(fb.isPlatform && (!fb.clientId || !fb.hasSecret))
+  const save = useMutation({
+    mutationFn: () => api.put('/postagens/youtube/app', { clientId: appId.trim(), ...(secret.trim() ? { secret: secret.trim() } : {}) }),
+    onSuccess: () => {
+      toast.success('App do Google salvo.')
+      setSecret('')
+      setSetup(false)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  })
+  const tab = useRef<Window | null>(null)
+  const connect = useMutation({
+    mutationFn: () => api.post<{ url: string }>('/postagens/youtube/conectar'),
+    onMutate: () => {
+      tab.current = window.open('', '_blank')
+      if (tab.current) tab.current.opener = null
+    },
+    onSuccess: (r) => {
+      if (tab.current && !tab.current.closed) tab.current.location.href = r.url
+      else window.open(r.url, '_blank', 'noopener')
+    },
+    onError: (err) => {
+      tab.current?.close()
+      toast.error(errorMessage(err), { duration: 10_000 })
+    },
+  })
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return
+    const ch = new BroadcastChannel(YT_CHANNEL)
+    ch.onmessage = (e: MessageEvent<{ channel?: string }>) => {
+      toast.success(`YouTube conectado${e.data?.channel ? `: ${e.data.channel}` : ''}.`)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+      void qc.invalidateQueries({ queryKey: ['postagens-metricas'] })
+    }
+    return () => ch.close()
+  }, [qc])
+  return (
+    <Card className="gap-3 p-4">
+      <div className="flex flex-wrap items-start gap-3">
+        <NetBadge n="youtube" className="size-8 rounded-md text-xs" />
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Conectar canal do YouTube</p>
+          <p className="text-sm text-muted-foreground">Abre a tela do Google: entre com a conta do canal e autorize. A senha fica só no Google; o CRM recebe o acesso para enviar vídeos e Shorts e ver as métricas do canal. Repita para cada canal.</p>
+          {!fb.ready && !fb.isPlatform && <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">A conexão com o YouTube ainda não está liberada. Fale com o suporte.</p>}
+        </div>
+        <div className="flex gap-2">
+          {fb.ready && (
+            <Button onClick={() => connect.mutate()} disabled={connect.isPending}>
+              {connect.isPending ? <Loader2Icon className="animate-spin" /> : <LogInIcon />} Conectar canal do YouTube
+            </Button>
+          )}
+          {fb.isPlatform && !setup && (
+            <Button variant="ghost" onClick={() => setSetup(true)}>
+              App do Google
+            </Button>
+          )}
+        </div>
+      </div>
+      {setup && (
+        <div className="space-y-3 rounded-md border p-3">
+          <p className="text-sm text-muted-foreground">
+            App da plataforma, usado por todas as empresas para conectar o YouTube só com o login. No Google Cloud (console.cloud.google.com), no projeto da SG Multiconecta: ative a YouTube Data API v3, configure a tela de consentimento OAuth e crie um ID do cliente OAuth (Aplicativo da Web) com este URI de redirecionamento autorizado. Copie o ID e a chave secreta do cliente:
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{fb.redirectUri}</code>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                void navigator.clipboard.writeText(fb.redirectUri)
+                toast.success('Endereço copiado.')
+              }}
+            >
+              <CopyIcon /> Copiar
+            </Button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label htmlFor="yt-client-id">ID do cliente OAuth</Label>
+              <Input id="yt-client-id" value={appId} maxLength={250} onChange={(e) => setAppId(e.target.value.trim())} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="yt-client-secret">Chave secreta do cliente</Label>
+              <Input id="yt-client-secret" type="password" autoComplete="off" value={secret} maxLength={200} onChange={(e) => setSecret(e.target.value)} placeholder={fb.hasSecret ? 'Guardada (preencha só para trocar)' : ''} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !appId || (!secret.trim() && !fb.hasSecret)}>
+              {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar app
+            </Button>
+            {fb.ready && (
+              <Button variant="ghost" onClick={() => setSetup(false)}>
+                Fechar
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+/** Conexão pelo login do TikTok (app da plataforma): contas conectadas por open_id. */
+export interface TiktokLoginConfig {
+  ready: boolean
+  isPlatform: boolean
+  clientKey: string
+  hasSecret: boolean
+  redirectUri: string
+  connections: Record<string, { name: string; connectedBy: string; lastError: string | null }>
+}
+
+const TT_CHANNEL = 'postagens-tiktok'
+
+/** Login do TikTok: a pessoa entra na conta e autoriza. No painel da plataforma, cadastra o app do TikTok for Developers. */
+function TiktokConnect({ fb }: { fb: TiktokLoginConfig }) {
+  const qc = useQueryClient()
+  const [appId, setAppId] = useState(fb.clientKey)
+  const [secret, setSecret] = useState('')
+  const [setup, setSetup] = useState(fb.isPlatform && (!fb.clientKey || !fb.hasSecret))
+  const save = useMutation({
+    mutationFn: () => api.put('/postagens/tiktok/app', { clientKey: appId.trim(), ...(secret.trim() ? { secret: secret.trim() } : {}) }),
+    onSuccess: () => {
+      toast.success('App do TikTok salvo.')
+      setSecret('')
+      setSetup(false)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  })
+  const tab = useRef<Window | null>(null)
+  const connect = useMutation({
+    mutationFn: () => api.post<{ url: string }>('/postagens/tiktok/conectar'),
+    onMutate: () => {
+      tab.current = window.open('', '_blank')
+      if (tab.current) tab.current.opener = null
+    },
+    onSuccess: (r) => {
+      if (tab.current && !tab.current.closed) tab.current.location.href = r.url
+      else window.open(r.url, '_blank', 'noopener')
+    },
+    onError: (err) => {
+      tab.current?.close()
+      toast.error(errorMessage(err), { duration: 10_000 })
+    },
+  })
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return
+    const ch = new BroadcastChannel(TT_CHANNEL)
+    ch.onmessage = (e: MessageEvent<{ account?: string }>) => {
+      toast.success(`TikTok conectado${e.data?.account ? `: ${e.data.account}` : ''}.`)
+      void qc.invalidateQueries({ queryKey: ['postagens-config'] })
+      void qc.invalidateQueries({ queryKey: ['postagens-metricas'] })
+    }
+    return () => ch.close()
+  }, [qc])
+  return (
+    <Card className="gap-3 p-4">
+      <div className="flex flex-wrap items-start gap-3">
+        <NetBadge n="tiktok" className="size-8 rounded-md text-xs" />
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Conectar conta do TikTok</p>
+          <p className="text-sm text-muted-foreground">Abre a tela do TikTok: entre com o usuário e a senha da conta e autorize. A senha fica só no TikTok; o CRM recebe o acesso para postar vídeos e ver as métricas. Repita para cada conta.</p>
+          {!fb.ready && !fb.isPlatform && <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">A conexão com o TikTok ainda não está liberada. Fale com o suporte.</p>}
+        </div>
+        <div className="flex gap-2">
+          {fb.ready && (
+            <Button onClick={() => connect.mutate()} disabled={connect.isPending}>
+              {connect.isPending ? <Loader2Icon className="animate-spin" /> : <LogInIcon />} Conectar conta do TikTok
+            </Button>
+          )}
+          {fb.isPlatform && !setup && (
+            <Button variant="ghost" onClick={() => setSetup(true)}>
+              App do TikTok
+            </Button>
+          )}
+        </div>
+      </div>
+      {setup && (
+        <div className="space-y-3 rounded-md border p-3">
+          <p className="text-sm text-muted-foreground">
+            App da plataforma, usado por todas as empresas para conectar o TikTok só com o login. Em developers.tiktok.com, no app da SG Multiconecta: adicione Login Kit e Content Posting API (com Direct Post), peça os escopos user.info.basic, user.info.stats, video.publish e video.list e cadastre este Redirect URI. Copie o Client key e o Client secret:
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{fb.redirectUri}</code>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                void navigator.clipboard.writeText(fb.redirectUri)
+                toast.success('Endereço copiado.')
+              }}
+            >
+              <CopyIcon /> Copiar
+            </Button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label htmlFor="tt-client-key">Client key</Label>
+              <Input id="tt-client-key" value={appId} maxLength={64} onChange={(e) => setAppId(e.target.value.trim())} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="tt-client-secret">Client secret</Label>
+              <Input id="tt-client-secret" type="password" autoComplete="off" value={secret} maxLength={200} onChange={(e) => setSecret(e.target.value)} placeholder={fb.hasSecret ? 'Guardada (preencha só para trocar)' : ''} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => save.mutate()} disabled={save.isPending || !appId || (!secret.trim() && !fb.hasSecret)}>
+              {save.isPending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Salvar app
+            </Button>
+            {fb.ready && (
+              <Button variant="ghost" onClick={() => setSetup(false)}>
+                Fechar
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
+  )
 }
 
 /** Login do Instagram: ID e chave do app e o botão de conectar (abre a tela de login do Instagram). */
@@ -42,7 +408,7 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
   const qc = useQueryClient()
   const [appId, setAppId] = useState(ig.appId)
   const [secret, setSecret] = useState('')
-  const [setup, setSetup] = useState(!ig.appId || !ig.hasSecret)
+  const [setup, setSetup] = useState(ig.isPlatform && (!ig.appId || !ig.hasSecret))
   useEffect(() => setAppId(ig.appId), [ig.appId])
   const save = useMutation({
     mutationFn: () => api.put('/postagens/instagram/app', { appId: appId.trim(), ...(secret.trim() ? { secret: secret.trim() } : {}) }),
@@ -82,7 +448,7 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
     }
     return () => ch.close()
   }, [qc])
-  const ready = !!ig.appId && ig.hasSecret
+  const ready = ig.ready
   return (
     <Card className="gap-3 p-4">
       <div className="flex flex-wrap items-start gap-3">
@@ -92,6 +458,8 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
           <p className="text-sm text-muted-foreground">
             Abre a tela do Instagram: entre com o usuário e a senha da conta e autorize. A senha fica só no Instagram; o CRM recebe o acesso para publicar, que é renovado sozinho. Repita para cada conta (a conta precisa ser profissional: Empresa ou Criador de conteúdo).
           </p>
+          {!ready && !ig.isPlatform && <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">A conexão com o Instagram ainda não está liberada. Fale com o suporte.</p>}
+          {ig.isPlatform && (
           <details className="mt-2 text-sm">
             <summary className="cursor-pointer font-medium text-foreground">O Instagram disse que a conta não é desenvolvedora ou testadora?</summary>
             <div className="mt-2 space-y-1.5 text-muted-foreground">
@@ -102,9 +470,10 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
                 <li>A conta aceita o convite no instagram.com (pelo navegador): Configurações › Apps e sites › Convites de testador.</li>
                 <li>Depois, aqui, clique de novo em Conectar conta do Instagram.</li>
               </ol>
-              <p>Para qualquer conta entrar sem convite, o app precisa ser publicado na Meta (verificação da empresa e análise das permissões).</p>
+              <p>Para qualquer conta entrar sem convite, o app precisa ser publicado na Meta (verificação da empresa e análise das permissões). Este app é o que todas as empresas usam para conectar o Instagram.</p>
             </div>
           </details>
+          )}
         </div>
         <div className="flex gap-2">
           {ready && (
@@ -112,7 +481,7 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
               {connect.isPending ? <Loader2Icon className="animate-spin" /> : <LogInIcon />} Conectar conta do Instagram
             </Button>
           )}
-          {ready && !setup && (
+          {ig.isPlatform && !setup && (
             <Button variant="ghost" onClick={() => setSetup(true)}>
               App do Instagram
             </Button>
@@ -122,7 +491,7 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
       {setup && (
         <div className="space-y-3 rounded-md border p-3">
           <p className="text-sm text-muted-foreground">
-            Em developers.facebook.com, no app da empresa, adicione o produto Instagram › API com login do Instagram. Em Configurar o login da empresa, copie o ID e a chave secreta do app do Instagram e cadastre este endereço de redirecionamento:
+            App da plataforma, usado por todas as empresas para conectar o Instagram só com o login. Em developers.facebook.com, no app da SG Multiconecta, adicione o produto Instagram › API com login do Instagram. Em Configurar o login da empresa, copie o ID e a chave secreta do app do Instagram e cadastre este endereço de redirecionamento:
           </p>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{ig.redirectUri}</code>
@@ -164,6 +533,228 @@ function InstagramConnect({ ig }: { ig: InstagramLoginConfig }) {
 }
 
 /** Volta do login do Instagram: conclui a conexão e volta para a aba Contas. */
+/**
+ * Retorno do login (Instagram ou Facebook) no painel da plataforma: manda a pessoa para o endereço da empresa dela,
+ * que conclui a conexão. Pública: a pessoa está logada no endereço da empresa, não no painel.
+ */
+export function PlataformaRetornoPage({ network }: { network: 'instagram' | 'facebook' | 'youtube' | 'tiktok' }) {
+  const [params] = useSearchParams()
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    const state = params.get('state')
+    if (!state) {
+      setError(params.get('error_description') ?? params.get('error_reason') ?? 'A autorização não voltou. Tente conectar de novo.')
+      return
+    }
+    api
+      .get<{ url: string }>(`/public/postagens/${network}/destino?state=${encodeURIComponent(state)}`)
+      .then((r) => window.location.replace(`${r.url}?${params.toString()}`))
+      .catch((err: unknown) => setError(errorMessage(err)))
+  }, [params, network])
+  return (
+    <div className="mx-auto max-w-md p-6">
+      {error ? (
+        <EmptyState icon={UnplugIcon} title="Não foi possível conectar" description={error} />
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" /> Voltando para o sistema da sua empresa...
+        </p>
+      )}
+    </div>
+  )
+}
+
+export const InstagramPlataformaRetornoPage = () => <PlataformaRetornoPage network="instagram" />
+export const FacebookPlataformaRetornoPage = () => <PlataformaRetornoPage network="facebook" />
+export const YoutubePlataformaRetornoPage = () => <PlataformaRetornoPage network="youtube" />
+export const TiktokPlataformaRetornoPage = () => <PlataformaRetornoPage network="tiktok" />
+
+/** Volta do login do Facebook: as páginas entram na lista e a aba fecha. */
+export function FacebookRetornoPage() {
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const done = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+  const [pages, setPages] = useState<string[] | null>(null)
+  useEffect(() => {
+    if (done.current) return
+    done.current = true
+    const code = params.get('code')
+    const state = params.get('state')
+    if (!code || !state) {
+      setError(params.get('error_description') ?? params.get('error_reason') ?? 'O Facebook não devolveu a autorização. Tente conectar de novo.')
+      return
+    }
+    api
+      .post<{ pages: string[] }>('/postagens/facebook/retorno', { code, state })
+      .then((r) => {
+        setPages(r.pages)
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel(FB_CHANNEL)
+          ch.postMessage({ pages: r.pages })
+          ch.close()
+        }
+        setTimeout(() => {
+          window.close()
+          setTimeout(() => {
+            toast.success(`Facebook conectado: ${r.pages.join(', ')}.`)
+            navigate('/postagens?aba=contas', { replace: true })
+          }, 300)
+        }, 1500)
+      })
+      .catch((err: unknown) => setError(errorMessage(err)))
+  }, [params, navigate])
+  return (
+    <div>
+      <PageHeader title="Conectando o Facebook" />
+      {error ? (
+        <EmptyState
+          icon={UnplugIcon}
+          title="Não foi possível conectar"
+          description={error}
+          action={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/postagens?aba=contas">Voltar para as contas</Link>
+            </Button>
+          }
+        />
+      ) : pages !== null ? (
+        <p className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+          <CheckIcon className="size-4" /> Facebook conectado: {pages.join(', ')}. Esta aba vai fechar sozinha.
+        </p>
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" /> Concluindo a conexão...
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** Volta do login do Google: o canal entra na lista e a aba fecha. */
+export function YoutubeRetornoPage() {
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const done = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+  const [channel, setChannel] = useState<string | null>(null)
+  useEffect(() => {
+    if (done.current) return
+    done.current = true
+    const code = params.get('code')
+    const state = params.get('state')
+    if (!code || !state) {
+      setError(params.get('error_description') ?? params.get('error_reason') ?? 'O Google não devolveu a autorização. Tente conectar de novo.')
+      return
+    }
+    api
+      .post<{ channel: string }>('/postagens/youtube/retorno', { code, state })
+      .then((r) => {
+        setChannel(r.channel)
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel(YT_CHANNEL)
+          ch.postMessage({ channel: r.channel })
+          ch.close()
+        }
+        setTimeout(() => {
+          window.close()
+          setTimeout(() => {
+            toast.success(`YouTube conectado: ${r.channel}.`)
+            navigate('/postagens?aba=contas', { replace: true })
+          }, 300)
+        }, 1500)
+      })
+      .catch((err: unknown) => setError(errorMessage(err)))
+  }, [params, navigate])
+  return (
+    <div>
+      <PageHeader title="Conectando o YouTube" />
+      {error ? (
+        <EmptyState
+          icon={UnplugIcon}
+          title="Não foi possível conectar"
+          description={error}
+          action={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/postagens?aba=contas">Voltar para as contas</Link>
+            </Button>
+          }
+        />
+      ) : channel !== null ? (
+        <p className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+          <CheckIcon className="size-4" /> YouTube conectado: {channel}. Esta aba vai fechar sozinha.
+        </p>
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" /> Concluindo a conexão...
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** Volta do login do TikTok: a conta entra na lista e a aba fecha. */
+export function TiktokRetornoPage() {
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const done = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+  const [channel, setChannel] = useState<string | null>(null)
+  useEffect(() => {
+    if (done.current) return
+    done.current = true
+    const code = params.get('code')
+    const state = params.get('state')
+    if (!code || !state) {
+      setError(params.get('error_description') ?? params.get('error_reason') ?? 'O TikTok não devolveu a autorização. Tente conectar de novo.')
+      return
+    }
+    api
+      .post<{ account: string }>('/postagens/tiktok/retorno', { code, state })
+      .then((r) => {
+        setChannel(r.account)
+        if (typeof BroadcastChannel !== 'undefined') {
+          const ch = new BroadcastChannel(TT_CHANNEL)
+          ch.postMessage({ account: r.account })
+          ch.close()
+        }
+        setTimeout(() => {
+          window.close()
+          setTimeout(() => {
+            toast.success(`TikTok conectado: ${r.account}.`)
+            navigate('/postagens?aba=contas', { replace: true })
+          }, 300)
+        }, 1500)
+      })
+      .catch((err: unknown) => setError(errorMessage(err)))
+  }, [params, navigate])
+  return (
+    <div>
+      <PageHeader title="Conectando o TikTok" />
+      {error ? (
+        <EmptyState
+          icon={UnplugIcon}
+          title="Não foi possível conectar"
+          description={error}
+          action={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/postagens?aba=contas">Voltar para as contas</Link>
+            </Button>
+          }
+        />
+      ) : channel !== null ? (
+        <p className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+          <CheckIcon className="size-4" /> TikTok conectado: {channel}. Esta aba vai fechar sozinha.
+        </p>
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" /> Concluindo a conexão...
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function InstagramRetornoPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -229,8 +820,8 @@ export function InstagramRetornoPage() {
 /** Marca da rede (o pacote de ícones não tem as logomarcas): IG e f nas cores de cada uma. */
 export function NetBadge({ n, className }: { n: Network; className?: string }) {
   return (
-    <span className={cn('inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] text-[9px] leading-none font-bold text-white', n === 'instagram' ? 'bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600' : 'bg-[#1877f2]', className)} aria-label={n === 'instagram' ? 'Instagram' : 'Facebook'}>
-      {n === 'instagram' ? 'IG' : 'f'}
+    <span className={cn('inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] text-[9px] leading-none font-bold text-white', n === 'instagram' ? 'bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600' : n === 'youtube' ? 'bg-[#ff0000]' : n === 'tiktok' ? 'bg-black ring-1 ring-white/30' : 'bg-[#1877f2]', className)} aria-label={n === 'instagram' ? 'Instagram' : n === 'youtube' ? 'YouTube' : n === 'tiktok' ? 'TikTok' : 'Facebook'}>
+      {n === 'instagram' ? 'IG' : n === 'youtube' ? 'YT' : n === 'tiktok' ? 'TT' : 'f'}
     </span>
   )
 }
@@ -283,7 +874,7 @@ export function AccountPicker({ accounts, value, onChange, disabled }: { account
 
 // ---------- Aba Contas ----------
 
-export function AccountsTab({ accounts, instagram }: { accounts: Account[]; instagram?: InstagramLoginConfig }) {
+export function AccountsTab({ accounts, instagram, facebook, youtube, tiktok }: { accounts: Account[]; instagram?: InstagramLoginConfig; facebook?: FacebookLoginConfig; youtube?: YoutubeLoginConfig; tiktok?: TiktokLoginConfig }) {
   const qc = useQueryClient()
   const { can } = useAuth()
   const edit = can('postagens', 'edit')
@@ -310,6 +901,9 @@ export function AccountsTab({ accounts, instagram }: { accounts: Account[]; inst
   return (
     <div className="space-y-4">
       {edit && instagram && <InstagramConnect ig={instagram} />}
+      {edit && facebook && <FacebookConnect fb={facebook} />}
+      {edit && youtube && <YoutubeConnect fb={youtube} />}
+      {edit && tiktok && <TiktokConnect fb={tiktok} />}
       <p className="text-sm text-muted-foreground">
         Também dá para usar o token da Meta (Configurações › Marketing Inteligente). Cada conta é um Instagram profissional ou uma página do Facebook. A empresa pode ter várias (ex.: a conta oficial e a de cada vendedor). Use os grupos para escolher várias de uma vez nas postagens e para somar as métricas. As contas precisam estar no Gerenciador de Negócios da empresa, atribuídas ao usuário do sistema do token (o Instagram de cada vendedor ligado a uma página).
       </p>

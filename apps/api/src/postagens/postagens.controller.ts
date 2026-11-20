@@ -30,6 +30,16 @@ class IgAppDto {
   @IsOptional() @IsString() @MaxLength(200) secret?: string
 }
 
+class YtAppDto {
+  @IsString() @MaxLength(250) clientId!: string
+  @IsOptional() @IsString() @MaxLength(200) secret?: string
+}
+
+class TtAppDto {
+  @IsString() @MaxLength(64) clientKey!: string
+  @IsOptional() @IsString() @MaxLength(200) secret?: string
+}
+
 class IgCallbackDto {
   @IsString() @MaxLength(2000) code!: string
   @IsString() @MaxLength(200) state!: string
@@ -172,6 +182,63 @@ export class PostagensController {
   @HttpCode(200)
   startInstagram(@CurrentUser() user: AuthUser) {
     return this.svc.startInstagram(user)
+  }
+
+  /** Painel da plataforma: app da Meta do login do Facebook (usado por todas as empresas). */
+  @Put('facebook/app')
+  saveFbApp(@CurrentUser() user: AuthUser, @Body() dto: IgAppDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveFbApp(user, dto.appId, dto.secret, ctx)
+  }
+
+  @Post('facebook/conectar')
+  @HttpCode(200)
+  startFacebook(@CurrentUser() user: AuthUser) {
+    return this.svc.startFacebook(user)
+  }
+
+  @Post('facebook/retorno')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  completeFacebook(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.completeFacebook(user, dto.code, dto.state, ctx)
+  }
+
+  /** Painel da plataforma: cliente OAuth do Google (YouTube), usado por todas as empresas. */
+  @Put('youtube/app')
+  saveYtApp(@CurrentUser() user: AuthUser, @Body() dto: YtAppDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveYtApp(user, dto.clientId, dto.secret, ctx)
+  }
+
+  @Post('youtube/conectar')
+  @HttpCode(200)
+  startYoutube(@CurrentUser() user: AuthUser) {
+    return this.svc.startYoutube(user)
+  }
+
+  @Post('youtube/retorno')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  completeYoutube(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.completeYoutube(user, dto.code, dto.state, ctx)
+  }
+
+  /** Painel da plataforma: app do TikTok for Developers, usado por todas as empresas. */
+  @Put('tiktok/app')
+  saveTtApp(@CurrentUser() user: AuthUser, @Body() dto: TtAppDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveTtApp(user, dto.clientKey, dto.secret, ctx)
+  }
+
+  @Post('tiktok/conectar')
+  @HttpCode(200)
+  startTiktok(@CurrentUser() user: AuthUser) {
+    return this.svc.startTiktok(user)
+  }
+
+  @Post('tiktok/retorno')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  completeTiktok(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.completeTiktok(user, dto.code, dto.state, ctx)
   }
 
   @Post('instagram/retorno')
@@ -330,6 +397,38 @@ export class PostagensController {
 @Controller('public/postagens')
 export class PublicPostagensController {
   constructor(private readonly svc: PostagensService) {}
+
+  /** Retorno do login do Instagram no painel da plataforma: endereço da empresa que começou a conexão. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('instagram/destino')
+  igDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('instagram', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
+  /** Retorno do login do TikTok no painel da plataforma. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('tiktok/destino')
+  ttDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('tiktok', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
+  /** Retorno do login do Google (YouTube) no painel da plataforma. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('youtube/destino')
+  ytDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('youtube', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
+  /** Retorno do login do Facebook no painel da plataforma: endereço da empresa que começou a conexão. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('facebook/destino')
+  fbDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('facebook', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
 
   @Public()
   @SkipThrottle()

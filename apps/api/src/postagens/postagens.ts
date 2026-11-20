@@ -3,14 +3,14 @@
  * Funções puras, testadas em test/postagens.spec.ts.
  */
 
-export const NETWORKS = ['instagram', 'facebook'] as const
+export const NETWORKS = ['instagram', 'facebook', 'youtube', 'tiktok'] as const
 export type Network = (typeof NETWORKS)[number]
 export const FORMATS = ['FEED', 'STORIES', 'REELS'] as const
 export type PostFormat = (typeof FORMATS)[number]
 export const STATUSES = ['RASCUNHO', 'EM_APROVACAO', 'APROVADO', 'PUBLICANDO', 'PUBLICADO', 'ERRO'] as const
 export type PostStatus = (typeof STATUSES)[number]
 
-export const NETWORK_LABEL: Record<Network, string> = { instagram: 'Instagram', facebook: 'Facebook' }
+export const NETWORK_LABEL: Record<Network, string> = { instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', tiktok: 'TikTok' }
 export const FORMAT_LABEL: Record<PostFormat, string> = { FEED: 'Feed', STORIES: 'Stories', REELS: 'Reels' }
 
 /** Legenda do Instagram: até 2.200 caracteres e 30 hashtags. */
@@ -33,8 +33,8 @@ export interface Account {
   name: string
   /** Grupo para escolher várias de uma vez e somar as métricas (ex.: Oficial, Vendedores). */
   group: string
-  /** Conectada pelo login do Instagram (publica com o token da própria conta, não com o da Meta). */
-  via?: 'instagram'
+  /** Conectada pelo login do Instagram, do Facebook ou do Google/YouTube (app da plataforma). */
+  via?: 'instagram' | 'facebook' | 'youtube' | 'tiktok'
 }
 
 /** Limpa a lista de contas que vem da tela: rede válida, ID numérico, sem repetir. No máximo 30. */
@@ -45,13 +45,16 @@ export function cleanAccounts(list: unknown): Account[] | { error: string } {
     const network = String(raw.network ?? '')
     const externalId = String(raw.externalId ?? '').trim()
     const name = String(raw.name ?? '').trim().slice(0, 80)
-    if (!(NETWORKS as readonly string[]).includes(network)) return { error: 'Escolha Instagram ou Facebook em cada conta.' }
-    if (!/^\d{5,25}$/.test(externalId)) return { error: `ID inválido${name ? ` em ${name}` : ''}: use só os números do ID da Meta.` }
+    if (!(NETWORKS as readonly string[]).includes(network)) return { error: 'Escolha Instagram, Facebook, YouTube ou TikTok em cada conta.' }
+    // Canal do YouTube só entra pelo login do Google (ID "UC..."); Instagram e Facebook, ID numérico da Meta.
+    // YouTube e TikTok só entram pelo login (ID do canal "UC..." e open_id do TikTok).
+    const badId = network === 'youtube' ? !/^UC[\w-]{22}$/.test(externalId) || raw.via !== 'youtube' : network === 'tiktok' ? !/^[\w.-]{10,100}$/.test(externalId) || raw.via !== 'tiktok' : !/^\d{5,25}$/.test(externalId)
+    if (badId) return { error: `ID inválido${name ? ` em ${name}` : ''}: use só os números do ID da Meta.` }
     if (out.some((a) => a.network === network && a.externalId === externalId)) continue
-    const id = /^[a-z0-9-]{4,40}$/.test(String(raw.id ?? '')) ? String(raw.id) : `${network === 'instagram' ? 'ig' : 'fb'}-${externalId}`
+    const id = /^[a-zA-Z0-9_-]{4,40}$/.test(String(raw.id ?? '')) ? String(raw.id) : `${network === 'instagram' ? 'ig' : network === 'youtube' ? 'yt' : network === 'tiktok' ? 'tt' : 'fb'}-${externalId}`.slice(0, 40)
     const group = String(raw.group ?? '').trim().slice(0, 40) || 'Geral'
-    const via = network === 'instagram' && raw.via === 'instagram' ? { via: 'instagram' as const } : {}
-    out.push({ id, network: network as Network, externalId, name: name || (network === 'instagram' ? `Instagram ${externalId}` : `Página ${externalId}`), group, ...via })
+    const via = network === 'instagram' && raw.via === 'instagram' ? { via: 'instagram' as const } : network === 'facebook' && raw.via === 'facebook' ? { via: 'facebook' as const } : network === 'youtube' ? { via: 'youtube' as const } : network === 'tiktok' ? { via: 'tiktok' as const } : {}
+    out.push({ id, network: network as Network, externalId, name: name || (network === 'instagram' ? `Instagram ${externalId}` : network === 'youtube' ? 'Canal do YouTube' : network === 'tiktok' ? 'Conta do TikTok' : `Página ${externalId}`), group, ...via })
   }
   return out
 }
@@ -134,6 +137,13 @@ export function missingForApproval(p: CleanPost, media: MediaInfo[], now = Date.
       if (p.format === 'FEED' && (r < 0.8 - 0.01 || r > 1.91 + 0.01)) out.push('Instagram (feed): a imagem precisa estar entre 4:5 (retrato) e 1,91:1 (paisagem). Ajuste o enquadramento.')
     }
   }
+  // YouTube: só vídeo, um por postagem (Reels vira Shorts; Stories não existe lá).
+  if (p.networks.includes('youtube')) {
+    if (videos !== 1 || images) out.push('YouTube: escolha um vídeo (só um).')
+    if (p.format === 'STORIES') out.push('YouTube não tem Stories: use Feed (vídeo) ou Reels (vira Shorts).')
+  }
+  // TikTok: um vídeo por postagem.
+  if (p.networks.includes('tiktok') && (videos !== 1 || images)) out.push('TikTok: escolha um vídeo (só um).')
   if (p.scheduledAt && p.scheduledAt.getTime() < now - 5 * 60_000) out.push('A data marcada já passou: escolha outra (ou deixe em branco para publicar assim que aprovar).')
   return [...new Set(out)]
 }
