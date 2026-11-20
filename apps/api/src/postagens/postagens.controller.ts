@@ -174,6 +174,25 @@ export class PostagensController {
     return this.svc.startInstagram(user)
   }
 
+  /** Painel da plataforma: app da Meta do login do Facebook (usado por todas as empresas). */
+  @Put('facebook/app')
+  saveFbApp(@CurrentUser() user: AuthUser, @Body() dto: IgAppDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.saveFbApp(user, dto.appId, dto.secret, ctx)
+  }
+
+  @Post('facebook/conectar')
+  @HttpCode(200)
+  startFacebook(@CurrentUser() user: AuthUser) {
+    return this.svc.startFacebook(user)
+  }
+
+  @Post('facebook/retorno')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  completeFacebook(@CurrentUser() user: AuthUser, @Body() dto: IgCallbackDto, @ReqContext() ctx: RequestCtx) {
+    return this.svc.completeFacebook(user, dto.code, dto.state, ctx)
+  }
+
   @Post('instagram/retorno')
   @HttpCode(200)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -336,7 +355,15 @@ export class PublicPostagensController {
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Get('instagram/destino')
   igDestination(@Query('state') state: string) {
-    return this.svc.igDestination(typeof state === 'string' ? state.slice(0, 200) : '')
+    return this.svc.oauthDestination('instagram', typeof state === 'string' ? state.slice(0, 200) : '')
+  }
+
+  /** Retorno do login do Facebook no painel da plataforma: endereço da empresa que começou a conexão. */
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('facebook/destino')
+  fbDestination(@Query('state') state: string) {
+    return this.svc.oauthDestination('facebook', typeof state === 'string' ? state.slice(0, 200) : '')
   }
 
   @Public()

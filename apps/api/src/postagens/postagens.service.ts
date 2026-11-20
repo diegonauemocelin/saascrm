@@ -15,6 +15,7 @@ import { postTimes } from '../marketing/instagram'
 import { beatSheet, checkCaption, hookScore, parseReels, reelsPrompt } from './conteudo-ig'
 import { PrismaService } from '../prisma/prisma.service'
 import { SettingsService } from '../settings/settings.service'
+import { FacebookLogin, FB_APP_KEY, FB_CALLBACK_PATH, FB_OAUTH_KEY, FB_PLATFORM_CALLBACK_PATH, FB_TOKENS_KEY, type FbApp, type FbPageToken, facebookAuthorizeUrl } from './facebook-login'
 import { IG_CALLBACK_PATH, IG_PLATFORM_CALLBACK_PATH, tenantOfState, IG_GRAPH, IG_TOKENS_KEY, type IgApp, type IgToken, InstagramLogin, authorizeUrl, needsRenewal, POSTAGENS_ACCOUNTS_KEY } from './instagram-login'
 import { type AccountMetrics, MetaPublisher, type PostMetrics } from './meta'
 import {
@@ -69,6 +70,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
   private readonly metricsCache = new Map<string, { at: number; data: unknown }>()
   private lastRenew = 0
   igLogin = new InstagramLogin()
+  fbLogin = new FacebookLogin()
 
   constructor(
     private readonly prisma: PrismaService,
@@ -120,6 +122,10 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const tokens = await this.igTokens(user.tenantId)
     const kept = Object.fromEntries(Object.entries(tokens).filter(([id]) => accounts.some((a) => a.via === 'instagram' && a.externalId === id)))
     if (Object.keys(kept).length !== Object.keys(tokens).length) await this.settings.set(user.tenantId, IG_TOKENS_KEY, kept)
+    // página do Facebook tirada da lista: o acesso dela também
+    const fb = await this.fbTokens(user.tenantId)
+    const fbKept = Object.fromEntries(Object.entries(fb).filter(([id]) => accounts.some((a) => a.via === 'facebook' && a.externalId === id)))
+    if (Object.keys(fbKept).length !== Object.keys(fb).length) await this.settings.set(user.tenantId, FB_TOKENS_KEY, fbKept)
     await this.audit.byUser(user, ctx, 'postagens.contas', 'settings', ACCOUNTS_KEY, { contas: accounts.map((a) => `${a.network}:${a.name}`) })
     return { accounts }
   }
@@ -225,6 +231,92 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     return { username: r.username, accounts }
   }
 
+  // ---------- Páginas conectadas pelo login do Facebook (app da plataforma) ----------
+
+  private async fbApp(tenantId: string): Promise<FbApp> {
+    return { appId: '', secretEnc: null, ...(await this.settings.get<Partial<FbApp>>(tenantId, FB_APP_KEY, {})) }
+  }
+
+  private async fbTokens(tenantId: string) {
+    return this.settings.get<Record<string, FbPageToken>>(tenantId, FB_TOKENS_KEY, {})
+  }
+
+  /** App da Meta do login do Facebook: o da plataforma (cadastrado no painel) para todas as empresas. */
+  private async fbAppFor(): Promise<{ app: FbApp; redirectUri: string } | null> {
+    const pid = await this.platformTenantId()
+    if (!pid) return null
+    const app = await this.fbApp(pid)
+    if (!app.appId || !app.secretEnc) return null
+    return { app, redirectUri: `${await this.tenants.url(pid)}${FB_PLATFORM_CALLBACK_PATH}` }
+  }
+
+  /** Painel da plataforma: ID e chave secreta do app da Meta (Login do Facebook). */
+  async saveFbApp(user: AuthUser, appId: string, secret: string | undefined, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    if ((await this.platformTenantId()) !== user.tenantId) throw new BadRequestException('O app do Facebook é cadastrado só no painel da plataforma.')
+    const c = await this.fbApp(user.tenantId)
+    if (!/^\d{5,25}$/.test(appId.trim())) throw new BadRequestException('O ID do app da Meta tem só números.')
+    if (!secret?.trim() && !c.secretEnc) throw new BadRequestException('Informe a chave secreta do app da Meta.')
+    await this.settings.set(user.tenantId, FB_APP_KEY, { appId: appId.trim(), secretEnc: secret?.trim() ? encrypt(secret.trim()) : c.secretEnc })
+    await this.audit.byUser(user, ctx, 'postagens.facebook_app', 'settings', FB_APP_KEY, { appId: appId.trim(), chaveNova: !!secret?.trim() })
+    return { ok: true }
+  }
+
+  /** Botão "Conectar páginas do Facebook": endereço do login do Facebook. */
+  async startFacebook(user: AuthUser) {
+    this.assertCan(user, 'edit')
+    const sel = await this.fbAppFor()
+    if (!sel) throw new BadRequestException('A conexão com o Facebook ainda não está liberada nesta plataforma. Fale com o suporte.')
+    const state = `${user.tenantId}.${randomBytes(24).toString('base64url')}`
+    await this.settings.set(user.tenantId, FB_OAUTH_KEY, { state, userId: user.id, redirectUri: sel.redirectUri, expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() })
+    return { url: facebookAuthorizeUrl(sel.app.appId, sel.redirectUri, state) }
+  }
+
+  /** Volta do Facebook: as páginas liberadas entram (ou são atualizadas) na lista. */
+  async completeFacebook(user: AuthUser, code: string, state: string, ctx: RequestCtx) {
+    this.assertCan(user, 'edit')
+    const pending = await this.settings.get<{ state?: string; userId?: string; redirectUri?: string; expiresAt?: string }>(user.tenantId, FB_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || pending.userId !== user.id || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar páginas do Facebook de novo.')
+    }
+    await this.settings.set(user.tenantId, FB_OAUTH_KEY, {})
+    const sel = await this.fbAppFor()
+    if (!sel?.app.secretEnc) throw new BadRequestException('A conexão com o Facebook ainda não está liberada nesta plataforma. Fale com o suporte.')
+    let pages
+    try {
+      pages = await this.fbLogin.connect({ appId: sel.app.appId, secret: decrypt(sel.app.secretEnc) }, code, pending.redirectUri ?? sel.redirectUri)
+    } catch (err) {
+      throw new BadRequestException((err as Error).message)
+    }
+    const tokens = await this.fbTokens(user.tenantId)
+    const accounts = await this.accounts(user.tenantId)
+    const now = new Date().toISOString()
+    for (const pg of pages) {
+      tokens[pg.id] = { tokenEnc: encrypt(pg.token), name: pg.name, issuedAt: now, connectedBy: user.name, lastError: null }
+      const i = accounts.findIndex((a) => a.network === 'facebook' && a.externalId === pg.id)
+      if (i >= 0) accounts[i] = { ...accounts[i]!, name: pg.name, via: 'facebook' }
+      else accounts.push({ id: `fb-${pg.id}`, network: 'facebook', externalId: pg.id, name: pg.name, group: accounts[0]?.group ?? 'Oficial', via: 'facebook' })
+    }
+    if (accounts.length > 30) throw new BadRequestException('Limite de 30 contas atingido: tire contas da lista antes de conectar outras.')
+    await this.settings.set(user.tenantId, FB_TOKENS_KEY, tokens)
+    await this.settings.set(user.tenantId, ACCOUNTS_KEY, { accounts })
+    this.metricsCache.delete(user.tenantId)
+    await this.audit.byUser(user, ctx, 'postagens.facebook_conectado', 'settings', FB_TOKENS_KEY, { paginas: pages.map((p) => p.name) })
+    return { pages: pages.map((p) => p.name), accounts }
+  }
+
+  /** Retorno no painel da plataforma: endereço da empresa que começou (Instagram ou Facebook). */
+  async oauthDestination(network: 'instagram' | 'facebook', state: string) {
+    if (network === 'instagram') return this.igDestination(state)
+    const tenantId = tenantOfState(state)
+    if (!tenantId) throw new BadRequestException('Autorização inválida. Clique em Conectar de novo.')
+    const pending = await this.settings.get<{ state?: string; expiresAt?: string }>(tenantId, FB_OAUTH_KEY, {})
+    if (!pending.state || !safeEqual(pending.state, state) || Date.parse(pending.expiresAt ?? '') < Date.now()) {
+      throw new BadRequestException('Autorização inválida ou expirada. Clique em Conectar de novo.')
+    }
+    return { url: `${await this.tenants.url(tenantId)}${FB_CALLBACK_PATH}` }
+  }
+
   /** Renova os tokens do Instagram perto de vencer (todas as empresas). */
   async renewInstagramTokens(now = Date.now()) {
     const rows = await this.prisma.tenantSetting.findMany({ where: { key: IG_TOKENS_KEY }, select: { tenantId: true } })
@@ -251,7 +343,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
    * (Marketing Inteligente).
    */
   private async publisherFor(tenantId: string, a: Account, cache: Map<string, MetaPublisher>) {
-    const key = a.via === 'instagram' ? `ig:${a.externalId}` : 'meta'
+    const key = a.via === 'instagram' ? `ig:${a.externalId}` : a.via === 'facebook' ? `fb:${a.externalId}` : 'meta'
     const hit = cache.get(key)
     if (hit) return hit
     let p: MetaPublisher
@@ -260,6 +352,11 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
       if (!t) throw new Error('Conta sem conexão com o Instagram: clique em Conectar conta do Instagram na aba Contas.')
       if (Date.parse(t.expiresAt) < Date.now()) throw new Error('A conexão desta conta com o Instagram venceu: conecte de novo na aba Contas.')
       p = new MetaPublisher(decrypt(t.tokenEnc), fetch, 5_000, IG_GRAPH)
+    } else if (a.via === 'facebook') {
+      const t = (await this.fbTokens(tenantId))[a.externalId]
+      if (!t) throw new Error('Página sem conexão com o Facebook: clique em Conectar páginas do Facebook na aba Contas.')
+      const pt = decrypt(t.tokenEnc)
+      p = new MetaPublisher(pt, fetch, 5_000, undefined, pt)
     } else {
       const c = await this.integrations(tenantId)
       if (!c.metaAds.tokenEnc) throw new Error('Token da Meta não cadastrado (Configurações › Marketing Inteligente).')
@@ -301,6 +398,14 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${IG_PLATFORM_CALLBACK_PATH}` : await this.igRedirectUri(user.tenantId),
         connections: Object.fromEntries(Object.entries(tokens).map(([id, t]) => [id, { username: t.username, expiresAt: t.expiresAt, connectedBy: t.connectedBy, lastError: t.lastError }])),
       },
+      facebook: {
+        ready: !!(await this.fbAppFor()),
+        isPlatform,
+        appId: isPlatform ? (await this.fbApp(user.tenantId)).appId : '',
+        hasSecret: isPlatform ? !!(await this.fbApp(user.tenantId)).secretEnc : false,
+        redirectUri: isPlatform ? `${await this.tenants.url(user.tenantId)}${FB_PLATFORM_CALLBACK_PATH}` : '',
+        connections: Object.fromEntries(Object.entries(await this.fbTokens(user.tenantId)).map(([id, t]) => [id, { name: t.name, connectedBy: t.connectedBy, lastError: t.lastError }])),
+      },
       accounts: await this.accounts(user.tenantId),
       hasAi: await this.ai.available(user.tenantId),
       canApprove: can(user.permissions, user.role.isSystem, 'postagens', 'edit'),
@@ -313,11 +418,12 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     this.assertCan(user, 'edit')
     const c = await this.integrations(user.tenantId)
     const accounts = await this.accounts(user.tenantId)
-    const viaMeta = accounts.filter((a) => a.via !== 'instagram')
+    const viaMeta = accounts.filter((a) => !a.via)
     const viaIg = accounts.filter((a) => a.via === 'instagram')
-    if (!c.metaAds.tokenEnc && !viaIg.length) throw new BadRequestException('Conecte uma conta do Instagram na aba Contas ou cadastre o token da Meta em Configurações › Marketing Inteligente.')
+    const viaFb = accounts.filter((a) => a.via === 'facebook')
+    if (!c.metaAds.tokenEnc && !viaIg.length && !viaFb.length) throw new BadRequestException('Conecte uma conta do Instagram ou do Facebook na aba Contas.')
     const checks: { name: string; ok: boolean; message: string }[] = []
-    if (c.metaAds.tokenEnc && (viaMeta.length || !viaIg.length)) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
+    if (c.metaAds.tokenEnc && (viaMeta.length || (!viaIg.length && !viaFb.length))) checks.push(...(await new MetaPublisher(decrypt(c.metaAds.tokenEnc)).check(viaMeta)))
     const cache = new Map<string, MetaPublisher>()
     for (const a of viaIg) {
       try {
@@ -325,6 +431,14 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
         checks.push({ ...r, message: `${r.message} · conectada pelo login do Instagram` })
       } catch (err) {
         checks.push({ name: `Instagram ${a.name}`, ok: false, message: (err as Error).message })
+      }
+    }
+    for (const a of viaFb) {
+      try {
+        await (await this.publisherFor(user.tenantId, a, cache)).facebookMetrics(a.externalId)
+        checks.push({ name: `Facebook ${a.name}`, ok: true, message: 'Página conectada pelo login do Facebook' })
+      } catch (err) {
+        checks.push({ name: `Facebook ${a.name}`, ok: false, message: (err as Error).message })
       }
     }
     return { checks }
@@ -342,7 +456,7 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     if (!refresh && hit && Date.now() - hit.at < METRICS_TTL_MS) return hit.data
     const c = await this.integrations(user.tenantId)
     const accounts = await this.accounts(user.tenantId)
-    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via === 'instagram')) throw new BadRequestException('Conecte uma conta do Instagram na aba Contas ou cadastre o token da Meta em Configurações › Marketing Inteligente.')
+    if (!c.metaAds.tokenEnc && !accounts.some((a) => a.via)) throw new BadRequestException('Conecte uma conta do Instagram ou do Facebook na aba Contas.')
     const cache = new Map<string, MetaPublisher>()
     const rows: (Account & AccountMetrics & { engagement: number | null; error: string | null })[] = []
     for (const a of accounts) {
@@ -592,8 +706,11 @@ export class PostagensService implements OnApplicationBootstrap, OnModuleDestroy
     const c = await this.clean(user.tenantId, this.stored(p))
     const missing = missingForApproval(c, await this.mediaInfo(user.tenantId, c.mediaIds))
     if (missing.length) throw new BadRequestException(`Não dá para aprovar: ${missing.join(' ')}`)
+    // Token da Meta só é preciso para contas que não foram conectadas pelo login (Instagram ou Facebook).
+    const accounts = await this.accounts(user.tenantId)
+    const needsMeta = c.accountIds.some((aid) => !accounts.find((a) => a.id === aid)?.via)
     const conn = await this.integrations(user.tenantId)
-    if (!conn.metaAds.tokenEnc) throw new BadRequestException('Cadastre o token da Meta em Configurações › Marketing Inteligente antes de aprovar.')
+    if (needsMeta && !conn.metaAds.tokenEnc) throw new BadRequestException('Conecte as contas pelo login do Instagram ou do Facebook na aba Contas antes de aprovar.')
     await this.prisma.socialPost.update({ where: { id }, data: { status: 'APROVADO', approvedById: user.id, approvedByName: user.name.slice(0, 120), approvedAt: new Date(), reviewNote: null } })
     await this.audit.byUser(user, ctx, 'postagens.aprovada', 'social_post', id, { titulo: p.title, quando: p.scheduledAt?.toISOString() ?? 'assim que aprovada' })
     return { ok: true, message: p.scheduledAt && p.scheduledAt.getTime() > Date.now() + 60_000 ? `Aprovada: sai em ${p.scheduledAt.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })}.` : 'Aprovada: sai no próximo minuto.' }

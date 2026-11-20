@@ -34,7 +34,8 @@ export interface Account {
   /** Grupo para escolher várias de uma vez e somar as métricas (ex.: Oficial, Vendedores). */
   group: string
   /** Conectada pelo login do Instagram (publica com o token da própria conta, não com o da Meta). */
-  via?: 'instagram'
+  /** Conectada pelo login do Instagram ou do Facebook (app da plataforma). */
+  via?: 'instagram' | 'facebook'
 }
 
 /** Limpa a lista de contas que vem da tela: rede válida, ID numérico, sem repetir. No máximo 30. */
@@ -50,7 +51,7 @@ export function cleanAccounts(list: unknown): Account[] | { error: string } {
     if (out.some((a) => a.network === network && a.externalId === externalId)) continue
     const id = /^[a-z0-9-]{4,40}$/.test(String(raw.id ?? '')) ? String(raw.id) : `${network === 'instagram' ? 'ig' : 'fb'}-${externalId}`
     const group = String(raw.group ?? '').trim().slice(0, 40) || 'Geral'
-    const via = network === 'instagram' && raw.via === 'instagram' ? { via: 'instagram' as const } : {}
+    const via = network === 'instagram' && raw.via === 'instagram' ? { via: 'instagram' as const } : network === 'facebook' && raw.via === 'facebook' ? { via: 'facebook' as const } : {}
     out.push({ id, network: network as Network, externalId, name: name || (network === 'instagram' ? `Instagram ${externalId}` : `Página ${externalId}`), group, ...via })
   }
   return out

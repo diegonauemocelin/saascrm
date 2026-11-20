@@ -73,7 +73,16 @@ export class MetaPublisher {
     private readonly pollMs = 5_000,
     /** graph.facebook.com (token da Meta) ou graph.instagram.com (conta conectada pelo login do Instagram). */
     private readonly base = GRAPH,
+    /** Página conectada pelo login do Facebook: o token já é o da página (não precisa pedir o access_token dela). */
+    private readonly pageToken: string | null = null,
   ) {}
+
+  /** Token da página: o da conexão pelo login do Facebook ou o que o token da Meta alcança. */
+  private async tokenOfPage(pageId: string) {
+    if (this.pageToken) return this.pageToken
+    const page = await this.call('GET', pageId, { fields: 'access_token' })
+    return String(page.access_token ?? '')
+  }
 
   private async call(method: 'GET' | 'POST', path: string, params: Record<string, string | boolean | undefined> = {}, token = this.token) {
     const qs = new URLSearchParams()
@@ -184,8 +193,8 @@ export class MetaPublisher {
   /** Página do Facebook: seguidores e os últimos 28 dias (a Meta não dá mais o perfil dos seguidores de páginas). */
   async facebookMetrics(pageId: string): Promise<AccountMetrics> {
     const warnings: string[] = []
-    const page = await this.call('GET', pageId, { fields: 'followers_count,fan_count,access_token' })
-    const pt = String(page.access_token ?? '')
+    const page = await this.call('GET', pageId, { fields: this.pageToken ? 'followers_count,fan_count' : 'followers_count,fan_count,access_token' })
+    const pt = this.pageToken ?? String(page.access_token ?? '')
     const totals: Record<string, number> = {}
     if (pt) {
       for (const metric of ['page_impressions_unique', 'page_post_engagements']) {
@@ -221,8 +230,7 @@ export class MetaPublisher {
       for (const d of (ins.data as { name: string; values?: { value?: number }[]; total_value?: { value?: number } }[] | undefined) ?? []) v[d.name] = Number(d.values?.[0]?.value ?? d.total_value?.value ?? 0)
       return { reach: v.reach ?? null, likes: v.likes ?? null, comments: v.comments ?? null, saves: v.saved ?? null, shares: v.shares ?? null, interactions: v.total_interactions ?? null }
     }
-    const page = pageId ? await this.call('GET', pageId, { fields: 'access_token' }) : null
-    const pt = String(page?.access_token ?? '') || this.token
+    const pt = (pageId ? await this.tokenOfPage(pageId) : '') || this.token
     const p = await this.call('GET', mediaId, { fields: 'reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0),shares' }, pt)
     const likes = Number((p.reactions as { summary?: { total_count?: number } } | undefined)?.summary?.total_count ?? 0)
     const comments = Number((p.comments as { summary?: { total_count?: number } } | undefined)?.summary?.total_count ?? 0)
@@ -271,8 +279,7 @@ export class MetaPublisher {
   // ---------- Facebook (página) ----------
 
   async facebook(pageId: string, p: PublishInput): Promise<NetworkResult> {
-    const page = await this.call('GET', pageId, { fields: 'access_token' })
-    const pt = String(page.access_token ?? '')
+    const pt = await this.tokenOfPage(pageId)
     if (!pt) throw new MetaError('O token não traz o acesso da página (atribua a página ao usuário do sistema no Gerenciador de Negócios).')
     const one = p.media[0]
     if (!one) throw new MetaError('Postagem sem mídia.')
