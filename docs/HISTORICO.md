@@ -221,6 +221,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `youtube.ts`, `tiktok.ts`. Aparelho confiável no app instalado (da v3.0.66 da Usaparts, tabela `trusted_devices`).
    **Pendente (fora do código):** verificação da empresa e análise das permissões na Meta; verificação do app no Google
    (escopo youtube.upload); auditoria do app no TikTok (sem ela, os vídeos saem só como privados).
+54. **1.0.160** (23/11/2026, da v3.0.67 da Usaparts): agendamento de coletas (`freight_pickup_schedules`, carrier
+   `pickupBySchedule`, módulo `fretes_coletas` no sistema Fretes, perfil "Expedição (coletas)"), painel da TV com avisos
+   falados; mensagem de ausência por número (`away.numberIds`); vídeo recebido como documento toca no chat; app do
+   celular com grupos em Tudo (`juntos`).
 
 ## Como está no ar
 

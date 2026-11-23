@@ -15,7 +15,7 @@ import { normalizeCep, normalizeUf, validCnpj } from './cep'
 import { todayUtc } from './tabelas.service'
 import { FREIGHT_ROLES, roleRows } from './perfis'
 
-const FREIGHT_MODULES: FreightModule[] = ['fretes_painel', 'fretes_cotacao', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro']
+const FREIGHT_MODULES: FreightModule[] = ['fretes_painel', 'fretes_coletas', 'fretes_cotacao', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro']
 const DAY = 86_400_000
 
 /** Contexto do módulo (filiais liberadas, listas e variáveis), filiais e painel de indicadores. */
