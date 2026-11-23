@@ -225,6 +225,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `pickupBySchedule`, módulo `fretes_coletas` no sistema Fretes, perfil "Expedição (coletas)"), painel da TV com avisos
    falados; mensagem de ausência por número (`away.numberIds`); vídeo recebido como documento toca no chat; app do
    celular com grupos em Tudo (`juntos`).
+55. **1.0.161** (23/11/2026, da v3.0.68 da Usaparts): Jadlog com `Authorization: Bearer <token>` (`jadlogAuth`);
+   Pedidos mostram a última NF-e e a última importação de XML (`lastNfe`, `lastImport`).
 
 ## Como está no ar
 
