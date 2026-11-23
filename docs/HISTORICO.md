@@ -232,6 +232,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    resultado da cotação em cartões (troca para tabela, lembrada no navegador) e formulário em 3 passos; aviso de SEFAZ
    fora/instável/atrasada (`sefazHealth`, `GET fretes/sefaz/situacao`, alerta em fretes); campanha de frete
    ACRESCIMO (reajuste: tabela + %, promoção ganha); poupança com % por vendedor (`sellerPcts`, `pctFor`).
+57. **1.0.163** (23/11/2026, da v3.0.70 da Usaparts): rastreamento pela chave da NF-e no SSW (`fretes/rastreio.ts`,
+   `RastreioService`: na tela do pedido e a cada 30 min nos pedidos em aberto; marca entregue; colunas `trackingAt`,
+   `trackingLast`, `trackingCarrier`); Análise de mercado fora dos marketplaces (`src/mercado`, tabela
+   `market_analyses`, módulo `mi_mercado` no sistema Marketing Inteligente; IA Gemini ou Claude com pesquisa na web,
+   só totais do CRM; também no menu de Fretes).
 
 ## Como está no ar
 
