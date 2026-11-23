@@ -227,6 +227,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    celular com grupos em Tudo (`juntos`).
 55. **1.0.161** (23/11/2026, da v3.0.68 da Usaparts): Jadlog com `Authorization: Bearer <token>` (`jadlogAuth`);
    Pedidos mostram a última NF-e e a última importação de XML (`lastNfe`, `lastImport`).
+56. **1.0.162** (23/11/2026, da v3.0.69 da Usaparts): cotação online de transportadoras do sistema SSW (`sswQuoteEnvelope`
+   e `parseSswQuote` em `fretes/integracoes.ts`, SOAP sswCotacao.cotar; nome e domínio configuráveis, padrão genérico);
+   resultado da cotação em cartões (troca para tabela, lembrada no navegador) e formulário em 3 passos; aviso de SEFAZ
+   fora/instável/atrasada (`sefazHealth`, `GET fretes/sefaz/situacao`, alerta em fretes); campanha de frete
+   ACRESCIMO (reajuste: tabela + %, promoção ganha); poupança com % por vendedor (`sellerPcts`, `pctFor`).
 
 ## Como está no ar
 
