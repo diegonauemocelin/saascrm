@@ -1,6 +1,6 @@
 /**
  * Empresa de DEMONSTRAÇÃO para apresentações ao vivo: loja de material de construção (Mãos à Obra Materiais de
- * Construção), com dados fictícios em todos os sistemas: atendimento, WhatsApp, leads, e-commerce, marketing
+ * Construção – Itapema/SC), com dados fictícios em todos os sistemas: atendimento, WhatsApp, leads, e-commerce, marketing
  * (postagens, e-mail, automações, Web Push, fidelidade, anúncios) e fretes (filiais, transportadoras, tabelas,
  * cotações, pedidos, NF-e, CT-e conciliados e divergentes, faturas, coletas, campanhas e poupança de frete).
  *
@@ -27,8 +27,8 @@ import { addBusinessDays, calculate, matchRule, measure, type RuleLike, type Vol
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) })
 const PASSWORD = process.env.DEMO_PASSWORD || `Demo-${randomBytes(9).toString('base64url')}`
 const SLUG = 'maosaobra'
-const NAME = 'Mãos à Obra Materiais de Construção'
-const SHORT = 'Mãos à Obra'
+const NAME = 'Mãos à Obra Materiais de Construção – Itapema'
+const SHORT = 'Mãos à Obra Itapema'
 const DAY = 86_400_000
 const now = Date.now()
 let seed = 1931
@@ -56,7 +56,7 @@ function cnpj(base12: string) {
 }
 /** Chave de 44 dígitos (NF-e modelo 55, CT-e modelo 57) com o dígito verificador no módulo 11. */
 function accessKey(uf: string, at: Date, emit: string, model: '55' | '57', number: number) {
-  const cuf = { SC: '42', PR: '41', RS: '43' }[uf] ?? '42'
+  const cuf = { SC: '42', PR: '41', RS: '43', SP: '35' }[uf] ?? '42'
   const aamm = `${String(at.getUTCFullYear()).slice(2)}${String(at.getUTCMonth() + 1).padStart(2, '0')}`
   const k43 = `${cuf}${aamm}${emit}${model}001${String(number).padStart(9, '0')}1${String(between(10_000_000, 99_999_999))}`
   let sum = 0
@@ -81,9 +81,8 @@ const TEAM: [name: string, role: 'admin' | 'Vendedor' | 'Pré-Vendas' | 'Expedi�
   ['Everton Kunz', 'Expedição', 0],
 ]
 const UNITS = [
-  { name: 'Matriz Chapecó', city: 'Chapecó', state: 'SC', zip: '89801000', address: 'Rua das Obras, 1200 - Distrito Industrial', cnpj: cnpj('481523670001'), hq: true },
-  { name: 'Filial Cascavel', city: 'Cascavel', state: 'PR', zip: '85801000', address: 'Av. dos Construtores, 455 - Centro', cnpj: cnpj('481523670002'), hq: false },
-  { name: 'Filial Passo Fundo', city: 'Passo Fundo', state: 'RS', zip: '99010000', address: 'Rua do Tijolo, 88 - Boqueirão', cnpj: cnpj('481523670003'), hq: false },
+  { name: 'Matriz Itapema', city: 'Itapema', state: 'SC', zip: '88220000', address: 'Rua das Obras, 1200 - Morretes', cnpj: cnpj('481523670001'), hq: true },
+  { name: 'Filial Balneário Camboriú', city: 'Balneário Camboriú', state: 'SC', zip: '88330000', address: 'Av. dos Construtores, 455 - Centro', cnpj: cnpj('481523670002'), hq: false },
 ]
 const ORIGINS = ['WhatsApp', 'Google Ads', 'Instagram', 'Balcão', 'Indicação', 'Site']
 const LOST = ['Preço', 'Prazo de entrega', 'Sem estoque', 'Comprou no concorrente', 'Sem retorno', 'Obra adiada']
@@ -93,9 +92,19 @@ const PRODUCT_TYPES = ['Cimento e argamassa', 'Tijolos e blocos', 'Telhas', 'Tin
 
 /** Cidades atendidas, com um CEP de cada uma (para as cotações de frete). */
 const CITIES: [city: string, uf: string, zip: string][] = [
-  ['Chapecó', 'SC', '89802000'], ['Xanxerê', 'SC', '89820000'], ['Concórdia', 'SC', '89700000'], ['Florianópolis', 'SC', '88010000'], ['Joinville', 'SC', '89201000'], ['Blumenau', 'SC', '89010000'], ['Itajaí', 'SC', '88301000'], ['Criciúma', 'SC', '88801000'],
-  ['Cascavel', 'PR', '85802000'], ['Curitiba', 'PR', '80010000'], ['Maringá', 'PR', '87013000'], ['Londrina', 'PR', '86010000'], ['Pato Branco', 'PR', '85501000'], ['Francisco Beltrão', 'PR', '85601000'],
-  ['Passo Fundo', 'RS', '99020000'], ['Porto Alegre', 'RS', '90010000'], ['Caxias do Sul', 'RS', '95020000'], ['Erechim', 'RS', '99700000'], ['Santa Maria', 'RS', '97010000'],
+  ['Itapema', 'SC', '88220000'], ['Balneário Camboriú', 'SC', '88330000'], ['Porto Belo', 'SC', '88210000'], ['Bombinhas', 'SC', '88215000'], ['Tijucas', 'SC', '88200000'], ['Camboriú', 'SC', '88340000'],
+  ['Itajaí', 'SC', '88301000'], ['Navegantes', 'SC', '88370000'], ['Brusque', 'SC', '88350000'], ['Blumenau', 'SC', '89010000'],
+  ['Florianópolis', 'SC', '88010000'], ['Joinville', 'SC', '89201000'], ['Curitiba', 'PR', '80010000'], ['Porto Alegre', 'RS', '90010000'],
+]
+/** Clientes: a maior parte de Itapema e do Litoral Norte/Vale do Itajaí; alguns de Florianópolis, Joinville, Curitiba e Porto Alegre. */
+const LOCAL_CITIES = CITIES.slice(0, 10)
+/** Destinos das cotações de frete (origem em Itapema/SC): SC, PR, RS e SP. */
+const DESTS: [city: string, uf: string, zip: string][] = [
+  ...CITIES.slice(5),
+  ['Chapecó', 'SC', '89802000'], ['Criciúma', 'SC', '88801000'], ['Lages', 'SC', '88501000'],
+  ['Londrina', 'PR', '86010000'], ['Maringá', 'PR', '87013000'], ['Cascavel', 'PR', '85802000'],
+  ['Caxias do Sul', 'RS', '95020000'], ['Passo Fundo', 'RS', '99020000'],
+  ['São Paulo', 'SP', '01310000'], ['Campinas', 'SP', '13010000'], ['Sorocaba', 'SP', '18010000'],
 ]
 
 const FIRST = ['Lucas', 'Juliana', 'Rafael', 'Fernanda', 'Gustavo', 'Patrícia', 'Thiago', 'Camila', 'Rodrigo', 'Aline', 'Marcelo', 'Beatriz', 'Felipe', 'Larissa', 'André', 'Vanessa', 'Renata', 'Eduardo', 'Simone', 'Jair', 'Leandro', 'Priscila', 'Valdir', 'Sérgio', 'Adriano', 'Gilmar']
@@ -113,14 +122,14 @@ const NOTES: Record<Kind, string[]> = {
 
 type Talk = [name: string, msgs: [fromMe: boolean, text: string][], labels: string[]]
 const TALKS: Talk[] = [
-  ['Jair Bortolini', [[false, 'Bom dia! Tem cimento CP-II 50kg? Preciso de 40 sacos.'], [true, 'Bom dia, Jair! Temos sim, Votorantim e Itambé. Entrega na obra ou retira no balcão?'], [false, 'Entrega na obra, é no bairro Efapi.'], [true, 'Perfeito. Já te mando o orçamento com o frete da entrega. 👷'], [false, 'Fechado, aguardo']], ['Orçamento', 'Entrega na obra']],
+  ['Jair Bortolini', [[false, 'Bom dia! Tem cimento CP-II 50kg? Preciso de 40 sacos.'], [true, 'Bom dia, Jair! Temos sim, Votorantim e Itambé. Entrega na obra ou retira no balcão?'], [false, 'Entrega na obra, é no bairro Morretes.'], [true, 'Perfeito. Já te mando o orçamento com o frete da entrega. 👷'], [false, 'Fechado, aguardo']], ['Orçamento', 'Entrega na obra']],
   ['Construtora Horizonte', [[false, 'Precisamos do orçamento de obra completo: 4 casas de 70m², fundação até cobertura.'], [true, 'Olá! Com prazer. Pode mandar o projeto e a lista de materiais? Fazemos o orçamento por etapa.'], [false, 'Vou mandar o PDF do projeto agora.'], [false, 'Segue o memorial descritivo.']], ['Orçamento de obra', 'Construtora']],
   ['Fernanda Martins', [[false, 'Oi! Vocês têm porcelanato 90x90 acetinado?'], [true, 'Oi, Fernanda! Temos da Portobello em 3 tons. Te mando as fotos?'], [false, 'Manda sim! E quanto fica o m²?']], ['Orçamento']],
   ['Studio Arq Lumen', [[false, 'Boa tarde! Consegue separar amostras de revestimento para eu levar ao cliente?'], [true, 'Boa tarde! Separamos sim. Quais linhas você quer?'], [false, 'Linha mármore e a cimentícia, 3 amostras de cada.'], [true, 'Separado no seu nome, pode retirar a partir das 14h. 😉']], ['Arquiteto']],
   ['Valdir Schmitz', [[false, 'Quanto rende uma lata de 18L da Suvinil fosco?']], ['Orçamento']],
   ['Alicerce Engenharia', [[false, 'O aço da laje chega quando? Precisamos até quinta.'], [true, 'Saiu hoje de manhã pela TransSul, previsão de entrega na quarta.'], [false, 'Ótimo, obrigado!']], ['Entrega na obra', 'Construtora']],
   ['Camila Ribeiro', [[false, 'Comprei pelo site o kit de tinta, consigo trocar a cor?'], [true, 'Consegue sim, Camila, antes de abrir a lata. Qual cor você quer?']], ['Pós-venda']],
-  ['Sérgio Pereira', [[false, 'Tem telha de fibrocimento 2,44m? Preciso de 30.'], [true, 'Temos Eternit 6mm. Para entrega em Xanxerê?'], [false, 'Isso, e mais 2 cumeeiras.']], ['Orçamento', 'Entrega na obra']],
+  ['Sérgio Pereira', [[false, 'Tem telha de fibrocimento 2,44m? Preciso de 30.'], [true, 'Temos Eternit 6mm. Para entrega em Porto Belo?'], [false, 'Isso, e mais 2 cumeeiras.']], ['Orçamento', 'Entrega na obra']],
   ['Rodrigo Gomes', [[false, 'Bom dia, vocês vendem tijolo 6 furos no milheiro?']], []],
   ['Pilar Obras e Reformas', [[false, 'Chegou tudo certo na obra, obrigado pela agilidade!'], [true, 'Que bom! Qualquer coisa estamos aqui. 🧱']], ['Construtora']],
   ['Adriano Cardoso', [[false, 'Argamassa AC-III serve para porcelanato grande na área externa?']], ['Orçamento']],
@@ -133,9 +142,9 @@ const POSTS: [title: string, caption: string, days: number, format: 'FEED' | 'ST
   ['Pedreiro parceiro', 'Cadastre-se como pedreiro parceiro e tenha condições especiais toda semana.', 5, 'FEED', 'APROVADO'],
   ['Porcelanato 90x90', 'Chegou a nova linha de porcelanato 90x90 acetinado. Venha ver no showroom.', 7, 'FEED', 'RASCUNHO'],
   ['Dica de obra: cura do concreto', 'Molhe a laje por 7 dias para o concreto curar sem trincas.', 9, 'REELS', 'RASCUNHO'],
-  ['Entrega na obra', 'Caminhão próprio em Chapecó e região, transportadoras parceiras para SC, PR e RS. 🚚', -2, 'FEED', 'PUBLICADO'],
+  ['Entrega na obra', 'Caminhão próprio em Itapema e no Litoral Norte; transportadoras parceiras para SC, PR, RS e SP. 🚚', -2, 'FEED', 'PUBLICADO'],
   ['Feirão de tintas', 'Obrigado a todos que passaram no feirão de tintas!', -6, 'STORIES', 'PUBLICADO'],
-  ['Nova filial em Passo Fundo', 'Agora também no Rio Grande do Sul! Rua do Tijolo, 88.', -12, 'FEED', 'PUBLICADO'],
+  ['Nova loja em Balneário Camboriú', 'Agora também em Balneário Camboriú! Av. dos Construtores, 455.', -12, 'FEED', 'PUBLICADO'],
 ]
 
 /** Catálogo (loja virtual): SKU, nome, marca, preço, peso (kg), medidas (cm). */
@@ -173,10 +182,10 @@ const CARGOS: [string, Volume[], number][] = [
 
 /** Transportadoras fictícias: preço base por UF de destino (faixa até 10 kg), fator das faixas, prazos e taxas. */
 const CARRIERS = [
-  { name: 'TransSul Cargas', legal: 'TransSul Cargas e Encomendas Ltda', base: '519874320001', city: 'Chapecó', uf: 'SC', zip: '89809000', price: { SC: 42, PR: 58, RS: 61 }, days: { SC: 2, PR: 3, RS: 4 }, adv: 0.3, gris: 0.15, toll: 4.9, pickupMode: 'COLETA', schedule: false },
-  { name: 'Rápido Oeste', legal: 'Rápido Oeste Transportes Rodoviários Ltda', base: '627301450001', city: 'Cascavel', uf: 'PR', zip: '85816000', price: { SC: 55, PR: 39, RS: 66 }, days: { SC: 3, PR: 2, RS: 5 }, adv: 0.25, gris: 0.2, toll: 5.5, pickupMode: 'COLETA', schedule: false },
-  { name: 'Expresso Serra', legal: 'Expresso Serra Gaúcha Logística Ltda', base: '734512980001', city: 'Caxias do Sul', uf: 'RS', zip: '95032000', price: { SC: 52, PR: 63, RS: 37 }, days: { SC: 3, PR: 4, RS: 2 }, adv: 0.35, gris: 0.12, toll: 6.2, pickupMode: 'COLETA', schedule: false },
-  { name: 'Rodo Litoral', legal: 'Rodo Litoral Transportes Ltda', base: '815236740001', city: 'Itajaí', uf: 'SC', zip: '88311000', price: { SC: 45, PR: 57, RS: 64 }, days: { SC: 2, PR: 3, RS: 5 }, adv: 0.28, gris: 0.18, toll: 5.1, pickupMode: 'DESPACHO', schedule: false },
+  { name: 'TransSul Cargas', legal: 'TransSul Cargas e Encomendas Ltda', base: '519874320001', city: 'Itajaí', uf: 'SC', zip: '88311000', price: { SC: 42, PR: 58, RS: 61, SP: 66 }, days: { SC: 2, PR: 3, RS: 4, SP: 4 }, adv: 0.3, gris: 0.15, toll: 4.9, pickupMode: 'COLETA', schedule: false },
+  { name: 'Rápido Oeste', legal: 'Rápido Oeste Transportes Rodoviários Ltda', base: '627301450001', city: 'Cascavel', uf: 'PR', zip: '85816000', price: { SC: 55, PR: 39, RS: 66, SP: 70 }, days: { SC: 3, PR: 2, RS: 5, SP: 5 }, adv: 0.25, gris: 0.2, toll: 5.5, pickupMode: 'COLETA', schedule: false },
+  { name: 'Expresso Serra', legal: 'Expresso Serra Gaúcha Logística Ltda', base: '734512980001', city: 'Caxias do Sul', uf: 'RS', zip: '95032000', price: { SC: 52, PR: 63, RS: 37, SP: 74 }, days: { SC: 3, PR: 4, RS: 2, SP: 5 }, adv: 0.35, gris: 0.12, toll: 6.2, pickupMode: 'COLETA', schedule: false },
+  { name: 'Rodo Litoral', legal: 'Rodo Litoral Transportes Ltda', base: '815236740001', city: 'Navegantes', uf: 'SC', zip: '88370000', price: { SC: 45, PR: 57, RS: 64, SP: 62 }, days: { SC: 2, PR: 3, RS: 5, SP: 3 }, adv: 0.28, gris: 0.18, toll: 5.1, pickupMode: 'DESPACHO', schedule: false },
   { name: 'Fluxo Express', legal: 'Fluxo Express Entregas Rápidas Ltda', base: '908172630001', city: 'Curitiba', uf: 'PR', zip: '81200000', price: { SC: 49, PR: 44 } as Record<string, number>, days: { SC: 2, PR: 1 } as Record<string, number>, adv: 0.4, gris: 0.22, toll: 4.5, pickupMode: 'COLETA', schedule: true },
 ] as const
 
@@ -260,15 +269,15 @@ async function main() {
   const TYPE_OF: Record<Kind, string> = { pedreiro: 'Pedreiro', construtora: 'Construtora', arquiteto: 'Arquiteto', consumidor: 'Consumidor final' }
   const leads: (Lead & { kind: Kind })[] = []
   for (const [i, [name, kind]] of people.entries()) {
-    const [city, state] = i < 30 ? pick(CITIES.slice(0, 3)) : pick(CITIES)
+    const [city, state] = i < 25 ? pick(LOCAL_CITIES.slice(0, 3)) : rnd() < 0.8 ? pick(LOCAL_CITIES) : pick(CITIES.slice(10))
     const created = ago(between(1, 88))
     const company = kind === 'construtora' || kind === 'arquiteto' ? name : null
-    const unit = state === 'PR' ? units[1]! : state === 'RS' ? units[2]! : units[0]!
+    const unit = ['Balneário Camboriú', 'Camboriú', 'Itajaí', 'Navegantes'].includes(city) ? units[1]! : units[0]!
     const owner = sellers.find((s) => s.unitId === unit.id && rnd() < 0.6) ?? pick(sellers)
     const lead = await prisma.lead.create({
       data: {
         tenantId: t, name, company, jobTitle: kind === 'construtora' ? pick(['Engenheiro de obras', 'Compras', 'Mestre de obras']) : kind === 'arquiteto' ? 'Arquiteto(a)' : null,
-        email: `${slugify(name)}${i}@exemplo.com.br`, phone: `55499${String(81000000 + i * 7919)}`, city, state, unitId: unit.id,
+        email: `${slugify(name)}${i}@exemplo.com.br`, phone: `55479${String(81000000 + i * 7919)}`, city, state, unitId: unit.id,
         stage: pick(kind === 'construtora' ? (['QUALIFICADO', 'OPORTUNIDADE', 'CLIENTE', 'CLIENTE'] as const) : (['LEAD', 'LEAD', 'QUALIFICADO', 'OPORTUNIDADE', 'CLIENTE'] as const)),
         ownerId: owner.id, originId: pick(origins).id, emailOptIn: rnd() > 0.3, scoreProfile: between(10, 100), scoreInterest: between(0, 100), scoreGrade: pick(['A', 'B', 'B', 'C', 'C', 'D']), scoreUpdatedAt: ago(1),
         createdAt: created, firstConversionAt: created, lastConversionAt: created, lastActivityAt: ago(between(0, 12)), tags: rnd() > 0.3 ? [pick(TAGS[kind])] : [],
@@ -319,14 +328,14 @@ async function main() {
   for (const p of pres.filter((r) => r.saleStatus === 'SIM' && r.leadId)) await prisma.lead.update({ where: { id: p.leadId! }, data: { lastSaleAt: p.resultAt, lastSaleValue: p.saleValue } })
 
   // ---------- WhatsApp ----------
-  const number = await prisma.whatsappNumber.create({ data: { tenantId: t, name: 'Comercial', instanceName: `demo-${SLUG}-${randomBytes(3).toString('hex')}`, phone: '554933330800', profileName: NAME, status: 'CONECTADO', connectedAt: ago(40), userIds: users.map((u) => u.id), sellerIds: sellers.map((x) => x.id) } })
+  const number = await prisma.whatsappNumber.create({ data: { tenantId: t, name: 'Comercial', instanceName: `demo-${SLUG}-${randomBytes(3).toString('hex')}`, phone: '554733330800', profileName: NAME, status: 'CONECTADO', connectedAt: ago(40), userIds: users.map((u) => u.id), sellerIds: sellers.map((x) => x.id) } })
   const LABELS: [string, string][] = [['Orçamento', 'laranja'], ['Orçamento de obra', 'vermelho'], ['Entrega na obra', 'azul'], ['Construtora', 'roxo'], ['Arquiteto', 'rosa'], ['Pós-venda', 'verde']]
   const labels = new Map<string, string>()
   for (const [name, color] of LABELS) labels.set(name, (await prisma.whatsappLabel.create({ data: { tenantId: t, name, color } })).id)
   add('etiquetas do chat', labels.size)
   const QUICK: [string, string][] = [
     ['Orçamento recebido', 'Recebemos o seu pedido de orçamento! Em instantes um vendedor te chama com os valores e o prazo de entrega. 🧱'],
-    ['Entrega na obra', 'Entregamos na obra em Chapecó e região com caminhão próprio. Para outras cidades, cotamos com as transportadoras parceiras.'],
+    ['Entrega na obra', 'Entregamos na obra em Itapema e no Litoral Norte com caminhão próprio. Para outras cidades, cotamos com as transportadoras parceiras.'],
     ['Horário', 'Atendemos de segunda a sexta, das 7h30 às 18h, e aos sábados das 8h às 12h.'],
   ]
   for (const [title, text] of QUICK) await prisma.whatsappQuickReply.create({ data: { tenantId: t, title, text } })
@@ -339,7 +348,7 @@ async function main() {
     const last = msgs[msgs.length - 1]!
     const conv = await prisma.whatsappConversation.create({
       data: {
-        tenantId: t, numberId: number.id, jid: `${lead?.phone ?? `55499${91000000 + k}`}@s.whatsapp.net`, phone: lead?.phone ?? `55499${91000000 + k}`, name, leadId: lead?.id ?? null,
+        tenantId: t, numberId: number.id, jid: `${lead?.phone ?? `55479${91000000 + k}`}@s.whatsapp.net`, phone: lead?.phone ?? `55479${91000000 + k}`, name, leadId: lead?.id ?? null,
         assignedUserId: who.id, assignedSellerId: seller.id, unread: last[0] ? 0 : 1 + (k % 3), category: 'CLIENTE', status: 'ABERTA',
         lastMessageAt: new Date(t0 + msgs.length * 120_000), lastPreview: last[1], lastFromMe: last[0], lastInboundAt: new Date(t0 + msgs.length * 120_000 - (last[0] ? 120_000 : 0)),
       },
@@ -446,7 +455,7 @@ async function main() {
   ]
   for (const [name, subject, d, seg, links] of CAMPAIGNS) {
     const started = ago(d)
-    const blocks = [{ type: 'titulo', html: subject, align: 'center' }, { type: 'texto', html: '<p>Olá, {nome}! Preparamos condições especiais para a sua obra. Entrega na obra em Chapecó e região.</p>' }, { type: 'botao', text: 'Ver ofertas', url: links[0], color: COLORS.primary }]
+    const blocks = [{ type: 'titulo', html: subject, align: 'center' }, { type: 'texto', html: '<p>Olá, {nome}! Preparamos condições especiais para a sua obra. Entrega na obra em Itapema e região.</p>' }, { type: 'botao', text: 'Ver ofertas', url: links[0], color: COLORS.primary }]
     const c = await prisma.emailCampaign.create({ data: { tenantId: t, name, subject, preheader: NAME, fromName: SHORT, blocks: json(blocks), links, segmentId: segments[seg]!.id, status: 'ENVIADA', startedAt: started, finishedAt: new Date(started.getTime() + 1_200_000), createdById: admin.id, createdAt: new Date(started.getTime() - DAY) } })
     let opens = 0
     let clicks = 0
@@ -495,7 +504,7 @@ async function main() {
   // ---------- Web Push (só campanhas com os números; inscritos precisam de navegador de verdade) ----------
   for (const [name, title, message, d, targets] of [
     ['Feirão de tintas', 'Feirão de tintas começou! 🎨', 'Suvinil com até 20% de desconto. Só esta semana.', 8, 412],
-    ['Cimento com preço de obra', 'Cimento CP-II com preço de obra', 'Compre 40 sacos e ganhe a entrega em Chapecó.', 2, 455],
+    ['Cimento com preço de obra', 'Cimento CP-II com preço de obra', 'Compre 40 sacos e ganhe a entrega em Itapema.', 2, 455],
   ] as const) {
     const sent = targets - between(5, 20)
     const delivered = sent - between(10, 30)
@@ -504,7 +513,7 @@ async function main() {
   add('campanhas de Web Push', 2)
 
   // ---------- Anúncios (Marketing Inteligente) ----------
-  const GADS = [['21100001', 'Pesquisa | Material de construção Chapecó', 95], ['21100002', 'Performance Max | Loja virtual', 140]] as const
+  const GADS = [['21100001', 'Pesquisa | Material de construção Itapema', 95], ['21100002', 'Performance Max | Loja virtual', 140]] as const
   const META = [['23850001', 'Leads | Orçamento de obra', 70], ['23850002', 'Tráfego | Feirão de tintas', 45]] as const
   for (let d = 1; d <= 90; d++) {
     const date = utcDay(spDay(-d))
@@ -530,7 +539,7 @@ async function main() {
   for (const [ci, c] of CARRIERS.entries()) {
     const carrier = await prisma.freightCarrier.create({
       data: {
-        tenantId: t, cnpj: cnpj(c.base), legalName: c.legal, name: c.name, zip: c.zip, city: c.city, state: c.uf, phone: `55${c.uf === 'SC' ? '49' : c.uf === 'PR' ? '45' : '54'}3${String(3300000 + ci * 1111)}`, email: `comercial@${slugify(c.name).replace(/\./g, '')}.demo`,
+        tenantId: t, cnpj: cnpj(c.base), legalName: c.legal, name: c.name, zip: c.zip, city: c.city, state: c.uf, phone: `55${{ SC: '47', PR: '41', RS: '54' }[c.uf] ?? '47'}3${String(3300000 + ci * 1111)}`, email: `comercial@${slugify(c.name).replace(/\./g, '')}.demo`,
         contacts: json([{ name: pick(FIRST) + ' ' + pick(LAST), role: 'Comercial', phone: null, email: `comercial@${slugify(c.name).replace(/\./g, '')}.demo` }]), modes: ['RODOVIARIO'],
         pickups: json(c.schedule ? [] : [{ unitId: null, days: [1, 2, 3, 4, 5], cutoff: ci % 2 ? '14:30' : '15:30', pickup: ci % 2 ? '16:00' : '17:00', minutes: 30, note: null }]),
         pickupMode: c.pickupMode, pickupBySchedule: c.schedule,
@@ -543,7 +552,7 @@ async function main() {
     for (const n of versions) {
       const factor = n === 1 && versions.length > 1 ? 0.93 : 1
       const rules: (RuleLike & { id: string })[] = []
-      for (const uf of Object.keys(c.price) as ('SC' | 'PR' | 'RS')[]) {
+      for (const uf of Object.keys(c.price)) {
         const base = (c.price as Record<string, number>)[uf]! * factor
         for (const [bi, [min, max, f]] of BANDS.entries()) {
           const values: Record<string, number> = { freight: r2(base * f), advalorem: c.adv, gris: c.gris, gris_min: 3.5, toll: c.toll, fraction: 100 }
@@ -583,7 +592,7 @@ async function main() {
   add('campanhas da poupança de frete', 1)
 
   type Result = ReturnType<typeof quoteOne>
-  function quoteOne(entry: (typeof tables)[number], unit: Unit, dest: (typeof CITIES)[number], personType: 'PF' | 'PJ', cargoValue: number, volumes: Volume[], date: Date) {
+  function quoteOne(entry: (typeof tables)[number], unit: Unit, dest: (typeof DESTS)[number], personType: 'PF' | 'PJ', cargoValue: number, volumes: Volume[], date: Date) {
     const { table, carrier, version, rules } = entry
     const m = measure(volumes, null)
     const base = {
@@ -609,7 +618,7 @@ async function main() {
   const quotes = []
   for (let i = 0; i < 18; i++) {
     const unit = i % 5 === 4 ? units[1]! : units[0]!
-    const dest = pick(i % 3 === 0 ? CITIES.filter((c) => c[1] === 'RS') : CITIES.filter((c) => c[0] !== unit.city))
+    const dest = pick(i % 3 === 0 ? DESTS.filter((c) => c[1] === 'RS' || c[1] === 'SP') : DESTS.filter((c) => c[0] !== unit.city))
     const [desc, volumes, cargoValue] = pick(CARGOS)
     const [customerName, customerDoc, personType] = pick(CUSTOMERS)
     const daysAgo = Math.floor((18 - i) * 1.9) + 1
@@ -715,7 +724,7 @@ async function main() {
   for (let i = 0; i < 3; i++) {
     const issued = ago(between(1, 20))
     const unit = units[0]!
-    await prisma.freightNfe.create({ data: { tenantId: t, key: accessKey('SC', issued, unit.cnpj!, '55', ++nfeNumber), number: nfeNumber, series: '1', issuedAt: issued, emitCnpj: unit.cnpj, unitId: unit.id, value: between(300, 4000), freightValue: 0, seller: pick(sellers).name, freightMode: i === 2 ? '0' : '9', destCity: 'Chapecó', destUf: 'SC', destZip: '89802000', status: i === 2 ? 'CANCELADA' : 'SEM_FRETE', cancelledAt: i === 2 ? issued : null } })
+    await prisma.freightNfe.create({ data: { tenantId: t, key: accessKey('SC', issued, unit.cnpj!, '55', ++nfeNumber), number: nfeNumber, series: '1', issuedAt: issued, emitCnpj: unit.cnpj, unitId: unit.id, value: between(300, 4000), freightValue: 0, seller: pick(sellers).name, freightMode: i === 2 ? '0' : '9', destCity: 'Itapema', destUf: 'SC', destZip: '88220000', status: i === 2 ? 'CANCELADA' : 'SEM_FRETE', cancelledAt: i === 2 ? issued : null } })
     add('NF-e')
   }
   // Pedido aguardando cotação (entrou pela NF-e, falta escolher a transportadora).
