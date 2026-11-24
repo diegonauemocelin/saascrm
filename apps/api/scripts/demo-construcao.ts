@@ -1,5 +1,5 @@
 /**
- * Empresa de DEMONSTRAÇÃO para apresentações ao vivo: loja de material de construção (Casa Forte Materiais de
+ * Empresa de DEMONSTRAÇÃO para apresentações ao vivo: loja de material de construção (Mãos à Obra Materiais de
  * Construção), com dados fictícios em todos os sistemas: atendimento, WhatsApp, leads, e-commerce, marketing
  * (postagens, e-mail, automações, Web Push, fidelidade, anúncios) e fretes (filiais, transportadoras, tabelas,
  * cotações, pedidos, NF-e, CT-e conciliados e divergentes, faturas, coletas, campanhas e poupança de frete).
@@ -26,8 +26,9 @@ import { addBusinessDays, calculate, matchRule, measure, type RuleLike, type Vol
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) })
 const PASSWORD = process.env.DEMO_PASSWORD || `Demo-${randomBytes(9).toString('base64url')}`
-const SLUG = 'casaforte'
-const NAME = 'Casa Forte Materiais de Construção'
+const SLUG = 'maosaobra'
+const NAME = 'Mãos à Obra Materiais de Construção'
+const SHORT = 'Mãos à Obra'
 const DAY = 86_400_000
 const now = Date.now()
 let seed = 1931
@@ -127,7 +128,7 @@ const TALKS: Talk[] = [
 
 const POSTS: [title: string, caption: string, days: number, format: 'FEED' | 'STORIES' | 'REELS', status: 'RASCUNHO' | 'EM_APROVACAO' | 'APROVADO' | 'PUBLICADO'][] = [
   ['Semana da Construção', 'Cimento, argamassa e tijolos com condição especial até sábado. Entrega na obra! 🏗️', 1, 'FEED', 'APROVADO'],
-  ['Antes e depois: banheiro', 'Reforma completa com porcelanato e louças da Casa Forte. Arraste para ver o resultado.', 2, 'REELS', 'APROVADO'],
+  ['Antes e depois: banheiro', 'Reforma completa com porcelanato e louças da Mãos à Obra. Arraste para ver o resultado.', 2, 'REELS', 'APROVADO'],
   ['Quanto de tinta eu preciso?', 'Calcule: área das paredes ÷ rendimento por demão × número de demãos. Chame no WhatsApp que a gente calcula!', 3, 'STORIES', 'EM_APROVACAO'],
   ['Pedreiro parceiro', 'Cadastre-se como pedreiro parceiro e tenha condições especiais toda semana.', 5, 'FEED', 'APROVADO'],
   ['Porcelanato 90x90', 'Chegou a nova linha de porcelanato 90x90 acetinado. Venha ver no showroom.', 7, 'FEED', 'RASCUNHO'],
@@ -159,8 +160,9 @@ const PRODUCTS: [sku: string, name: string, brand: string, price: number, kg: nu
 
 /** Cargas típicas para as cotações: descrição, volumes (kg por unidade, medidas em cm) e valor da nota. */
 const CARGOS: [string, Volume[], number][] = [
-  ['40 sacos de cimento CP-II', [{ quantity: 40, weight: 50, length: 60, width: 40, height: 12 }], 1556],
-  ['20 argamassas AC-III', [{ quantity: 20, weight: 20, length: 40, width: 30, height: 10 }], 698],
+  ['Louças e metais (4 bacias e 6 misturadores)', [{ quantity: 4, weight: 32, length: 70, width: 40, height: 80 }, { quantity: 6, weight: 2.5, length: 35, width: 25, height: 12 }], 5559],
+  ['10 argamassas AC-III e 6 caixas de porcelanato 60x60', [{ quantity: 10, weight: 20, length: 40, width: 30, height: 10 }, { quantity: 6, weight: 32, length: 62, width: 62, height: 8 }], 1308.4],
+  ['60 barras de vergalhão CA-50 10mm', [{ quantity: 60, weight: 7.4, length: 1200, width: 2, height: 2 }], 3294],
   ['8 latas de tinta 18L', [{ quantity: 8, weight: 25, length: 30, width: 30, height: 40 }], 3119.2],
   ['12 caixas de porcelanato 90x90', [{ quantity: 12, weight: 38, length: 92, width: 92, height: 5 }], 2998.8],
   ['30 telhas de fibrocimento', [{ quantity: 30, weight: 18, length: 244, width: 110, height: 3 }], 2397],
@@ -204,8 +206,8 @@ async function main() {
   })
   const t = tenant.id
   const setting = (key: string, value: unknown) => prisma.tenantSetting.create({ data: { tenantId: t, key, value: json(value) } })
-  await setting('branding', { appName: NAME, shortName: 'Casa Forte', primaryColor: COLORS.primary, brandColor: COLORS.primary, sidebarColor: COLORS.sidebar })
-  await setting('postagens_contas', { accounts: [{ id: 'ig-oficial', network: 'instagram', externalId: '17841400000000031', name: '@casafortemateriais', group: 'Oficial' }, { id: 'fb-pagina', network: 'facebook', externalId: '100000000000031', name: NAME, group: 'Oficial' }] })
+  await setting('branding', { appName: NAME, shortName: SHORT, primaryColor: COLORS.primary, brandColor: COLORS.primary, sidebarColor: COLORS.sidebar })
+  await setting('postagens_contas', { accounts: [{ id: 'ig-oficial', network: 'instagram', externalId: '17841400000000031', name: '@maosaobramateriais', group: 'Oficial' }, { id: 'fb-pagina', network: 'facebook', externalId: '100000000000031', name: NAME, group: 'Oficial' }] })
   const adminRoleId = await createDefaultRoles(prisma, t)
   const WORK = { canView: true, canCreate: true, canEdit: true, canExport: true }
   const expedicao = await prisma.role.create({
@@ -220,7 +222,7 @@ async function main() {
   const roleByName = new Map((await prisma.role.findMany({ where: { tenantId: t } })).map((r) => [r.name, r.id]))
 
   const units: Unit[] = []
-  for (const u of UNITS) units.push(await prisma.unit.create({ data: { tenantId: t, name: u.name, city: u.city, state: u.state, isHeadquarters: u.hq, cnpj: u.cnpj, legalName: 'Casa Forte Comércio de Materiais de Construção Ltda', zip: u.zip, address: u.address } }))
+  for (const u of UNITS) units.push(await prisma.unit.create({ data: { tenantId: t, name: u.name, city: u.city, state: u.state, isHeadquarters: u.hq, cnpj: u.cnpj, legalName: 'Mãos à Obra Comércio de Materiais de Construção Ltda', zip: u.zip, address: u.address } }))
   add('filiais', units.length)
 
   const hash = await hashPassword(PASSWORD)
@@ -360,7 +362,7 @@ async function main() {
 
   // ---------- E-commerce: catálogo, pedidos e carrinhos ----------
   for (const [sku, name, brand, price, kg, [l, w, h]] of PRODUCTS) {
-    await prisma.storeProduct.create({ data: { tenantId: t, externalId: sku, code: sku, name, brand, price, priceFrom: rnd() > 0.6 ? r2(price * 1.15) : null, stock: between(8, 400), url: `https://loja.casaforte.demo/${slugify(name).replace(/\./g, '-')}`, path: `/${slugify(name).replace(/\./g, '-')}`, weightKg: kg, lengthCm: l, widthCm: w, heightCm: h, measuresAt: ago(3), syncedAt: ago(0) } })
+    await prisma.storeProduct.create({ data: { tenantId: t, externalId: sku, code: sku, name, brand, price, priceFrom: rnd() > 0.6 ? r2(price * 1.15) : null, stock: between(8, 400), url: `https://loja.maosaobra.demo/${slugify(name).replace(/\./g, '-')}`, path: `/${slugify(name).replace(/\./g, '-')}`, weightKg: kg, lengthCm: l, widthCm: w, heightCm: h, measuresAt: ago(3), syncedAt: ago(0) } })
   }
   add('produtos do catálogo', PRODUCTS.length)
   const buyers = leads.filter((l) => l.kind !== 'construtora')
@@ -389,7 +391,7 @@ async function main() {
   for (let i = 0; i < 9; i++) {
     const lead = pick(buyers)
     const lines = [pick(PRODUCTS), pick(PRODUCTS)]
-    const items = lines.map(([code, name]) => ({ code, name, qty: between(1, 10), image: null, url: `https://loja.casaforte.demo/${slugify(name).replace(/\./g, '-')}` }))
+    const items = lines.map(([code, name]) => ({ code, name, qty: between(1, 10), image: null, url: `https://loja.maosaobra.demo/${slugify(name).replace(/\./g, '-')}` }))
     const started = ago(between(0, 20))
     await prisma.ecommerceCart.create({
       data: {
@@ -403,7 +405,7 @@ async function main() {
   for (const o of orders.filter((x) => x.statusGroup === 'pago')) await prisma.lead.update({ where: { id: o.leadId! }, data: { lastSaleAt: o.orderedAt, lastSaleValue: o.total, ecommerceId: o.customerId } })
 
   // ---------- Fidelidade ----------
-  await setting('fidelidade', { enabled: true, since: spDay(), pointsPerReal: 1, expireMonths: 12, bonusReview: 50, levels: [{ key: 'bronze', name: 'Bronze', min: 0, benefits: 'Pontos em todas as compras da loja virtual.', color: '#b45309' }, { key: 'prata', name: 'Prata', min: 1000, benefits: 'Atendimento prioritário no WhatsApp.', color: '#64748b' }, { key: 'ouro', name: 'Ouro', min: 3000, benefits: 'Entrega na obra com prioridade e condições especiais.', color: '#ca8a04' }], page: { title: 'Clube Casa Forte', intro: 'Cada compra na loja virtual vale pontos. Troque por descontos e brindes para a sua obra.' } })
+  await setting('fidelidade', { enabled: true, since: spDay(), pointsPerReal: 1, expireMonths: 12, bonusReview: 50, levels: [{ key: 'bronze', name: 'Bronze', min: 0, benefits: 'Pontos em todas as compras da loja virtual.', color: '#b45309' }, { key: 'prata', name: 'Prata', min: 1000, benefits: 'Atendimento prioritário no WhatsApp.', color: '#64748b' }, { key: 'ouro', name: 'Ouro', min: 3000, benefits: 'Entrega na obra com prioridade e condições especiais.', color: '#ca8a04' }], page: { title: 'Clube Mãos à Obra', intro: 'Cada compra na loja virtual vale pontos. Troque por descontos e brindes para a sua obra.' } })
   const rewards = await Promise.all([
     prisma.loyaltyReward.create({ data: { tenantId: t, name: 'R$ 30 de desconto', description: 'Desconto na próxima compra.', kind: 'DESCONTO', discountType: 'VALOR', value: 30, pointsCost: 600, sort: 1 } }),
     prisma.loyaltyReward.create({ data: { tenantId: t, name: '10% de desconto em tintas', kind: 'DESCONTO', discountType: 'PERCENTUAL', value: 10, pointsCost: 1200, sort: 2 } }),
@@ -438,14 +440,14 @@ async function main() {
   add('segmentos de e-mail', segments.length)
   const optIn = leads.filter((l) => l.emailOptIn)
   const CAMPAIGNS: [name: string, subject: string, days: number, seg: number, links: string[]][] = [
-    ['Semana da Construção', 'Cimento, argamassa e tijolos com preço de obra 🏗️', 20, 2, ['https://loja.casaforte.demo/semana-da-construcao', 'https://loja.casaforte.demo/cimento']],
-    ['Feirão de tintas', 'Suvinil com até 20% de desconto só esta semana', 9, 1, ['https://loja.casaforte.demo/tintas']],
-    ['Novidades em porcelanato', 'Chegou a linha 90x90 acetinado da Portobello', 3, 2, ['https://loja.casaforte.demo/porcelanato', 'https://loja.casaforte.demo/showroom']],
+    ['Semana da Construção', 'Cimento, argamassa e tijolos com preço de obra 🏗️', 20, 2, ['https://loja.maosaobra.demo/semana-da-construcao', 'https://loja.maosaobra.demo/cimento']],
+    ['Feirão de tintas', 'Suvinil com até 20% de desconto só esta semana', 9, 1, ['https://loja.maosaobra.demo/tintas']],
+    ['Novidades em porcelanato', 'Chegou a linha 90x90 acetinado da Portobello', 3, 2, ['https://loja.maosaobra.demo/porcelanato', 'https://loja.maosaobra.demo/showroom']],
   ]
   for (const [name, subject, d, seg, links] of CAMPAIGNS) {
     const started = ago(d)
     const blocks = [{ type: 'titulo', html: subject, align: 'center' }, { type: 'texto', html: '<p>Olá, {nome}! Preparamos condições especiais para a sua obra. Entrega na obra em Chapecó e região.</p>' }, { type: 'botao', text: 'Ver ofertas', url: links[0], color: COLORS.primary }]
-    const c = await prisma.emailCampaign.create({ data: { tenantId: t, name, subject, preheader: 'Casa Forte Materiais de Construção', fromName: 'Casa Forte', blocks: json(blocks), links, segmentId: segments[seg]!.id, status: 'ENVIADA', startedAt: started, finishedAt: new Date(started.getTime() + 1_200_000), createdById: admin.id, createdAt: new Date(started.getTime() - DAY) } })
+    const c = await prisma.emailCampaign.create({ data: { tenantId: t, name, subject, preheader: NAME, fromName: SHORT, blocks: json(blocks), links, segmentId: segments[seg]!.id, status: 'ENVIADA', startedAt: started, finishedAt: new Date(started.getTime() + 1_200_000), createdById: admin.id, createdAt: new Date(started.getTime() - DAY) } })
     let opens = 0
     let clicks = 0
     const audience = optIn.filter((_, k) => (k + d) % 4 !== 0)
@@ -462,7 +464,7 @@ async function main() {
     add('destinatários de e-mail', audience.length)
   }
   await prisma.emailCampaign.create({ data: { tenantId: t, name: 'Ofertas de dezembro', subject: 'Termine a obra antes das festas', status: 'RASCUNHO', segmentId: segments[2]!.id, blocks: json([{ type: 'titulo', html: 'Termine a obra antes das festas', align: 'center' }]), createdById: admin.id } })
-  const template = await prisma.emailCampaign.create({ data: { tenantId: t, name: 'Boas-vindas (modelo)', subject: 'Bem-vindo à Casa Forte, {nome}!', kind: 'MODELO', status: 'RASCUNHO', blocks: json([{ type: 'titulo', html: 'Bem-vindo à Casa Forte!', align: 'center' }, { type: 'texto', html: '<p>Tudo para a sua obra, da fundação ao acabamento. Fale com a gente pelo WhatsApp.</p>' }]), createdById: admin.id } })
+  const template = await prisma.emailCampaign.create({ data: { tenantId: t, name: 'Boas-vindas (modelo)', subject: 'Bem-vindo à Mãos à Obra, {nome}!', kind: 'MODELO', status: 'RASCUNHO', blocks: json([{ type: 'titulo', html: 'Bem-vindo à Mãos à Obra!', align: 'center' }, { type: 'texto', html: '<p>Tudo para a sua obra, da fundação ao acabamento. Fale com a gente pelo WhatsApp.</p>' }]), createdById: admin.id } })
   add('campanhas de e-mail (rascunho e modelo)', 2)
   const welcome = await prisma.automation.create({
     data: {
@@ -475,7 +477,7 @@ async function main() {
     data: {
       tenantId: t, name: 'Pedreiro sem comprar há 30 dias', description: 'Chama no WhatsApp o pedreiro parceiro que parou de comprar.', active: true, activatedAt: ago(30), createdById: admin.id,
       trigger: json({ type: 'inatividade', days: 30, kind: 'interacao' }),
-      steps: json([{ id: 'w1', type: 'condicao', match: 'todas', rules: [{ type: 'tem_tag', tag: 'pedreiro parceiro' }], yes: [{ id: 'w2', type: 'enviar_whatsapp', numberId: number.id, text: 'Olá, {nome}! Sentimos sua falta na Casa Forte. Esta semana tem condição especial de cimento e argamassa para pedreiro parceiro. 🧱', openRecord: true }], no: [{ id: 'w3', type: 'encerrar' }] }]),
+      steps: json([{ id: 'w1', type: 'condicao', match: 'todas', rules: [{ type: 'tem_tag', tag: 'pedreiro parceiro' }], yes: [{ id: 'w2', type: 'enviar_whatsapp', numberId: number.id, text: 'Olá, {nome}! Sentimos sua falta na Mãos à Obra. Esta semana tem condição especial de cimento e argamassa para pedreiro parceiro. 🧱', openRecord: true }], no: [{ id: 'w3', type: 'encerrar' }] }]),
     },
   })
   add('automações', 2)
@@ -497,7 +499,7 @@ async function main() {
   ] as const) {
     const sent = targets - between(5, 20)
     const delivered = sent - between(10, 30)
-    await prisma.webPushCampaign.create({ data: { tenantId: t, name, title, message, url: 'https://loja.casaforte.demo/ofertas', buttonLabel: 'Ver ofertas', status: 'ENVIADO', sentAt: ago(d), finishedAt: ago(d), targets, sent, failed: targets - sent, delivered, clicks: Math.round(delivered * (0.05 + rnd() * 0.06)), createdById: admin.id, createdByName: admin.name } })
+    await prisma.webPushCampaign.create({ data: { tenantId: t, name, title, message, url: 'https://loja.maosaobra.demo/ofertas', buttonLabel: 'Ver ofertas', status: 'ENVIADO', sentAt: ago(d), finishedAt: ago(d), targets, sent, failed: targets - sent, delivered, clicks: Math.round(delivered * (0.05 + rnd() * 0.06)), createdById: admin.id, createdByName: admin.name } })
   }
   add('campanhas de Web Push', 2)
 
@@ -545,7 +547,7 @@ async function main() {
         const base = (c.price as Record<string, number>)[uf]! * factor
         for (const [bi, [min, max, f]] of BANDS.entries()) {
           const values: Record<string, number> = { freight: r2(base * f), advalorem: c.adv, gris: c.gris, gris_min: 3.5, toll: c.toll, fraction: 100 }
-          if (bi === BANDS.length - 1) values.over_weight = r2((base * f) / 160)
+          if (bi === BANDS.length - 1) values.over_weight = r2((base * f) / 500)
           if (uf !== c.uf) values.tas = 2.9
           rules.push({ id: randomUUID(), cepStart: null, cepEnd: null, uf, city: null, weightMin: min, weightMax: max, deadlineDays: (c.days as Record<string, number>)[uf]!, restricted: false, values })
         }
@@ -671,7 +673,7 @@ async function main() {
     if (!nfeKey || !issued) continue
     // NF-e CIF com o vendedor nos dados adicionais: o frete cobrado do cliente alimenta a poupança de frete.
     const pct = sellerOf(x.who.id) === 'Ricardo Lemos' ? 10 : 15
-    const charged = r2(chosen.total! * (1 + pct / 100) + (rnd() - 0.4) * 40)
+    const charged = r2(chosen.total! * (1 + pct / 100) + (rnd() - 0.25) * 60)
     await prisma.freightNfe.create({
       data: {
         tenantId: t, key: nfeKey, number: nfeNumber, series: '1', issuedAt: issued, emitCnpj: x.unit.cnpj, unitId: x.unit.id, value: x.cargoValue, freightValue: charged, seller: sellerOf(x.who.id), freightMode: '0',
