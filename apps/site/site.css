@@ -248,3 +248,18 @@ img, video { display: block; max-width: 100%; }
   .btn, .card, .erp-card { transition: none; }
   .erp-card:hover { transform: none; }
 }
+
+/* Sistemas: os três pilares (cores do símbolo) e o MultiInsights no centro. */
+.pilares { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.pilar { padding: 24px; border-radius: var(--raio); background: #fff; border: 1px solid var(--borda); border-top: 6px solid var(--roxo); }
+.pilar-azul { border-top-color: var(--azul); }
+.pilar-amarelo { border-top-color: var(--amarelo); }
+.pilar-tag { margin: 0 0 14px; font-weight: 800; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--roxo); }
+.pilar-azul .pilar-tag { color: #0f7cba; }
+.pilar-amarelo .pilar-tag { color: #9a6b00; }
+.pilar ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.pilar li strong { display: block; font-size: 18px; color: var(--noite, #0F1222); }
+.pilar li span { display: block; font-size: 15px; line-height: 1.45; margin-top: 2px; }
+.pilar-centro { margin: 20px auto 0; max-width: 46em; padding: 20px 24px; border-radius: var(--raio); background: var(--noite, #0F1222); color: #d9d6f2; text-align: center; }
+.pilar-centro strong { display: block; color: #fff; font-size: 20px; margin-bottom: 4px; }
+@media (max-width: 900px) { .pilares { grid-template-columns: 1fr; } }

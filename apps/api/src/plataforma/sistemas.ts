@@ -1,5 +1,6 @@
 /**
- * Sistemas vendidos nos planos da plataforma: cada um libera um grupo de módulos do CRM. Os módulos da base valem para
+ * Sistemas vendidos nos planos da plataforma (família "Multi": vendas, logística e marketing conectados): cada um
+ * libera um grupo de módulos do CRM. Os módulos da base valem para
  * toda empresa. Funções puras, testadas em test/plataforma.spec.ts.
  */
 import { MODULE_KEYS, type PermissionSet } from '../common/permissions'
@@ -8,17 +9,17 @@ import { MODULE_KEYS, type PermissionSet } from '../common/permissions'
 export const BASE_MODULES = ['dashboard', 'leads', 'cadastros', 'usuarios', 'perfis', 'configuracoes', 'sugestoes', 'auditoria'] as const
 
 export const SYSTEMS = [
-  { key: 'atendimento', label: 'Atendimento (Pré-Vendas, Pós-Vendas, busca de leads e controle de brindes)', modules: ['pre_vendas', 'pos_vendas', 'brindes', 'prospeccao'] },
-  { key: 'whatsapp', label: 'WhatsApp (chat, números e monitoramento)', modules: ['chat', 'monitoramento', 'whatsapp'] },
-  { key: 'captura', label: 'Captura de leads (formulários, pop-ups e botões)', modules: ['captura'] },
-  { key: 'email_marketing', label: 'E-mail marketing, landing pages, automações e Web Push', modules: ['email_marketing', 'automacoes', 'web_push'] },
-  { key: 'postagens', label: 'Postagens no Instagram e no Facebook', modules: ['postagens'] },
-  { key: 'ecommerce', label: 'Integração com e-commerce (catálogo, carrinhos abandonados, SEO e fidelidade)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'], onRequest: true },
-  { key: 'erp', label: 'Integração com ERP (consulta de produtos, estoque e preço; Tcar, Trier, Bling, Tiny, Omie, Linx e CIGAM)', modules: ['consulta_produtos', 'erp_trier', 'erp_bling', 'erp_tiny', 'erp_omie', 'erp_linx_farma', 'erp_linx_moda', 'erp_cigam'], onRequest: true },
-  { key: 'relatorios', label: 'Relatórios, Google Ads e Power BI', modules: ['relatorios', 'google_ads', 'bi'] },
-  { key: 'marketing_inteligente', label: 'Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_mercado', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
-  { key: 'marketplaces', label: 'Marketplaces (Mercado Livre Ads, assistente de perguntas, SEO dos anúncios, preços e promoções, planejamento, publicar do ERP; Shopee, Amazon e TikTok Shop)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config', 'seo_marketplace', 'marketplace_precos', 'marketplace_planejamento', 'marketplace_publicar', 'mkt_shopee', 'mkt_amazon', 'mkt_tiktok'] },
-  { key: 'fretes', label: 'Fretes (cotação, tabelas das transportadoras, CT-e, faturas e conciliação)', modules: ['fretes_painel', 'fretes_coletas', 'fretes_cotacao', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais'] },
+  { key: 'atendimento', label: 'MultiVendas · Atendimento (Pré-Vendas, Pós-Vendas, busca de leads e controle de brindes)', modules: ['pre_vendas', 'pos_vendas', 'brindes', 'prospeccao'] },
+  { key: 'whatsapp', label: 'MultiChat · WhatsApp (chat, números e monitoramento)', modules: ['chat', 'monitoramento', 'whatsapp'] },
+  { key: 'captura', label: 'MultiLeads · Captura de leads (formulários, pop-ups e botões)', modules: ['captura'] },
+  { key: 'email_marketing', label: 'MultiCampanhas · E-mail marketing, landing pages, automações e Web Push', modules: ['email_marketing', 'automacoes', 'web_push'] },
+  { key: 'postagens', label: 'MultiSocial · Postagens no Instagram e no Facebook', modules: ['postagens'] },
+  { key: 'ecommerce', label: 'MultiLoja · Integração com e-commerce (catálogo, carrinhos abandonados, SEO e fidelidade)', modules: ['carrinhos', 'catalogo', 'seo_ecommerce', 'fidelidade'], onRequest: true },
+  { key: 'erp', label: 'MultiERP · Integração com ERP (consulta de produtos, estoque e preço; Tcar, Trier, Bling, Tiny, Omie, Linx e CIGAM)', modules: ['consulta_produtos', 'erp_trier', 'erp_bling', 'erp_tiny', 'erp_omie', 'erp_linx_farma', 'erp_linx_moda', 'erp_cigam'], onRequest: true },
+  { key: 'relatorios', label: 'MultiInsights · Relatórios, Google Ads e Power BI', modules: ['relatorios', 'google_ads', 'bi'] },
+  { key: 'marketing_inteligente', label: 'MultiRadar · Marketing Inteligente', modules: ['mi_executivo', 'mi_midia', 'mi_social', 'mi_seo', 'mi_comercial', 'mi_ia', 'mi_mercado', 'mi_orcamento', 'mi_relatorios', 'mi_config'] },
+  { key: 'marketplaces', label: 'MultiMarket · Marketplaces (Mercado Livre Ads, assistente de perguntas, SEO dos anúncios, preços e promoções, planejamento, publicar do ERP; Shopee, Amazon e TikTok Shop)', modules: ['marketplaces', 'assist_atendimento', 'assist_conhecimento', 'assist_aplicacoes', 'assist_config', 'seo_marketplace', 'marketplace_precos', 'marketplace_planejamento', 'marketplace_publicar', 'mkt_shopee', 'mkt_amazon', 'mkt_tiktok'] },
+  { key: 'fretes', label: 'MultiFrete · Gestão de fretes (cotação, tabelas das transportadoras, CT-e, faturas e conciliação)', modules: ['fretes_painel', 'fretes_coletas', 'fretes_cotacao', 'fretes_pedidos', 'fretes_cte', 'fretes_financeiro', 'fretes_tabelas', 'fretes_transportadoras', 'fretes_filiais'] },
 ] as const
 
 export type SystemKey = (typeof SYSTEMS)[number]['key']
