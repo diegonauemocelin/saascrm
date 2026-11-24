@@ -242,6 +242,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    com cotação, coleta e conciliação desligadas); histórico do WhatsApp liga o @lid à conversa do telefone pelas
    mensagens já gravadas (`lidOwners`, `resolveHistoryLids`) e botão "Juntar com a conversa certa"
    (`conversas/:id/juntar`).
+59. **1.0.165** (24/11/2026, da v3.0.72 da Usaparts): cotação com frete + reajuste (`mode` na campanha) + % do vendedor
+   (`ChargeHint`), poupança com base frete + reajuste (`surchargeBase`) e só com cotação/tabela (sem CT-e de base);
+   lote em tabelas (`tabelas/situacao`, `tabelas/excluir`), transportadoras (`transportadoras/situacao`) e cotações
+   (`cotacoes/cancelar`); campanhas em resumo com `MultiSelect`; CPF/CNPJ define PF/PJ; Web Push com envio de teste
+   (`webpush/teste`, `pushError`, `pushBrowser`) e motivo das falhas no envio.
 
 ## Como está no ar
 
