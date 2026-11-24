@@ -237,6 +237,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `trackingLast`, `trackingCarrier`); Análise de mercado fora dos marketplaces (`src/mercado`, tabela
    `market_analyses`, módulo `mi_mercado` no sistema Marketing Inteligente; IA Gemini ou Claude com pesquisa na web,
    só totais do CRM; também no menu de Fretes).
+58. **1.0.164** (24/11/2026, da v3.0.71 da Usaparts): transportadora nova cadastrada sozinha pelo CT-e
+   (`autoCarrierFromCte`, `CteService.autoCarrier`/`backfillCarriers`, colunas `quote`, `pickup`, `autoCreated`; entra
+   com cotação, coleta e conciliação desligadas); histórico do WhatsApp liga o @lid à conversa do telefone pelas
+   mensagens já gravadas (`lidOwners`, `resolveHistoryLids`) e botão "Juntar com a conversa certa"
+   (`conversas/:id/juntar`).
 
 ## Como está no ar
 
