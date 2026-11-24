@@ -247,6 +247,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    lote em tabelas (`tabelas/situacao`, `tabelas/excluir`), transportadoras (`transportadoras/situacao`) e cotações
    (`cotacoes/cancelar`); campanhas em resumo com `MultiSelect`; CPF/CNPJ define PF/PJ; Web Push com envio de teste
    (`webpush/teste`, `pushError`, `pushBrowser`) e motivo das falhas no envio.
+60. **1.0.166** (24/11/2026, da v3.0.73 da Usaparts): descadastro (`setEmailConsent` false) chama `leaveAllSends`:
+   fluxos ATIVO viram SAIU e destinatários PENDENTE saem da fila; `enroll` ignora quem tem `emailOptOutAt`;
+   `advance` tira do fluxo quem já tinha descadastrado; relatório mostra "Fora do envio".
 
 ## Como está no ar
 
