@@ -273,6 +273,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    por tabela (`fretes/limite.ts`); tipo de mercadoria em lote (`tabelas/mercadoria`); caixas sem peso máximo; Rodonaves
    (`rodonavesHint`, `rodonavesQuoteObject`); importação sugere Região e Cidade juntas; custo de publicidade do ML Ads por
    anúncio (`marketplace_ad_items`, `syncItemAds`, `adCostOf`, `adCostPass`/`adCostDays`); Web Push com `swConfirmed`.
+65. **1.0.171** (25/11/2026, da v3.0.78 da Usaparts): Diagnóstico das tabelas de frete (`/fretes/diagnostico`,
+   `GET fretes/ctes/diagnostico?dias=`, função pura `fretes/diagnostico.ts`): agrupa por transportadora os padrões dos CT-es
+   conciliados (ICMS por dentro/a mais, alíquota, taxa com outro nome ou fora da tabela, componente acima/abaixo, peso,
+   destinos sem regra, tabela vencida) e separa "Ajustar no CRM" de "Pedir à transportadora".
 
 ## Como está no ar
 
