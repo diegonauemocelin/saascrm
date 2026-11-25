@@ -153,9 +153,10 @@ export class MonitorService implements OnApplicationBootstrap, OnModuleDestroy {
         const st = await fs.stat(join(env.backupDir, f))
         if (!best || st.mtime > best.at) best = { name: f, at: st.mtime, mb: Math.round((st.size / 1024 ** 2) * 10) / 10 }
       }
-      return { last: best, count: files.length }
-    } catch {
-      return { last: null, count: 0 }
+      return { last: best, count: files.length, denied: false }
+    } catch (e) {
+      // Pasta só do usuário do backup (chmod 700): a API não consegue listar. O deploy.sh deixa em 755.
+      return { last: null, count: 0, denied: (e as NodeJS.ErrnoException).code === 'EACCES' }
     }
   }
 
@@ -230,7 +231,9 @@ export class MonitorService implements OnApplicationBootstrap, OnModuleDestroy {
           ? 'Pasta dos backups não ligada à API (atualize o servidor)'
           : backup?.last
             ? `Último em ${backup.last.at.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · ${backup.last.mb} MB · ${backup.count} guardado(s)`
-            : 'Nenhum backup encontrado',
+            : backup?.denied
+              ? 'Sem permissão para ver a pasta dos backups. No servidor: sudo chmod 755 na pasta backups (ou atualize o sistema)'
+              : 'Nenhum backup encontrado',
       },
       {
         key: 'disk',

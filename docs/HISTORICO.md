@@ -259,6 +259,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`demo-relogio.ts`/`DemoRelogioService`: move as datas das empresas `isDemo` pelos dias passados, de hora em hora;
    não move `users.passwordChangedAt`/`lockedUntil`; tabelas com índice único em data andam em duas etapas); site com
    a frase nova, pilares, tour em vídeo (`apps/site/video/tour-*.mp4`) e Open Graph (`img/compartilhar.jpg`).
+62. **1.0.168** (25/11/2026, da v3.0.75 da Usaparts): Preços e promoções com filtro pelos avisos (`alerta` na lista,
+   `TIP_FILTERS`/`matchTip` em `precos/margem.ts`) e ordens `lucro`, `lucro_desc`, `lucro_falta`, `preco_asc`;
+   Monitoramento distingue pasta de backups sem permissão (`denied`) e o `deploy.sh` deixa a pasta em 755 (o
+   `instalar.sh` já cria assim).
 
 ## Como está no ar
 
