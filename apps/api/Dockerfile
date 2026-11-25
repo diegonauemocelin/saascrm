@@ -46,6 +46,12 @@ COPY --chown=node:node apps/api/src/plataforma/perfis-padrao.ts ./src/plataforma
 # Empresas de demonstração (deploy/demo.sh).
 COPY --chown=node:node apps/api/src/auth/password.ts ./src/auth/password.ts
 COPY --chown=node:node apps/api/scripts/demo-segmentos.ts ./scripts/demo-segmentos.ts
+COPY --chown=node:node apps/api/scripts/demo-construcao.ts apps/api/scripts/demo-fretes.ts ./scripts/
+# A Prime Construtora usa a lista de sistemas; a Pulso Sports calcula as cotações, as campanhas e a conciliação com o
+# motor de fretes (funções puras, sem Nest).
+COPY --chown=node:node apps/api/src/plataforma/sistemas.ts ./src/plataforma/sistemas.ts
+COPY --chown=node:node apps/api/src/common/permissions.ts ./src/common/permissions.ts
+COPY --chown=node:node apps/api/src/fretes/campanhas.ts apps/api/src/fretes/catalogo.ts apps/api/src/fretes/conciliacao.ts apps/api/src/fretes/motor.ts apps/api/src/fretes/cep.ts apps/api/src/fretes/formula.ts ./src/fretes/
 COPY --chown=node:node releases.json /app/releases.json
 # Projeto do Power BI (Configurações › Power BI › Baixar projeto do Power BI).
 COPY --chown=node:node bi/powerbi /app/bi/powerbi

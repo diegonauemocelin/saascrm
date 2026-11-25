@@ -13,14 +13,14 @@ export interface SistemaDef {
 }
 
 export const SISTEMAS: SistemaDef[] = [
-  { id: 'atendimento', nome: 'Atendimento', descricao: 'Chat do WhatsApp, pré-venda, pós-venda e agenda de contatos.', grupos: ['Atendimento Comercial'] },
-  { id: 'dashboards', nome: 'Dashboards', descricao: 'Início, vendas em tempo real, atendimento e relatórios.', grupos: ['Dashboards', 'Análise'] },
-  { id: 'crm', nome: 'CRM e leads', descricao: 'Base de clientes e leads, com origem, código e vendedor.', grupos: ['CRM'] },
-  { id: 'marketing', nome: 'Marketing', descricao: 'E-mail, landing pages, postagens, captura e automações.', grupos: ['Marketing'] },
-  { id: 'mi', nome: 'Marketing Inteligente', descricao: 'Anúncios, Instagram, SEO, funil e recomendações da IA.', grupos: ['Marketing Inteligente'] },
-  { id: 'ecommerce', nome: 'E-commerce', descricao: 'Catálogo, carrinhos abandonados e SEO dos produtos.', grupos: ['E-commerce'] },
-  { id: 'marketplaces', nome: 'Marketplaces', descricao: 'Mercado Livre Ads e o Assistente das perguntas.', grupos: ['Marketplaces'] },
-  { id: 'fretes', nome: 'Fretes', descricao: 'Cotação de frete, tabelas das transportadoras, CT-e, faturas e conciliação.', grupos: ['Fretes'] },
+  { id: 'atendimento', nome: 'MultiVendas', descricao: 'Atendimento: MultiChat (WhatsApp), pré-venda, pós-venda e agenda de contatos.', grupos: ['Atendimento Comercial'] },
+  { id: 'dashboards', nome: 'MultiInsights', descricao: 'Painéis: início, vendas em tempo real, atendimento e relatórios.', grupos: ['Dashboards', 'Análise'] },
+  { id: 'crm', nome: 'MultiLeads', descricao: 'CRM: base de clientes e leads, com origem, código e vendedor.', grupos: ['CRM'] },
+  { id: 'marketing', nome: 'MultiCampanhas', descricao: 'Marketing: e-mail, landing pages, postagens (MultiSocial), captura e automações.', grupos: ['Marketing'] },
+  { id: 'mi', nome: 'MultiRadar', descricao: 'Marketing Inteligente: anúncios, Instagram, SEO, funil, análise de mercado e recomendações da IA.', grupos: ['Marketing Inteligente'] },
+  { id: 'ecommerce', nome: 'MultiLoja', descricao: 'E-commerce: catálogo, carrinhos abandonados, SEO dos produtos e fidelidade.', grupos: ['E-commerce'] },
+  { id: 'marketplaces', nome: 'MultiMarket', descricao: 'Marketplaces: Mercado Livre, Shopee, Amazon e TikTok Shop, anúncios, preços e perguntas.', grupos: ['Marketplaces'] },
+  { id: 'fretes', nome: 'MultiFrete', descricao: 'Gestão de fretes: cotação, tabelas das transportadoras, CT-e, faturas e conciliação.', grupos: ['Fretes'] },
   { id: 'admin', nome: 'Administração', descricao: 'Configurações, usuários, perfis e auditoria.', grupos: ['Administração', 'Plataforma'] },
 ]
 

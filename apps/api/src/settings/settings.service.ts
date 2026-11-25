@@ -57,9 +57,10 @@ export const DEFAULT_BRANDING: BrandingSettings = {
   faviconFileId: null,
   loginTitle: 'Bem-vindo de volta',
   loginSubtitle: 'Acesse sua conta para continuar.',
-  defaultLayout: 'MODERN',
+  // Padrão: visual "Por sistema" (escolha do sistema depois do login, nomes Multi) com as telas novas.
+  defaultLayout: 'SISTEMAS',
   allowLayoutChoice: true,
-  defaultScreens: 'ATUAL',
+  defaultScreens: 'NOVO',
   supportEmail: '',
   companyInfo: '',
 }
