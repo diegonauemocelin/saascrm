@@ -265,6 +265,14 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `instalar.sh` já cria assim).
 63. **1.0.169** (25/11/2026, da v3.0.76 da Usaparts): `deploy/backup/backup.sh` guarda só as `BACKUP_KEEP_UPLOADS`
    (padrão 3, mínimo 2) cópias mais recentes de `crm-uploads-*` (na Usaparts, 30 cópias de 9 GB encheram o disco).
+64. **1.0.170** (25/11/2026, da v3.0.77 da Usaparts): app de coletas (`/app/coletas`, `components/fretes/coletas-hoje.tsx`;
+   `POST fretes/coletas/chegou` marca coleta de horário fixo como `period FIXA` + `slot`; `arrivedAt`, `collectedAt`,
+   `volumes`, `invoices`; `pickupCountsRequired` na transportadora; `ColetasAvisoService` manda push 15 min antes do corte e
+   da coleta); CT-e com `senderName` (preenchido dos XMLs antigos no boot), filtros `uf`/busca por documento, contadores pelos
+   filtros, lista em cartões e DACTE (`/fretes/ctes/:id/dacte`, `lib/code128.ts`); cotação com `mapLimit` (6 tabelas) e 20 s
+   por tabela (`fretes/limite.ts`); tipo de mercadoria em lote (`tabelas/mercadoria`); caixas sem peso máximo; Rodonaves
+   (`rodonavesHint`, `rodonavesQuoteObject`); importação sugere Região e Cidade juntas; custo de publicidade do ML Ads por
+   anúncio (`marketplace_ad_items`, `syncItemAds`, `adCostOf`, `adCostPass`/`adCostDays`); Web Push com `swConfirmed`.
 
 ## Como está no ar
 

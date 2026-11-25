@@ -67,7 +67,8 @@ function RouteError() {
 const pages = {
   // App no celular (PWA): só conversas, painéis liberados e conta.
   appShell: () => page(() => import('@/pages/app/app-celular'), 'AppShell'),
-  appConversas: () => page(() => import('@/pages/app/app-celular'), 'AppConversas'),
+  appConversas: () => page(() => import('@/pages/app/app-celular'), 'AppInicio'),
+  appColetas: () => page(() => import('@/pages/app/app-celular'), 'AppColetas'),
   appConversa: () => page(() => import('@/pages/app/app-celular'), 'AppConversa'),
   appPaineis: () => page(() => import('@/pages/app/app-celular'), 'AppPaineis'),
   appMonitor: () => page(() => import('@/pages/app/app-celular'), 'AppMonitor'),
@@ -189,6 +190,7 @@ const pages = {
   fretesPedidos: () => page(() => import('@/pages/fretes/pedidos'), 'FretesPedidosPage'),
   fretesCtes: () => page(() => import('@/pages/fretes/ctes'), 'FretesCtesPage'),
   fretesCte: () => page(() => import('@/pages/fretes/ctes'), 'FretesCteDetalhePage'),
+  fretesDacte: () => page(() => import('@/pages/fretes/dacte'), 'FretesCteDactePage'),
   fretesConciliacao: () => page(() => import('@/pages/fretes/ctes'), 'FretesConciliacaoPage'),
   fretesConferencia: () => page(() => import('@/pages/fretes/conferencia'), 'FretesConferenciaPage'),
   fretesPoupanca: () => page(() => import('@/pages/fretes/poupanca'), 'FretesPoupancaPage'),
@@ -358,6 +360,7 @@ const router = createBrowserRouter([
               },
             ],
           },
+          { path: '/app/coletas', element: <Lazy>{pages.appColetas()}</Lazy> },
           { path: '/app/conta', element: <Lazy>{pages.appConta()}</Lazy> },
           { path: '*', element: <Navigate to="/app" replace /> },
         ],
@@ -470,6 +473,7 @@ const router = createBrowserRouter([
           { path: 'fretes/pedidos', element: <Lazy>{pages.fretesPedidos()}</Lazy> },
           { path: 'fretes/ctes', element: <Lazy>{pages.fretesCtes()}</Lazy> },
           { path: 'fretes/ctes/:id', element: <Lazy>{pages.fretesCte()}</Lazy> },
+          { path: 'fretes/ctes/:id/dacte', element: <Lazy>{pages.fretesDacte()}</Lazy> },
           { path: 'fretes/conciliacao', element: <Lazy>{pages.fretesConciliacao()}</Lazy> },
           { path: 'fretes/conferencia', element: <Lazy>{pages.fretesConferencia()}</Lazy> },
           { path: 'fretes/poupanca', element: <Lazy>{pages.fretesPoupanca()}</Lazy> },
