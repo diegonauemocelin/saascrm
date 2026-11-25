@@ -250,6 +250,15 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 60. **1.0.166** (24/11/2026, da v3.0.73 da Usaparts): descadastro (`setEmailConsent` false) chama `leaveAllSends`:
    fluxos ATIVO viram SAIU e destinatários PENDENTE saem da fila; `enroll` ignora quem tem `emailOptOutAt`;
    `advance` tira do fluxo quem já tinha descadastrado; relatório mostra "Fora do envio".
+61. **1.0.167** (24/11/2026, da v3.0.74 da Usaparts + trabalho só do SaaS): Web Push "Limpar inscritos que não
+   funcionam" (`webpush/limpar-inscritos`, `cleanSubscribers`, pula Safari com `isApplePush`); nomes Multi dos 11
+   sistemas em 3 pilares (`plataforma/sistemas.ts`, `web/src/lib/sistemas.ts`); padrão Por sistema + telas novas
+   (`DEFAULT_BRANDING`, migração `20261125010000_padrao_por_sistema` muda só quem estava em MODERN/ATUAL); empresas de
+   demonstração Prime Construtora (`scripts/demo-construcao.ts`, slug `prime`, tudo menos fretes) e Pulso Sports
+   (`scripts/demo-fretes.ts`, slug `pulso`, só fretes), criadas por `deploy/demo.sh`; relógio da demo
+   (`demo-relogio.ts`/`DemoRelogioService`: move as datas das empresas `isDemo` pelos dias passados, de hora em hora;
+   não move `users.passwordChangedAt`/`lockedUntil`; tabelas com índice único em data andam em duas etapas); site com
+   a frase nova, pilares, tour em vídeo (`apps/site/video/tour-*.mp4`) e Open Graph (`img/compartilhar.jpg`).
 
 ## Como está no ar
 

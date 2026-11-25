@@ -2,6 +2,38 @@
   "$comment": "Fonte única de versão do sistema. A entrada de maior versão é a versão instalada. Toda entrega adiciona uma nova entrada no topo (ver docs/RELEASES.md).",
   "releases": [
     {
+      "version": "1.0.167",
+      "date": "2026-11-24",
+      "title": "Novo visual Por sistema como padrão, nomes Multi e empresas de demonstração",
+      "changes": [
+        {
+          "type": "novo",
+          "area": "Plataforma",
+          "text": "Os 11 sistemas ganharam nomes da família Multi, em três pilares: Conecta Vendas (MultiVendas, MultiChat, MultiLeads), Conecta Logística (MultiFrete, MultiMarket, MultiERP) e Conecta Marketing (MultiCampanhas, MultiSocial, MultiLoja, MultiRadar), com o MultiInsights no centro."
+        },
+        {
+          "type": "melhoria",
+          "area": "Plataforma",
+          "text": "O visual Por sistema, com as telas novas, passa a ser o padrão: depois do login cada pessoa escolhe o sistema e o menu mostra só as telas dele. Empresas que estavam no padrão antigo mudam junto; quem escolheu outro modelo (empresa ou usuário) continua como está."
+        },
+        {
+          "type": "novo",
+          "area": "Plataforma",
+          "text": "Duas empresas de demonstração para apresentar a clientes: Prime Construtora (vendas e marketing) e Pulso Sports (só fretes), com as datas sempre atuais (os dados andam junto com o calendário)."
+        },
+        {
+          "type": "melhoria",
+          "area": "Site",
+          "text": "Site com a frase nova (a plataforma que conecta vendas, logística e marketing), a seção dos três pilares, o tour em vídeo com legendas e a imagem de prévia ao compartilhar o link no WhatsApp e nas redes."
+        },
+        {
+          "type": "melhoria",
+          "area": "Marketing",
+          "text": "Web Push: botão \"Limpar inscritos que não funcionam\" em Inscritos. Consulta cada inscrição no serviço do navegador e tira da lista as que não existem mais. Use de vez em quando; as inscrições do Safari não são conferidas."
+        }
+      ]
+    },
+    {
       "version": "1.0.166",
       "date": "2026-11-24",
       "title": "Descadastro tira o lead de todos os fluxos e envios de e-mail",
