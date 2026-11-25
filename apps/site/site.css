@@ -263,3 +263,10 @@ img, video { display: block; max-width: 100%; }
 .pilar-centro { margin: 20px auto 0; max-width: 46em; padding: 20px 24px; border-radius: var(--raio); background: var(--noite, #0F1222); color: #d9d6f2; text-align: center; }
 .pilar-centro strong { display: block; color: #fff; font-size: 20px; margin-bottom: 4px; }
 @media (max-width: 900px) { .pilares { grid-template-columns: 1fr; } }
+
+/* Tour pela plataforma (vídeos com legenda) */
+.tour { display: grid; gap: 28px; margin-top: 28px; }
+@media (min-width: 900px) { .tour { grid-template-columns: 1fr 1fr; } }
+.tour figure { margin: 0; }
+.tour .janela video { aspect-ratio: 16 / 9; object-fit: contain; background: #0F1222; }
+.tour figcaption { margin-top: 12px; font-size: .95rem; opacity: .85; line-height: 1.45; }
