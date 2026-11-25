@@ -35,21 +35,31 @@ export function daysBetween(from: string, to: string) {
 /**
  * Comandos SQL que movem as datas de uma empresa: tabelas com "tenantId" direto; tabelas sem ele (ex.: destinatários
  * do e-mail, eventos do pedido) pela tabela-mãe que tem. Parâmetros: $1 = dias, $2 = empresa.
+ * Tabelas com chave única que inclui uma data (ex.: um registro por dia) andam em duas etapas (100 anos à frente e
+ * volta), senão um dia novo bate no dia seguinte que ainda não andou.
  */
-export function shiftStatements(columns: DateColumn[], tenantTables: Set<string>, fks: ForeignKey[]) {
+export function shiftStatements(columns: DateColumn[], tenantTables: Set<string>, fks: ForeignKey[], uniqueDated: Set<string> = new Set()) {
   const byTable = new Map<string, string[]>()
   for (const c of columns) if (!DEMO_SKIP.has(c.table) && !DEMO_SKIP_COLUMNS.has(`${c.table}.${c.column}`)) byTable.set(c.table, [...(byTable.get(c.table) ?? []), c.column])
   const out: string[] = []
+  const FAR = 36500
   for (const [table, cols] of byTable) {
-    const set = cols.map((c) => `${q(c)} = ${q(c)} + make_interval(days => $1::int)`).join(', ')
-    if (tenantTables.has(table)) {
-      out.push(`UPDATE ${q(table)} SET ${set} WHERE "tenantId" = $2::uuid`)
-      continue
+    const steps = uniqueDated.has(table) ? [`$1::int + ${FAR}`, `$1::int * 0 - ${FAR}`] : ['$1::int']
+    let where: string
+    let from = ''
+    let pre = ''
+    if (tenantTables.has(table)) where = `"tenantId" = $2::uuid`
+    else {
+      const fk = fks.find((f) => f.child === table && tenantTables.has(f.parent) && !DEMO_SKIP.has(f.parent))
+      if (!fk) continue
+      pre = 'ch.'
+      from = ` FROM ${q(fk.parent)} AS p`
+      where = `ch.${q(fk.column)} = p."id" AND p."tenantId" = $2::uuid`
     }
-    const fk = fks.find((f) => f.child === table && tenantTables.has(f.parent) && !DEMO_SKIP.has(f.parent))
-    if (!fk) continue
-    const setChild = cols.map((c) => `${q(c)} = ch.${q(c)} + make_interval(days => $1::int)`).join(', ')
-    out.push(`UPDATE ${q(table)} AS ch SET ${setChild} FROM ${q(fk.parent)} AS p WHERE ch.${q(fk.column)} = p."id" AND p."tenantId" = $2::uuid`)
+    for (const days of steps) {
+      const set = cols.map((c) => `${q(c)} = ${pre}${q(c)} + make_interval(days => ${days})`).join(', ')
+      out.push(`UPDATE ${q(table)}${pre ? ' AS ch' : ''} SET ${set}${from} WHERE ${where}`)
+    }
   }
   return out
 }

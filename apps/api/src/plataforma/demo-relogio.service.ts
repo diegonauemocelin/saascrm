@@ -38,7 +38,13 @@ export class DemoRelogioService implements OnApplicationBootstrap, OnModuleDestr
       JOIN pg_class cl ON cl.oid = c.conrelid JOIN pg_class pr ON pr.oid = c.confrelid
       JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
       WHERE c.contype = 'f' AND array_length(c.conkey, 1) = 1`
-    return shiftStatements(columns, new Set(tenant.map((t) => t.table)), fks)
+    // Tabelas com índice único que inclui uma coluna de data (andam em duas etapas).
+    const unique = await this.prisma.$queryRaw<{ table: string }[]>`
+      SELECT DISTINCT cl.relname AS "table" FROM pg_index i
+      JOIN pg_class cl ON cl.oid = i.indrelid JOIN pg_namespace n ON n.oid = cl.relnamespace
+      JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+      WHERE i.indisunique AND n.nspname = 'public' AND a.atttypid IN ('date'::regtype, 'timestamp'::regtype, 'timestamptz'::regtype)`
+    return shiftStatements(columns, new Set(tenant.map((t) => t.table)), fks, new Set(unique.map((u) => u.table)))
   }
 
   async tick() {

@@ -38,4 +38,11 @@ describe('demonstração com as datas sempre atuais', () => {
     )
     expect(sql).toEqual(['UPDATE "users" SET "lastLoginAt" = "lastLoginAt" + make_interval(days => $1::int) WHERE "tenantId" = $2::uuid'])
   })
+  it('tabela com um registro por dia anda em duas etapas', () => {
+    const sql = shiftStatements([{ table: 'ads_days', column: 'date' }], new Set(['ads_days']), [], new Set(['ads_days']))
+    expect(sql).toEqual([
+      'UPDATE "ads_days" SET "date" = "date" + make_interval(days => $1::int + 36500) WHERE "tenantId" = $2::uuid',
+      'UPDATE "ads_days" SET "date" = "date" + make_interval(days => $1::int * 0 - 36500) WHERE "tenantId" = $2::uuid',
+    ])
+  })
 })
