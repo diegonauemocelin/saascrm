@@ -216,7 +216,7 @@ function AppearanceCard({ me }: { me: Me }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <LayoutPicker value={{ layout: me.layout, screens: me.screens ?? 'ATUAL' }} onChange={(m) => savePref(m)} disabled={!me.allowLayoutChoice} />
+        <LayoutPicker value={{ layout: me.layout, screens: me.screens ?? 'NOVO' }} onChange={(m) => savePref(m)} disabled={!me.allowLayoutChoice} />
         <div>
           <p className="mb-2 text-sm font-medium">Tema</p>
           <RadioGroup

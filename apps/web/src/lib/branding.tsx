@@ -10,7 +10,7 @@ export const FALLBACK_BRANDING: Branding = {
   sidebarColor: '#0f1e3d',
   loginTitle: 'Bem-vindo de volta',
   loginSubtitle: 'Acesse sua conta para continuar.',
-  defaultLayout: 'MODERN',
+  defaultLayout: 'SISTEMAS',
   allowLayoutChoice: true,
   supportEmail: '',
   logoUrl: null,

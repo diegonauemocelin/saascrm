@@ -159,7 +159,7 @@ async function main() {
   })
   const t = tenant.id
   const setting = (key: string, value: unknown) => prisma.tenantSetting.create({ data: { tenantId: t, key, value: json(value) } })
-  await setting('branding', { appName: SHORT, shortName: SHORT, primaryColor: COLORS.primary, brandColor: COLORS.primary, sidebarColor: COLORS.sidebar })
+  await setting('branding', { appName: SHORT, shortName: SHORT, primaryColor: COLORS.primary, brandColor: COLORS.primary, sidebarColor: COLORS.sidebar, defaultLayout: 'SISTEMAS', defaultScreens: 'NOVO' })
   const adminRoleId = await createDefaultRoles(prisma, t)
   const ALL = { canView: true, canCreate: true, canEdit: true, canDelete: true, canExport: true }
   const WORK = { canView: true, canCreate: true, canEdit: true, canExport: true }

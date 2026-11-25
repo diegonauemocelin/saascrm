@@ -107,6 +107,12 @@ export interface ModelChoice {
 }
 
 const OPTIONS: (ModelChoice & { title: string; text: string })[] = [
+  {
+    layout: 'SISTEMAS',
+    screens: 'NOVO',
+    title: 'Por sistema (padrão)',
+    text: 'Depois do login, escolhe o sistema (Atendimento, Marketing...); o menu mostra só as telas dele, com troca rápida no topo. Telas novas.',
+  },
   { layout: 'MODERN', screens: 'ATUAL', title: 'Moderno', text: 'Menu lateral recolhível, com as telas de sempre.' },
   { layout: 'CLASSIC', screens: 'ATUAL', title: 'Clássico', text: 'Menu superior com listas suspensas, no estilo do RD Station.' },
   {
@@ -116,12 +122,6 @@ const OPTIONS: (ModelChoice & { title: string; text: string })[] = [
     text: 'Menu lateral, Minha fila no início, Pré-Vendas em quadro e chat com painel do cliente e cores de espera.',
   },
   { layout: 'CLASSIC', screens: 'NOVO', title: 'Clássico com telas novas', text: 'Menu superior, Minha fila no início, Pré-Vendas em quadro e chat com painel do cliente.' },
-  {
-    layout: 'SISTEMAS',
-    screens: 'NOVO',
-    title: 'Por sistema (novo visual)',
-    text: 'Depois do login, escolhe o sistema (Atendimento, Marketing...); o menu mostra só as telas dele, com troca rápida no topo. Telas novas.',
-  },
 ]
 
 /** Os modelos: layout (Moderno, Clássico ou Por sistema) combinado com as telas (de sempre ou novas). */

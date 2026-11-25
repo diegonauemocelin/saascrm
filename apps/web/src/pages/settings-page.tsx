@@ -273,7 +273,7 @@ export function AppearanceTab() {
   const [allow, setAllow] = useState<boolean | null>(null)
 
   const save = useMutation({
-    mutationFn: (b: Branding) => api.put<Branding>('/settings/branding', { ...pickForm(b), defaultLayout: model?.layout ?? b.defaultLayout, defaultScreens: model?.screens ?? b.defaultScreens ?? 'ATUAL', allowLayoutChoice: allow ?? b.allowLayoutChoice }),
+    mutationFn: (b: Branding) => api.put<Branding>('/settings/branding', { ...pickForm(b), defaultLayout: model?.layout ?? b.defaultLayout, defaultScreens: model?.screens ?? b.defaultScreens ?? 'NOVO', allowLayoutChoice: allow ?? b.allowLayoutChoice }),
     onSuccess: (b) => {
       onSaved(b)
       toast.success('Aparência salva.')
@@ -292,7 +292,7 @@ export function AppearanceTab() {
         <CardDescription>Como o sistema aparece para quem ainda não escolheu um modelo em Meu perfil: layout Moderno ou Clássico, com as telas de sempre ou as telas novas.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <LayoutPicker value={model ?? { layout: b.defaultLayout, screens: b.defaultScreens ?? 'ATUAL' }} onChange={setModel} disabled={!canEdit} />
+        <LayoutPicker value={model ?? { layout: b.defaultLayout, screens: b.defaultScreens ?? 'NOVO' }} onChange={setModel} disabled={!canEdit} />
         <label className="flex items-start justify-between gap-4 rounded-md border p-3 text-sm">
           <span>
             <span className="font-medium">Permitir que cada usuário escolha o próprio modelo</span>

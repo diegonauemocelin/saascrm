@@ -146,7 +146,7 @@ async function main() {
   })
   const t = tenant.id
   const setting = (key: string, value: unknown) => prisma.tenantSetting.create({ data: { tenantId: t, key, value: json(value) } })
-  await setting('branding', { appName: NAME, shortName: NAME, primaryColor: COLORS.primary, brandColor: COLORS.primary, sidebarColor: COLORS.sidebar })
+  await setting('branding', { appName: NAME, shortName: NAME, primaryColor: COLORS.primary, brandColor: COLORS.primary, sidebarColor: COLORS.sidebar, defaultLayout: 'SISTEMAS', defaultScreens: 'NOVO' })
   await setting('postagens_contas', { accounts: [{ id: 'ig-oficial', network: 'instagram', externalId: '17841400000000031', name: '@primeconstrutora', group: 'Oficial' }, { id: 'fb-pagina', network: 'facebook', externalId: '100000000000031', name: NAME, group: 'Oficial' }] })
   const adminRoleId = await createDefaultRoles(prisma, t)
   const supplies = await prisma.role.create({ data: { tenantId: t, name: 'Suprimentos', description: 'Compras das obras: consulta de leads e chat com fornecedores.', permissions: { create: [{ module: 'dashboard', canView: true }, { module: 'chat', canView: true, canCreate: true, canEdit: true }] } } })
