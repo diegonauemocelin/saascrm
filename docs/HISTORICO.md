@@ -263,6 +263,8 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `TIP_FILTERS`/`matchTip` em `precos/margem.ts`) e ordens `lucro`, `lucro_desc`, `lucro_falta`, `preco_asc`;
    Monitoramento distingue pasta de backups sem permissão (`denied`) e o `deploy.sh` deixa a pasta em 755 (o
    `instalar.sh` já cria assim).
+63. **1.0.169** (25/11/2026, da v3.0.76 da Usaparts): `deploy/backup/backup.sh` guarda só as `BACKUP_KEEP_UPLOADS`
+   (padrão 3, mínimo 2) cópias mais recentes de `crm-uploads-*` (na Usaparts, 30 cópias de 9 GB encheram o disco).
 
 ## Como está no ar
 
