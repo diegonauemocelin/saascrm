@@ -27,4 +27,15 @@ describe('demonstração com as datas sempre atuais', () => {
     expect(sql[1]).toContain('UPDATE "email_recipients" AS ch SET "sentAt" = ch."sentAt"')
     expect(sql[1]).toContain('FROM "email_campaigns" AS p WHERE ch."campaignId" = p."id" AND p."tenantId" = $2::uuid')
   })
+  it('senha trocada não anda com o relógio (senão o login cai)', () => {
+    const sql = shiftStatements(
+      [
+        { table: 'users', column: 'passwordChangedAt' },
+        { table: 'users', column: 'lastLoginAt' },
+      ],
+      new Set(['users']),
+      [],
+    )
+    expect(sql).toEqual(['UPDATE "users" SET "lastLoginAt" = "lastLoginAt" + make_interval(days => $1::int) WHERE "tenantId" = $2::uuid'])
+  })
 })

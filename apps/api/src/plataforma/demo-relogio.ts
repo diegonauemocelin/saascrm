@@ -8,6 +8,8 @@ export const DEMO_CLOCK_KEY = 'demo_relogio'
 
 /** Tabelas que nunca mudam: histórico de auditoria, cobrança da plataforma, domínios e acessos. */
 export const DEMO_SKIP = new Set(['audit_logs', 'tenant_payments', 'tenant_domains', 'passkeys', 'push_subscriptions', 'refresh_tokens', 'trusted_devices', 'recovery_codes', 'password_reset_tokens', 'tenants', '_prisma_migrations', 'plans', 'system_releases'])
+/** Colunas de segurança que não andam com o relógio (senha trocada no futuro derrubaria o login). */
+export const DEMO_SKIP_COLUMNS = new Set(['users.passwordChangedAt', 'users.lockedUntil'])
 
 export interface DateColumn {
   table: string
@@ -36,7 +38,7 @@ export function daysBetween(from: string, to: string) {
  */
 export function shiftStatements(columns: DateColumn[], tenantTables: Set<string>, fks: ForeignKey[]) {
   const byTable = new Map<string, string[]>()
-  for (const c of columns) if (!DEMO_SKIP.has(c.table)) byTable.set(c.table, [...(byTable.get(c.table) ?? []), c.column])
+  for (const c of columns) if (!DEMO_SKIP.has(c.table) && !DEMO_SKIP_COLUMNS.has(`${c.table}.${c.column}`)) byTable.set(c.table, [...(byTable.get(c.table) ?? []), c.column])
   const out: string[] = []
   for (const [table, cols] of byTable) {
     const set = cols.map((c) => `${q(c)} = ${q(c)} + make_interval(days => $1::int)`).join(', ')
