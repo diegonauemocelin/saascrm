@@ -28,7 +28,7 @@ export function AppSidebar({ porSistema = false, ...props }: React.ComponentProp
   const { can, me } = useAuth()
   const branding = useBranding()
   const { atual } = useSistemaAtual()
-  const groups = visibleNavigation(can, !!me?.role.isSystem, me?.onRequest, !!me?.company?.isPlatform)
+  const groups = visibleNavigation(can, !!me?.role.isSystem, me?.onRequest, !!me?.company?.isPlatform, me?.hiddenScreens)
 
   return (
     <Sidebar collapsible="icon" {...props}>

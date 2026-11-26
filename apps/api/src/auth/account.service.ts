@@ -52,6 +52,8 @@ export class AccountService {
       role: user.role,
       seller,
       permissions: user.permissions,
+      // Telas do menu escondidas pelo perfil (o Administrador vê todas).
+      hiddenScreens: user.role.isSystem ? [] : ((await this.prisma.role.findUnique({ where: { id: user.role.id }, select: { hiddenScreens: true } }))?.hiddenScreens ?? []),
       // Só os módulos dos sistemas do plano (o editor de perfis mostra só esses).
       modules: MODULES.filter((m) => allowedModules(tenant).has(m.key)),
       // Sistemas sob consulta que a empresa não tem: o menu mostra com a marca "Sob consulta".

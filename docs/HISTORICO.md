@@ -277,6 +277,11 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `GET fretes/ctes/diagnostico?dias=`, função pura `fretes/diagnostico.ts`): agrupa por transportadora os padrões dos CT-es
    conciliados (ICMS por dentro/a mais, alíquota, taxa com outro nome ou fora da tabela, componente acima/abaixo, peso,
    destinos sem regra, tabela vencida) e separa "Ajustar no CRM" de "Pedir à transportadora".
+66. **1.0.172** (26/11/2026, da v3.0.79 da Usaparts): telas do menu por perfil (`roles.hiddenScreens`, migração
+   `20261126120000_perfil_telas`; `screensOfModule`/`screenHidden` em `lib/navigation.tsx`, `ScreenGuard` nos layouts,
+   `visibleNavigation(..., hidden)`; `/me` devolve `hiddenScreens`); busca de CT-e pelo número da NF (nNF dentro de
+   `nfeKeys`, SQL em `cte.service.ts`); chat aceita XML (`envio.ts`, servido como download); links em nova janela com
+   `?completo=1` (DACTE) para não cair no app de Chat.
 
 ## Como está no ar
 
