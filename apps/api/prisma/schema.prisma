@@ -2945,6 +2945,8 @@ model FreightTableVersion {
   publishedAt   DateTime?
   publishedById String? @db.Uuid
   publishedByName String?
+  /// Correção da versão anterior: vale também na conciliação dos CT-es emitidos desde esta data (antes da publicação).
+  ctesFrom      DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

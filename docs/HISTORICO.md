@@ -282,6 +282,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    `visibleNavigation(..., hidden)`; `/me` devolve `hiddenScreens`); busca de CT-e pelo número da NF (nNF dentro de
    `nfeKeys`, SQL em `cte.service.ts`); chat aceita XML (`envio.ts`, servido como download); links em nova janela com
    `?completo=1` (DACTE) para não cair no app de Chat.
+67. **1.0.173** (26/11/2026, da v3.0.80 da Usaparts): versão de tabela que corrige a anterior vale na conciliação
+   desde uma data (`freight_table_versions.ctesFrom`, migração `20261126150000_versao_ctes_desde`, `POST
+   tabelas/:id/versoes/:vid/ctes-desde`, escolha em `fretes/versoes.ts` `pickVersionsAt`); cotação busca a faixa de CEP com
+   `SET LOCAL enable_seqscan = off` (o Postgres lia `freight_rules` inteira); log "Cotação lenta" acima de 3 s.
 
 ## Como está no ar
 
