@@ -292,6 +292,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 69. **1.0.175** (27/11/2026, da v3.0.82 da Usaparts): `cteName` com vários nomes separados por `;` (até 200
    caracteres, `conciliacao.ts`); `isIcmsName` reconhece "IMP REPASSADO", "ICMS…", "IMPOSTOS", "TRIBUTOS" como o ICMS
    (também no Diagnóstico); `parseBaseList` aceita a coluna PRAÇA (vira "UF - PRAÇA") e prazo em texto.
+70. **1.0.176** (27/11/2026, da v3.0.82/v3.0.83 da Usaparts): análise inteligente do CT-e com o Gemini gratuito
+   (`POST fretes/ctes/:id/analise-ia`, `cte.service.ts` `aiAnalyze`; pedido e leitura em `fretes/cte-ia.ts`, extras do XML
+   em `cteXmlExtras`; resultado em `freight_ctes.aiAnalysis`/`aiAnalysisAt`, migração `20261127150000_cte_analise_ia`;
+   painel `CteAiPanel` em `pages/fretes/ctes.tsx`).
 
 ## Como está no ar
 
