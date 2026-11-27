@@ -300,6 +300,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (ou pedido cotado pela API) fica CONCILIADO e aprovado (`onlineIntegrationFor` em `integracoes.ts`, `recSource` API);
    filtro `frete=CIF|FOB` pelo papel TOMADOR; `ordem=divergencia` (maior diferença primeiro, clique no card Diferença);
    Diagnóstico com transportadoras recolhidas.
+72. **1.0.178** (27/11/2026, da v3.0.85 da Usaparts): leitura do print do orçamento (`POST fretes/cotacao/pecas-ia`,
+   `pecas-ia.ts`: itens + cabeçalho; `geminiGrounded` aceita imagens) que preenche a cotação; texto para transportadora
+   (`lib/fretes-texto.ts` `carrierQuoteText`, `CarrierTextPanel`); caixa cadastrada pelo número/nome na linha do volume.
 
 ## Como está no ar
 
