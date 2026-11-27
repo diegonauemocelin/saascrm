@@ -286,6 +286,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    desde uma data (`freight_table_versions.ctesFrom`, migração `20261126150000_versao_ctes_desde`, `POST
    tabelas/:id/versoes/:vid/ctes-desde`, escolha em `fretes/versoes.ts` `pickVersionsAt`); cotação busca a faixa de CEP com
    `SET LOCAL enable_seqscan = off` (o Postgres lia `freight_rules` inteira); log "Cotação lenta" acima de 3 s.
+68. **1.0.174** (27/11/2026, da v3.0.81 da Usaparts): a transação com `SET LOCAL enable_seqscan` por tabela esgotava o
+   pool do banco (erro 500 em nova versão e na conciliação em lote). Troca por `rulesByCep` em `cotacao.service.ts`: faixa
+   que começa mais perto do CEP (índice, sem transação) e, só se não cobrir, a busca completa.
 
 ## Como está no ar
 
