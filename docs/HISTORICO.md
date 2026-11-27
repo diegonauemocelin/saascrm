@@ -289,6 +289,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 68. **1.0.174** (27/11/2026, da v3.0.81 da Usaparts): a transação com `SET LOCAL enable_seqscan` por tabela esgotava o
    pool do banco (erro 500 em nova versão e na conciliação em lote). Troca por `rulesByCep` em `cotacao.service.ts`: faixa
    que começa mais perto do CEP (índice, sem transação) e, só se não cobrir, a busca completa.
+69. **1.0.175** (27/11/2026, da v3.0.82 da Usaparts): `cteName` com vários nomes separados por `;` (até 200
+   caracteres, `conciliacao.ts`); `isIcmsName` reconhece "IMP REPASSADO", "ICMS…", "IMPOSTOS", "TRIBUTOS" como o ICMS
+   (também no Diagnóstico); `parseBaseList` aceita a coluna PRAÇA (vira "UF - PRAÇA") e prazo em texto.
 
 ## Como está no ar
 
