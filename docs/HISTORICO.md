@@ -303,6 +303,9 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
 72. **1.0.178** (27/11/2026, da v3.0.85 da Usaparts): leitura do print do orçamento (`POST fretes/cotacao/pecas-ia`,
    `pecas-ia.ts`: itens + cabeçalho; `geminiGrounded` aceita imagens) que preenche a cotação; texto para transportadora
    (`lib/fretes-texto.ts` `carrierQuoteText`, `CarrierTextPanel`); caixa cadastrada pelo número/nome na linha do volume.
+73. **1.0.179** (27/11/2026, da v3.0.86 da Usaparts): resumo do vendedor com 2º envio (`DIGEST_SLOTS` em
+   `relatorio-semanal.service.ts`, chaves `seller_weekly_2`/`seller_weekly_2_log`, `?envio=2`; começa mensal com menos
+   informações) e dia do envio escolhido (`sendDay`: dia da semana no semanal, 1 a 28 no mensal; `reportCycle(..., sendDay)`).
 
 ## Como está no ar
 
