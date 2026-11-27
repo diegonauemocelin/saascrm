@@ -296,6 +296,10 @@ o que falta. O histórico de código está nos commits da `main`; aqui ficam as 
    (`POST fretes/ctes/:id/analise-ia`, `cte.service.ts` `aiAnalyze`; pedido e leitura em `fretes/cte-ia.ts`, extras do XML
    em `cteXmlExtras`; resultado em `freight_ctes.aiAnalysis`/`aiAnalysisAt`, migração `20261127150000_cte_analise_ia`;
    painel `CteAiPanel` em `pages/fretes/ctes.tsx`).
+71. **1.0.177** (27/11/2026, da v3.0.84 da Usaparts): CT-e de transportadora com integração online ligada e sem tabela
+   (ou pedido cotado pela API) fica CONCILIADO e aprovado (`onlineIntegrationFor` em `integracoes.ts`, `recSource` API);
+   filtro `frete=CIF|FOB` pelo papel TOMADOR; `ordem=divergencia` (maior diferença primeiro, clique no card Diferença);
+   Diagnóstico com transportadoras recolhidas.
 
 ## Como está no ar
 
